@@ -1,0 +1,637 @@
+#!/bin/bash
+
+export FPSMAKE_VERSION="1.0.0"
+
+SCRIPT_NAME=$(basename "$(test -L "$0" && readlink "$0" || echo "$0")")
+SCRIPT_DIR=$(dirname "$(readlink -e "${0}")")
+
+[[ -z ${SCRIPT_DIR} ]] && SCRIPT_DIR=$(readlink -f $(which "${SCRIPT_NAME}"))
+
+#
+# Initialize important environment variables
+#
+FPSMAKE_COMMON="${SCRIPT_DIR}/fpsmake.common"
+if [[ ! -f ${FPSMAKE_COMMON} ]] ; then 
+  echo "" 1>&2
+  echo "[ ${SCRIPT_NAME} ] :: ERROR :: Failed to source/import script '${FPSMAKE_COMMON}'" 1>&2
+  echo "" 1>&2
+  exit 1
+fi
+
+source ${FPSMAKE_COMMON}
+fps__init_environment
+if [[ -z ${FPS_ROOT_DIR} ]] ; then 
+  echo "" 1>&2
+  echo "[ ${SCRIPT_NAME} ] :: ERROR :: Shell environment is not properly initialized (FPS_ROOT_DIR) :: Line ${LINENO}" 1>&2
+  echo "" 1>&2
+  exit 1
+fi
+
+USAGE_TEXT="VERSION
+        ${SCRIPT_NAME} ${FPSMAKE_VERSION}
+
+SYNOPSIS
+        ${SCRIPT_NAME} <options> [target 1] [target 2] ... [target N]
+
+        If one or more targets are named on the command line, ${SCRIPT_NAME} will build only those targets and their dependencies.
+
+        If no targets are named on the command line, ${SCRIPT_NAME} will attempt to build every target defined in or below
+        the current source directory.  If no targets are defined in or below the current source directory, all targets
+        are built.
+
+OPTIONS
+        -h, --help :
+            Print this message and exit.
+
+        -v, --verbose
+            Enable verbose output.  Multiple instances of this argument can be passed to increase verbosity. 
+              -v   : Enable verbose log messages from from fpsmake 
+              -vv  : Additionally enable verbose output from cmake.
+              -vvv : Additionally enable verbose output from the current compiler.
+
+        --version
+            Display ${SCRIPT_NAME} version number and return.
+
+        -r, --regenerate
+            Force regeneration of all makefiles and then rebuild.
+            DEFAULT: False
+
+        --regenerate-only
+            Force regeneration of all makefiles but don't rebuild.
+            DEFAULT: False
+
+        --skip-cmake
+            Build without regenerating makefiles.  Use with caution.
+
+        --install
+            Run post-build installation step after a successful build.  
+
+        -o, --optimized
+            Build optimized targets.
+
+        -d, --debug
+            Build debug targets. ( Default )
+
+        -p, --profile
+            Create instrumented binaries that produce feedback files used during profile guided optimization.
+
+        -l, --linkage  [ shared | static ]
+            Specify an alternate library linkage format.  By default, static linkage is assumed.
+
+        --ninja
+            Use ninja instead of make.  If the previous run of ${SCRIPT_NAME} didn't
+            include this option then you must provide the --regenerate option
+            and remove all old copies of CMakeCache.txt.  This can be done
+            easily using 'find . -name CMakeCache.txt | xargs rm'.  These are
+            also necessary when switching back from ninja to make.
+
+        -c, --clean
+            Remove previously build targets and build intermediates.
+
+        --really-clean
+            Delete the entire out-of-source build directory associated with this plan and regenerate makefiles.
+
+        -j, --jobs [ NUMBER ]
+            Specify the number of concurrent processes to use during compilation.
+            By default, ${SCRIPT_NAME} uses 1/2 of the available system cores plus 1.
+
+        --run-ctest
+            Build everything, then run ctest from the appropriate subdirectory of FPS_ROOT_DIR/build.
+
+        --build-tag [ STRING ]
+            Specify a tag string to associate with this build.
+
+        --plan [ PLAN_NAME ]
+            Use an alternate build plan identified by PLAN_NAME.
+
+        --edit-plan [ PLAN_NAME ]
+            Create/Open the build plan identified by PLAN_NAME.
+
+        --list-plans  
+            List available user-defined plans.
+
+        --with-ctags
+            If set, ${SCRIPT_NAME} will automatically generate a 'ctags' based tag file for use with compatable editor.
+            Setting the environment variable FPS_AUTORUN_CTAGS to any non-empty value has the same effect.
+
+        --env
+            Print evaluable bash code to configure important shell variables.  (FPS_ROOT_DIR, FPS_*_DIR, LD_LIBRARY_PATH, PYTHONPATH, etc.)
+
+        --env-dirs
+            Like --env, but doesn't configure LD_LIBRARY_PATH and LIBRARY_PATH for compilation.
+      
+        --show-root
+            Print the root directory of the current checkout.
+"
+
+#
+# Clear argument variables
+#
+ARG_HELP=
+ARG_VERBOSE=0
+ARG_REGENERATE=1
+ARG_REGENERATE_ONLY=
+ARG_OPTIMIZED=
+ARG_DEBUG=
+ARG_CLEAN=
+ARG_PLAN=
+ARG_JOBS=
+ARG_BUILD_TAG="$(whoami).$(hostname).$(date +%Y%m%d%H%M%S)"
+ARG_LINKAGE=static
+ARG_REALLY_CLEAN=
+ARG_WITH_CTAGS=
+ARG_ENV=
+ARG_ENV_DIRS=
+ARG_BAMBOO=
+ARG_RUN_CTEST=
+ARG_NINJA=
+ARG_EDIT_PLAN=
+ARG_VERSION=
+ARG_INSTALL=
+ARG_SKIP_CMAKE=
+ARG_SHOW_ROOT=
+ARG_LIST_PLANS=
+ARG_PROFILE=
+ARG_EXTRA=
+
+#
+# Use getopt to canonicalize command line arguments.
+#
+ARG_SUMMARY=`\
+getopt -o     hvrodcpj:l: \
+       --long help,verbose,version,install,run-ctest,skip-cmake,show-root,env,env-dirs,regenerate,regenerate-only,optimized,debug,clean,really-clean,profile,with-ctags,jobs:,linkage:,plan:,edit-plan:,list-plans,build-tag: \
+       -n    "${SCRIPT_NAME}" -- "$@" \
+`
+if [[ ${?} != 0 ]] ; then
+  echo "" 1>&2
+  echo "[ ${SCRIPT_NAME} ] :: ERROR :: Failed to parse command line arguments :: Line ${LINENO}" 1>&2 
+  echo "" 1>&2
+  exit 1
+fi
+
+#
+# Import results of getopt call
+# 
+eval set -- "${ARG_SUMMARY}"
+
+#if [[ -z ${FPS_ROOT_DIR} ]] ; then 
+#  echo "" 1>&2
+#  echo "[ ${SCRIPT_NAME} ] :: ERROR :: Failed to find root directory of this checkout :: Line ${LINENO}" 1>&2 
+#  echo "" 1>&2
+#  exit 1
+#fi  
+
+#
+# Process commandline arguments
+#
+while true ; do
+  case "${1}" in
+    -h  | --help              ) ARG_HELP=1          ; break ;;
+    -v  | --verbose           ) ARG_VERBOSE=$((${ARG_VERBOSE} + 1)) ; shift ;;
+    -r  | --regenerate        ) ARG_REGENERATE=1    ; shift ;;
+    --regenerate-only         ) ARG_REGENERATE_ONLY=1 ; shift ;;
+    -o  | --optimized         ) ARG_OPTIMIZED=1     ; shift ;;
+    -d  | --debug             ) ARG_DEBUG=1         ; shift ;;
+    -c  | --clean             ) ARG_CLEAN=1         ; shift ;;
+    -p  | --profile           ) ARG_PROFILE=1       ; shift ;;
+    -j  | --jobs              ) ARG_JOBS=${2}       ; shift 2 ;;
+    -l  | --linkage           ) ARG_LINKAGE=${2}    ; shift 2 ;;
+    --build-tag               ) ARG_BUILD_TAG=${2}  ; shift 2 ;;
+    --plan                    ) ARG_PLAN=${2}       ; shift 2 ;;
+    --skip-cmake              ) ARG_SKIP_CMAKE=1    ; shift ;; 
+    --run-ctest               ) ARG_RUN_CTEST=1     ; shift ;; 
+    --show-root               ) ARG_SHOW_ROOT=1     ; shift ;;
+    --install                 ) ARG_INSTALL=1       ; shift ;;
+    --really-clean            ) ARG_REALLY_CLEAN=1  ; shift ;;
+    --with-ctags              ) ARG_WITH_CTAGS=1    ; shift ;;
+    --env                     ) ARG_ENV=1           ; shift ;;
+    --env-dirs                ) ARG_ENV_DIRS=1      ; shift ;;
+    --edit-plan               ) ARG_EDIT_PLAN=${2}  ; shift 2 ;;
+    --list-plans              ) ARG_LIST_PLANS=1    ; shift ;; 
+    --quiet                   ) ARG_QUIET=1         ; shift ;;
+    --version                 ) ARG_VERSION=1       ; shift ;;
+    --                        ) shift               ; break ;;
+    *                         ) shift                       ;;
+  esac
+done
+
+#
+# Collect unprocessed/freeform arguments here.
+#
+ARG_EXTRA="${@}"
+
+[[ ${ARG_VERBOSE} -eq 0 ]] && ARG_VERBOSE=
+
+#
+# Display help if requested
+#
+if [[ ! -z ${ARG_HELP} ]] ; then echo -e "${USAGE_TEXT}" ; exit 0 ; fi
+
+#
+# Display version if requested
+#
+if [[ ! -z ${ARG_VERSION} ]] ; then echo ${FPSMAKE_VERSION} ; exit 0 ; fi
+
+#
+# Import remaining commandline arguments / Populate defaults
+#
+if [[ ! -z ${ARG_OPTIMIZED} ]] ; then export FPS_BUILD_TYPE="optimized"     
+                                 else export FPS_BUILD_TYPE="debug" 
+fi
+
+if [[ ! -z ${ARG_PLAN}   ]] ; then export FPS_BUILD_PLAN="${ARG_PLAN}" 
+                              else export FPS_BUILD_PLAN="master"
+fi
+
+if [[ ! -z ${ARG_PROFILE} ]] ; then export FPS_PROFILE="True" ; fi
+
+export FPS_LINK_TYPE=static
+
+if [[ ! -z ${ARG_LINKAGE} ]] ; then
+  if [[ "${ARG_LINKAGE}" != "static" && "${ARG_LINKAGE}" != "shared" ]] ; then 
+    echo "" 1>&2
+    echo "[ ${SCRIPT_NAME} ] :: ERROR :: Invalid linkage argument - '${ARG_LINKAGE}' not in ['static', 'shared'] :: Line ${LINENO}" 1>&2
+    echo "" 1>&2
+    exit 1
+  fi
+
+  export FPS_LINK_TYPE=${ARG_LINKAGE}
+fi
+
+#
+# Generate the path to our out-of-tree build directory and binary/library output directories.
+#
+export FPS_BUILD_PLAN_DIR="${FPS_BUILD_DIR}/${FPS_BUILD_PLAN}.${FPS_BUILD_TYPE}.${FPS_LINK_TYPE}"
+export FPS_BUILD_BIN_DIR="${FPS_BUILD_DIR}/bin.${FPS_BUILD_TYPE}.${FPS_LINK_TYPE}"
+export FPS_BUILD_LIB_DIR="${FPS_BUILD_DIR}/lib.${FPS_BUILD_TYPE}.${FPS_LINK_TYPE}"
+export FPS_BUILD_INFO_FILE="${FPS_BUILD_PLAN_DIR}/fps_build_info.o"
+
+#
+# Validate the jobs count argument 
+#
+HOST_CPU_CORES=$(fps__count_cpu_cores 2> /dev/null)
+DEFAULT_JOB_COUNT=${HOST_CPU_CORES}
+if [[ -z ${ARG_JOBS} ]] ; then
+  ARG_JOBS=${DEFAULT_JOB_COUNT}
+else
+  if [[ ! ${ARG_JOBS} =~ ^[0-9]+$ ]] ; then
+    echo "" 1>&2
+    echo "[ ${SCRIPT_NAME} ] :: ERROR :: Invalid '-j/--jobs' argument - '${ARG_JOBS}' not in range [1, ${HOST_CPU_CORES}] :: Line ${LINENO}" 1>&2
+    echo "" 1>&2
+    exit 1
+  fi
+
+  if   [[ ${ARG_JOBS} -gt ${HOST_CPU_CORES} ]] ; then ARG_JOBS=${HOST_CPU_CORES}
+  elif [[ ${ARG_JOBS} -lt 1 ]]                 ; then ARG_JOBS=1
+  fi
+fi
+
+#
+# Verify that we can find our compiler and toolchain
+#
+if [[ -z ${FPS_COMPILER_DIR} ]] ; then
+  echo "" 1>&2
+  echo "[ ${SCRIPT_NAME} ] :: ERROR :: No c++ compiler directory found - Please set FPS_COMPILER_DIR :: Line ${LINENO}" 1>&2
+  echo "" 1>&2
+  exit 1
+fi
+
+if [[ -z ${FPS_TOOLCHAIN_DIR} ]] ; then
+  echo "" 1>&2
+  echo "[ ${SCRIPT_NAME} ] :: ERROR :: No external toolchain directory found - Please set FPS_TOOLCHAIN_DIR :: Line ${LINENO}" 1>&2
+  echo "" 1>&2
+  exit 1
+fi
+
+if [[ ! -z ${ARG_VERBOSE} ]] ; then 
+  echo ""
+  echo "[ ${SCRIPT_NAME} - v${FPSMAKE_VERSION} ]"
+  echo "|"
+  echo "|--[ FPS_BUILD_PLAN      ] :: ${FPS_BUILD_PLAN}"
+  echo "|--[ FPS_ROOT_DIR        ] :: ${FPS_ROOT_DIR}"
+  echo "|--[ FPS_BUILD_DIR       ] :: ${FPS_BUILD_DIR}"
+  echo "|--[ FPS_EXTERNAL_DIR    ] :: ${FPS_EXTERNAL_DIR}"
+  echo "|--[ FPS_BIN_DIR         ] :: ${FPS_BIN_DIR}"
+  echo "|--[ FPS_LIB_DIR         ] :: ${FPS_LIB_DIR}"
+  echo "|--[ FPS_CPP_DIR         ] :: ${FPS_CPP_DIR}"
+  echo "|--[ FPS_OS_VENDOR       ] :: ${FPS_OS_VENDOR}"
+  echo "|--[ FPS_OS_VERSION      ] :: ${FPS_OS_VERSION}"
+  echo "|--[ FPS_TOOLCHAIN_DIR   ] :: ${FPS_TOOLCHAIN_DIR}"
+  echo "|--[ FPS_COMPILER_DIR    ] :: ${FPS_COMPILER_DIR}"
+  echo "|--[ FPS_COMPILER_VENDOR ] :: ${FPS_COMPILER_VENDOR}"
+  echo "|--[ FPS_COMPILER_VERSION] :: ${FPS_COMPILER_VERSION}"
+  echo "|--[ FPS_COMPILER_BINARY ] :: ${FPS_COMPILER_BINARY}"
+  echo "|--[ FPS_BUILD_PLAN_DIR  ] :: ${FPS_BUILD_PLAN_DIR}"
+  echo "|--[ FPS_BUILD_INFO_FILE ] :: ${FPS_BUILD_INFO_FILE}"
+  echo "|--[ FPS_BUILD_BIN_DIR   ] :: ${FPS_BUILD_BIN_DIR}"
+  echo "|--[ FPS_BUILD_LIB_DIR   ] :: ${FPS_BUILD_LIB_DIR}"
+  echo "|"
+  echo "|--[ Optimization ] :: ${FPS_BUILD_TYPE}"
+  echo "|--[ Linkage      ] :: ${FPS_LINK_TYPE}"
+  echo "|--[ Jobs         ] :: ${ARG_JOBS}"
+  
+  if [[ ! -z ${ARG_PROFILE} ]] ; then echo "|--[ Profiling    ] :: Enabled" 
+  else                                echo "|--[ Profiling    ] :: Disabled" 
+  fi
+
+  echo "|"
+fi
+
+FPSMAKE_ENV_VARS=\
+"FPS_ROOT_DIR \
+ FPS_BUILD_DIR \
+ FPS_EXTERNAL_DIR \
+ FPS_CMAKE_DIR \
+ FPS_BIN_DIR \
+ FPS_LIB_DIR \
+ FPS_CPP_DIR \
+ FPS_SCRIPTS_DIR \
+ FPS_OS_VENDOR \
+ FPS_OS_VERSION \
+ FPS_TOOLCHAIN_DIR \
+ FPS_COMPILER_DIR \
+ FPS_COMPILER_VENDOR \
+ FPS_COMPILER_VERSION \
+ PATH \
+ PYTHONPATH \
+ LD_LIBRARY_PATH \
+"
+
+#
+# If --env specified, print export commands and exit.
+#
+if [[ ! -z ${ARG_ENV} ]] ; then
+  for var in `echo ${FPSMAKE_ENV_VARS}` ; do 
+    var_value=${!var}
+    [[ ${var} == "PATH" ]] && var_value="${FPS_BIN_DIR}:${var_value}"
+    echo "export ${var}=${var_value}" 
+    unset var_value
+  done
+  exit 0
+fi
+
+#
+# For 'really-clean' builds, remove the existing plan directory and it's subdirectories
+# before proceeding.
+#
+if [[ ! -z ${ARG_REALLY_CLEAN} ]] ; then
+  echo "[ ${SCRIPT_NAME} ] :: Really-Clean!"
+  echo "[ ${SCRIPT_NAME} ] :: Deleting '${FPS_BUILD_PLAN_DIR}'"
+  echo "[ ${SCRIPT_NAME} ] :: Deleting '${FPS_EXTERNAL_DIR}/${FPS_EXTERNAL_INDICATOR}'"
+  echo "[ ${SCRIPT_NAME} ] :: Deleting '${FPS_EXTERNAL_DIR}/cmake-modules/*'"
+  echo "[ ${SCRIPT_NAME} ] :: Deleting '${FPS_EXTERNAL_DIR}/lib/*'"
+  echo ""
+  rm -rf ${FPS_BUILD_PLAN_DIR}                               2> /dev/null
+  rm -f  ${FPS_EXTERNAL_DIR}/${FPS_EXTERNAL_INDICATOR}       2> /dev/null
+  rm -f  ${FPS_EXTERNAL_DIR}/cmake-modules/*                 2> /dev/null
+  rm -ef ${FPS_EXTERNAL_DIR}/lib/*                           2> /dev/null
+  ARG_REGENERATE=1
+fi
+
+#
+# Create the build plan directory where cmake will store out-of-tree files.
+#
+if [[ ! -d ${FPS_BUILD_PLAN_DIR} ]] ; then
+  ARG_REGENERATE=1
+  mkdir -p ${FPS_BUILD_PLAN_DIR}
+fi
+
+#
+# Create the build binaries directory where cmake will store compiled binaries.
+#
+if [[ ! -d ${FPS_BUILD_BIN_DIR} ]] ; then
+  mkdir -p ${FPS_BUILD_BIN_DIR}
+fi
+
+#
+# Create the build libraries directory where cmake will store compiled libraries and cython modules.
+#
+if [[ ! -d ${FPS_BUILD_LIB_DIR} ]] ; then
+  mkdir -p ${FPS_BUILD_LIB_DIR}
+fi
+
+#
+# Point the symbolic links identified by FPS_BIN_DIR and FPS_LIB_DIR to the appropriate output locations.
+#
+[[ -h ${FPS_BIN_DIR} ]] && rm ${FPS_BIN_DIR}
+[[ -h ${FPS_LIB_DIR} ]] && rm ${FPS_LIB_DIR}
+ln -s ${FPS_BUILD_BIN_DIR} ${FPS_BIN_DIR}
+ln -s ${FPS_BUILD_LIB_DIR} ${FPS_LIB_DIR}
+
+#
+# Update build info 
+# !!!!
+# TODO : Build info should be regenerated each run, but it seems to be triggering unnecessary relinking.
+#        Figure out how to exempt the .o file from dependency checks and remove the existance check
+#        wrapping the regen process below.
+# !!!!
+if [[ ! -e ${FPS_BUILD_INFO_FILE} ]] ; then 
+  ${SCRIPT_DIR}/fpsmake.update_build_info \
+    --compiler "${FPS_COMPILER_VENDOR}-${FPS_COMPILER_VERSION}" \
+    --tag      ${ARG_BUILD_TAG} \
+    --type     ${FPS_BUILD_TYPE} \
+    --linkage  ${FPS_LINK_TYPE} \
+    -v \
+    ${FPS_BUILD_PLAN_DIR} 
+
+  if [[ ${?} -ne 0 ]] ; then 
+    echo "" 1>&2
+    echo "[ ${SCRIPT_NAME} ] :: ERROR :: Failed to update build info file."
+    echo "" 1>&2
+    exit 1
+  fi
+fi
+
+#
+# Run external configuration helper if no external indicator file is present
+#
+if [[ ! -f ${FPS_EXTERNAL_DIR}/${FPS_EXTERNAL_INDICATOR} ]] ; then 
+  CONFIGURE_CMD="${SCRIPT_DIR}/fpsmake.configure"
+  if [[ ! -z ${ARG_VERBOSE}   ]] ; then 
+    CONFIGURE_CMD="${CONFIGURE_CMD} --verbose"
+  fi
+  echo ""
+  echo "[ ${SCRIPT_NAME} ] :: Configuring external components"
+  echo "[ ${SCRIPT_NAME} ] :: '${CONFIGURE_CMD}'"
+  echo ""
+  ( ${CONFIGURE_CMD} )
+  RC=${?}
+  if [[ ${RC} -ne 0 ]] ; then 
+    echo "" 1>&2
+    echo "[ ${SCRIPT_NAME} ] :: ERROR :: Failed to configure external components" 1>&2
+    echo "" 1>&2
+    exit 1
+  fi
+fi
+
+#
+# Build cmake commandline string ...
+#
+CMAKE_CMD="cmake -DFPSMAKE_VERSION=${FPSMAKE_VERSION}"
+
+#
+# Enable/Disable verbose build output.
+#
+CMAKE_OPT_VERBOSE_MAKEFILE="False"
+[[ ! -z ${ARG_VERBOSE} && ${ARG_VERBOSE} -gt 2 ]] && CMAKE_OPT_VERBOSE_MAKEFILE="True"
+CMAKE_CMD="${CMAKE_CMD} -DFPS_VERBOSE=${ARG_VERBOSE} -DCMAKE_VERBOSE_MAKEFILE=${CMAKE_OPT_VERBOSE_MAKEFILE} "
+
+#
+# Manually designate compiler binaries.
+#
+CMAKE_CMD="${CMAKE_CMD} -DCMAKE_C_COMPILER=${FPS_C_COMPILER}"
+CMAKE_CMD="${CMAKE_CMD} -DCMAKE_CXX_COMPILER=${FPS_CXX_COMPILER}"
+
+#
+# Finally append the directory from which cmake should begin it's descent.
+#
+CMAKE_CMD="${CMAKE_CMD} ${FPS_ROOT_DIR}"
+
+#
+# Switch to the out-of-tree build directory and start cmake if --regenerate was requested.
+#
+if [[ -z ${ARG_SKIP_CMAKE} ]] ; then 
+  if [[ ! -z ${ARG_REGENERATE} ]] ; then
+    pushd ${FPS_BUILD_PLAN_DIR} &> /dev/null
+    if [[ ! -z ${ARG_VERBOSE} ]] ; then
+      echo ""
+      echo "[ ${SCRIPT_NAME} ] :: ${CMAKE_CMD}"
+      echo ""
+    fi
+    ( ${CMAKE_CMD} )
+    RC=${?}
+    pushd &> /dev/null
+    if [[ ${RC} -ne 0 ]] ; then
+      echo "" 1>&2
+      echo "[ ${SCRIPT_NAME} ] :: ERROR :: CMake failed to generate makefiles :: Line ${LINENO}" 1>&2 
+      echo "" 1>&2
+      exit ${RC}
+    fi
+    unset RC
+  fi
+else 
+  echo "[ ${SCRIPT_NAME} ] :: Skipping makefile regeneration due to '--skip-cmake' argument"
+fi
+
+#
+# If --regenerate-only was requested, exit here.
+#
+if [[ ! -z "${ARG_REGENERATE_ONLY}" ]] ; then
+  [[ ! -z ${ARG_VERBOSE} ]] && echo -e "\n[ ${SCRIPT_NAME} ] :: Exiting after Makefile generation (regenerate-only)"
+  exit 0
+fi
+
+#
+# Find the corresponding out-of-tree build directory to the current working directory.
+#
+MAKE_DIR=${FPS_BUILD_PLAN_DIR}
+MAKE_CMD="make"
+if [[ ${WORKING_DIR} =~ ^${FPS_CPP_DIR} ]] ; then
+  MAKE_SUBDIR="${MAKE_DIR}/cpp${WORKING_DIR#${FPS_CPP_DIR}}"
+  [[ -d ${MAKE_SUBDIR} ]] && MAKE_DIR=${MAKE_SUBDIR}
+fi
+
+
+#
+# Clean the build directory if requested to do so.
+#
+if [[ ! -z ${ARG_CLEAN} ]] ; then
+
+  # Remove build info file
+
+  MAKE_CMD="${MAKE_CMD} clean"
+  if [[ ! -z ${ARG_VERBOSE} ]] ; then
+    echo ""
+    echo "[ ${SCRIPT_NAME} ] :: Cleaning build system"
+    echo "[ ${SCRIPT_NAME} ] :: '${MAKE_CMD}'"
+    echo ""
+  fi
+
+  pushd ${MAKE_DIR} &> /dev/null
+
+  PGO_RESULT_FILES=$(find . -name '*.gcda' 2> /dev/null) 
+  for target_file in `echo ${PGO_RESULT_FILES}` ; do 
+    # echo "Cleaning PGO File : ${target_file}"
+    rm ${target_file} 
+    if [[ ${?} -ne 0 ]] ; then 
+      echo "[ ${SCRIPT_NAME} ] :: ERROR :: Failed to clean PGO (profiling) data file '${target_file}'"
+    fi
+  done
+    
+  ( ${MAKE_CMD} )
+  RC=${?}
+  pushd &> /dev/null
+
+  if [[ ${RC} -ne 0 ]] ; then
+    echo "" 1>&2
+    echo "[ ${SCRIPT_NAME} ] :: ERROR :: Failed to clean build tree :: Line ${LINENO}" 1>&2
+    echo "" 1>&2
+    exit ${RC}
+  fi
+  unset RC
+
+#
+# Otherwise initiate build process
+#
+else
+  #
+  # Parallelize make
+  #
+  if [[ ! -z ${ARG_JOBS} ]] ; then MAKE_CMD="${MAKE_CMD} -j ${ARG_JOBS}" ;  fi
+
+  #
+  # If individual build targets were specified on the command line, add them to the make command.
+  #
+  if [[ ! -z ${ARG_EXTRA} ]] ; then MAKE_CMD="${MAKE_CMD} ${ARG_EXTRA}" ; fi
+
+  if [[ ! -z ${MAKE_CMD} ]] ; then
+    if [[ ! -z ${ARG_VERBOSE} ]] ; then
+      echo "" 
+      echo "[ ${SCRIPT_NAME} ] :: Running make from directory '${MAKE_DIR}'" 
+      echo "[ ${SCRIPT_NAME} ] :: ${MAKE_CMD}" 
+      echo "" 
+    fi
+
+    pushd ${MAKE_DIR} &> /dev/null
+    ( ${MAKE_CMD} )
+    RC=${?}
+    pushd &> /dev/null
+
+    if [[ ${RC} -ne 0 ]] ; then
+      echo "" 1>&2
+      echo "[ ${SCRIPT_NAME} ] :: ERROR :: Build failed w/ result code: '${RC}' :: Line ${LINENO}" 1>&2
+      echo "" 1>&2
+      exit ${RC}
+    fi
+
+    if [[ ! -z ${ARG_INSTALL} ]] ; then
+      echo "[ ${SCRIPT_NAME} ] :: Running post-build installation logic..."
+      pushd ${MAKE_DIR} &> /dev/null
+      ( make install )
+      pushd &> /dev/null
+    fi
+
+    if [[ ! -z ${ARG_RUN_CTEST} ]] ; then 
+      echo "[ ${SCRIPT_NAME} ] :: Running unit tests..."
+      pushd ${FPS_BUILD_PLAN_DIR} &> /dev/null
+      CTEST_CMD="ctest" 
+      [[ ! -z ${ARG_VERBOSE} ]] && CTEST_CMD="${CTEST_CMD} -V"
+      ( ${CTEST_CMD} )
+      pushd &> /dev/null
+    fi
+  fi
+fi
+
+#
+# Run ctags if requested
+#
+if [[ ! -z ${ARG_WITH_CTAGS} || ! -z ${FPS_AUTORUN_CTAGS} ]] ; then
+  CTAGS_CMD="ctags --recurse --languages=C++ --langmap=C++:.c.h.hpp.cpp.hinc.tcc.cxx"
+  echo ""
+  echo "[ ${SCRIPT_NAME} ] :: Generating ctags tagfile '${CTAGS_CMD}'"
+  echo ""
+  pushd ${FPS_CPP_DIR} > /dev/null
+  ( ${CTAGS_CMD} )
+  pushd > /dev/null
+fi
+

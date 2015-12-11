@@ -1,0 +1,184 @@
+#!/bin/bash
+
+SCRIPT_NAME="$(basename "$(test -L "$0" && readlink -e "$0" || echo "$0")")"
+SCRIPT_DIR="$(dirname "$(readlink -e ${0})")"
+SCRIPT_VERSION="1.0.0"
+
+FPSMAKE_COMMON=${SCRIPT_DIR}/fpsmake.common
+if [[ ! -f ${FPSMAKE_COMMON} ]] ; then 
+  echo "" 1>&2
+  echo "[ ${SCRIPT_NAME} ] :: ERROR :: Failed to source/import script '${FPSMAKE_COMMON}'" 1>&2
+  echo "" 1>&2
+  exit 1
+fi
+
+source ${FPSMAKE_COMMON}
+[[ -z ${FPS_ROOT_DIR} ]] && fps__init_environment
+
+if [[ -z ${FPS_ROOT_DIR} ]] ; then 
+  echo "" 1>&2 
+  echo "[ ${SCRIPT_NAME} ] :: Failed to find root directory for this checkout :: Line ${LINENO}" 1>&2
+  echo "" 1>&2 
+  exit 1
+fi
+
+USAGE_TEXT="VERSION
+        ${SCRIPT_NAME} ${SCRIPT_VERSION}
+
+SYNOPSIS
+        ${SCRIPT_NAME} <options> [ Input File ]
+
+        This script can create linkable .o files from standard text files.  If the resulting 
+        .o is added to the link command when building an application, the content of the 
+        file will be available to the application at runtime.
+
+OPTIONS 
+        -h, --help 
+            Print this message and exit.
+
+        -v, --verbose 
+            Enable verbose output.
+      
+        -o, --out-file
+            Specify the name of the destination/output file.  
+
+        --view
+            Don't create an output file.  Instead, display the contents of the input file 
+            using the 'readelf' utility.  If the input file is an object file (*.o), the command 
+            'readelf -a <input file>' is run.  If the input file is any other file type,
+            the command 'readelf -W -p .data <file>' is run.
+
+"
+
+#
+# Declare and initialize argument variables
+#             
+ARG_HELP=
+ARG_VERBOSE=0
+ARG_IN_FILE=
+ARG_OUT_FILE=
+ARG_VIEW=
+
+#
+# If no command line arguments are provided, display help
+#
+if [[ ${#} -lt 1 ]] ; then echo -e "${USAGE_TEXT}" ; exit 0 ; fi
+
+#
+# Import command line arguments via 'getopt'
+#
+ARG_SUMMARY=`\
+getopt -o     hvi:o: \
+       --long help,verbose,view,in-file:,out-file: \
+       -n     "${SCRIPT_NAME}" -- "${@}" \
+`
+if [[ ${?} != 0 ]] ; then 
+  echo "" 1>&2
+  echo "[ ${SCRIPT_NAME} ] :: ERROR :: Failed to parse command line arguments :: Line ${LINENO}" 1>&2 
+  echo "" 1>&2
+  exit 1
+fi
+
+eval set -- "${ARG_SUMMARY}"
+while true ; do 
+  case "${1}" in 
+    -h  | --help      ) ARG_HELP=1 ; break ;;
+    -v  | --verbose   ) ARG_VERBOSE=$((${ARG_VERBOSE} + 1)) ; shift ;;
+          --view      ) ARG_VIEW=1 ; shift ;;
+    -i  | --in-file   ) ARG_IN_FILE=${2} ; shift 2 ;;
+    -o  | --out-file  ) ARG_OUT_FILE=${2} ; shift 2 ;;
+    --                ) shift ; break ;; 
+    *                 ) shift ;;
+  esac
+done
+
+# Import the positional input file argument
+if [[ ${#} -lt 1 ]] ; then 
+  echo "" 1>&2
+  echo "[ ${SCRIPT_NAME} ] :: ERROR :: No input file specified.  Rerun w/ --help for usage info."
+  echo "" 1>&2
+  exit 1
+fi
+
+ARG_IN_FILE=${1}
+shift 
+
+#
+# Stash any remaining unhandled command line arguments in ARG_EXTRA.
+# 
+ARG_EXTRA="${@}"
+
+#
+# Display help if requested
+#
+if [[ ! -z ${ARG_HELP} ]] ; then echo -e "${USAGE_TEXT}" ; exit 0 ; fi
+
+#
+# Verify that manditory arguments are present
+#
+if [[ -z ${ARG_IN_FILE} ]] ; then 
+  echo "" 1>&2
+  echo "[ ${SCRIPT_NAME} ] :: ERROR :: Command line argument -i/--in-file not found."
+  echo "" 1>&2
+  exit 1
+fi
+
+if [[ ! -f ${ARG_IN_FILE} ]] ; then 
+  echo "" 1>&2
+  echo "[ ${SCRIPT_NAME} ] :: ERROR :: Input file '${ARG_IN_FILE}' does not exist."
+  echo "" 1>&2
+  exit 1
+fi
+
+if [[ -z ${ARG_OUT_FILE} ]] ; then 
+  ARG_VIEW=1
+fi
+
+if [[ ! -z ${ARG_VIEW} ]] ; then
+  #
+  # In view mode, use readelf to extract the contents of .data.
+  # Adjust formating for clarity and display to user.
+  #
+  CMD="readelf -W -p .data ${ARG_IN_FILE}"
+  echo "[ Command ]"
+  echo "  ${CMD}"
+  echo ""
+
+  echo "[ Output ]" 
+  ELF_DATA=$(${CMD})
+  # Replace ^J characters w/ newlines.
+  ELF_DATA=${ELF_DATA//^J/\\n}
+  # Remove the leading segment description (ends with "[11 ]") 
+  ELF_DATA=${ELF_DATA//*\[*\]/}
+  
+  # Pipo the remaining text through sed to make sure it's indented
+  echo -e ${ELF_DATA} | sed "s/^/  /" 
+
+else
+  #
+  # Compile Mode
+  #
+  [[ ${ARG_VERBOSE} -gt 1 ]] && \
+  echo "[ ${SCRIPT_NAME} ] :: Compiling '${ARG_IN_FILE}' to ELF object file '${ARG_OUT_FILE}'."
+  
+  touch ${ARG_OUT_FILE}
+  if [[ ${?} -ne 0 ]] ; then 
+    echo "" 1>&2
+    echo "[ ${SCRIPT_NAME} ] :: ERROR :: Can't write to output file '${ARG_OUT_FILE}'."
+    echo "" 1>&2
+    exit 1
+  fi 
+
+  CMD="ld -r -b binary -o ${ARG_OUT_FILE} ${ARG_IN_FILE}"
+  $(echo ${CMD}) 
+  if [[ ${?} -ne 0 ]] ; then 
+    echo "" 1>&2
+    echo "[ ${SCRIPT_NAME} ] :: ERROR :: Command '${CMD}' failed"
+    echo "" 1>&2
+    exit 1
+  fi
+fi
+
+
+        
+

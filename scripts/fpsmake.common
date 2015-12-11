@@ -1,0 +1,300 @@
+#!/bin/bash
+# vim: filetype=sh
+
+export FPS_ROOT_INDICATOR=".fps_root.indicator"
+export FPS_EXTERNAL_INDICATOR=".fps_external.indicator"
+
+export FPS_DEFAULT_GMP_VERSION="6.0.0"
+export FPS_DEFAULT_MPFR_VERSION="3.1.2"
+export FPS_DEFAULT_MPC_VERSION="1.0.3"
+export FPS_DEFAULT_GCC_VERSION=$( $(which g++) -dumpversion )
+export FPS_DEFAULT_GCC_DIR="/usr"
+
+#
+# fps__get_os_vendor
+#
+function fps__get_os_vendor() 
+{
+  echo "$(lsb_release -is)"
+}
+
+function fps__get_os_version() 
+{
+  echo "$(lsb_release -rs)"
+}
+
+function fps__get_os_codename() 
+{
+  echo "$(lsb_release -cs)"
+}
+
+function fps__count_cpu_cores()
+{
+  # Set min/max job counts based on available cpu cores.
+  local host_cpu_cores=$(grep -c processor /proc/cpuinfo 2> /dev/null)
+  [[ ! ${host_cpu_cores} =~ ^[0-9]+$ ]] && host_cpu_cores=8
+
+  # Make sure result is greater than 0.
+  if [[ ${host_cpu_cores} -lt 1 ]] ; then 
+    host_cpu_cores=1
+  else 
+    host_cpu_cores=$(expr ${host_cpu_cores} 2> /dev/null)
+  fi
+  
+  echo ${host_cpu_cores}
+}
+
+#
+# fps__get_root_dir()
+#       Find platform root by querying git for the toplevel of this checkout
+#
+function fps__get_root_dir()
+{
+  if [[ ! -z ${FPS_ROOT_DIR} ]] ; then
+    echo ${FPS_ROOT_DIR}
+    return
+  fi
+
+  #working_dir=$(pwd)
+  #local root_dir=$(git rev-parse --show-toplevel 2> /dev/null)
+  #local root_dir=$(pwd)
+  #local rv=${root_dir}
+  #while [[ ! -z ${root_dir} ]] ; do
+  #  [[ -f ./${FPS_ROOT_INDICATOR} ]] && break  
+  #  rv=${root_dir}
+  #  cd ${root_dir}/..
+  #  root_dir="$(git rev-parse --show-toplevel 2> /dev/null)"
+  #done
+
+  local start_dir=$(pwd)
+  local cur_dir=${start_dir}
+  while [[ "${cur_dir}" != "/" ]] ; do 
+    [[ -f ${FPS_ROOT_INDICATOR} ]] && break 
+    cd ..
+    cur_dir=$(pwd)
+  done
+  
+  cd ${start_dir}
+
+  if [[ ${cur_dir} != "/" ]] ; then 
+    echo "${cur_dir}"
+  fi
+}
+
+function fps__get_compiler_vendor()
+{
+  local compiler_dir=${1} 
+  [[ -z ${compiler_dir} ]] && return
+
+  if   [[ -f ${compiler_dir}/bin/g++     ]] ; then 
+    echo "gcc" ;
+  elif [[ -f ${compiler_dir}/bin/clang++ ]] ; then
+    echo "clang"
+  fi
+}
+
+function fps__get_c_compiler()
+{
+  local compiler_dir=${1} 
+  local compiler_vendor=${2}
+  [[ -z ${compiler_dir} || -z ${compiler_vendor} ]] && return
+
+  if   [[ "${compiler_vendor}" == "gcc" ]] ; then 
+    echo "${compiler_dir}/bin/gcc" 
+  elif [[ "${compiler_vendor}" == "clang" ]] ; then 
+    echo "${compiler_dir}/bin/clang"
+  fi
+}
+
+function fps__get_cxx_compiler()
+{
+  local compiler_dir=${1} 
+  local compiler_vendor=${2}
+  [[ -z ${compiler_dir} || -z ${compiler_vendor} ]] && return
+
+  if   [[ "${compiler_vendor}" == "gcc" ]] ; then 
+    echo "${compiler_dir}/bin/g++" 
+  elif [[ "${compiler_vendor}" == "clang" ]] ; then 
+    echo "${compiler_dir}/bin/clang++"
+  fi
+}
+
+function fps__get_compiler_version()
+{ 
+  local compiler_binary=${1} 
+  [[ -z ${compiler_binary} ]] && return
+  echo "$(${compiler_binary} -dumpversion 2> /dev/null)"
+}
+
+#
+# fps__get_build_dir
+#
+function fps__get_build_dir()
+{ local root_dir=$(fps__get_root_dir)
+  [[ ! -z ${root_dir} ]] && echo "${root_dir}/build"
+}
+
+#
+# fps__get_cmake_dir
+#
+function fps__get_cmake_dir()
+{ local root_dir=$(fps__get_root_dir)
+  [[ ! -z ${root_dir} ]] && echo "${root_dir}/cmake"
+}
+
+#
+# fps__get_external_dir
+#
+function fps__get_external_dir()
+{ local root_dir=$(fps__get_root_dir)
+  [[ ! -z ${root_dir} ]] && echo "${root_dir}/external"
+}
+
+#
+# fps__get_scripts_dir
+#
+function fps__get_scripts_dir()
+{ local root_dir=$(fps__get_root_dir)
+  [[ ! -z ${root_dir} ]] && echo "${root_dir}/scripts"
+}
+
+#
+# fps__check_environment
+#   Check for missing environment variables
+#
+function fps__check_environment()
+{ 
+  local env_checks="
+    FPS_ROOT_DIR 
+    FPS_BUILD_DIR 
+    FPS_CMAKE_DIR 
+    FPS_EXTERNAL_DIR 
+    FPS_SCRIPTS_DIR
+    FPS_OS_VENDOR 
+    FPS_OS_VERSION
+    FPS_COMPILER_DIR
+    FPS_COMPILER_VENDOR
+    FPS_COMPILER_VERSION
+    FPS_C_COMPILER
+    FPS_CXX_COMPILER"
+
+  local env_errors=
+  for check in `echo ${env_checks}` ; do 
+    [[ -z ${check} ]] && env_errors="${env_errors} ${check}"
+  done
+
+  [[ ! -z ${env_errors} ]] && echo ${env_errors}
+}
+
+#
+# fps__init_environment
+#
+function fps__init_environment()
+{
+  eval export FPS_ROOT_DIR=$(fps__get_root_dir)
+  eval export FPS_BUILD_DIR=$(fps__get_build_dir)
+  eval export FPS_CMAKE_DIR=$(fps__get_cmake_dir)
+  eval export FPS_EXTERNAL_DIR=$(fps__get_external_dir)
+  eval export FPS_SCRIPTS_DIR=$(fps__get_scripts_dir)
+  eval export FPS_EXTERNAL_CMAKE_DIR=${FPS_EXTERNAL_DIR}/cmake-modules
+  eval export FPS_CPP_DIR=${FPS_ROOT_DIR}/cpp
+  eval export FPS_SCRIPTS_DIR=${FPS_ROOT_DIR}/scripts
+  eval export FPS_PYTHON_DIR=${FPS_ROOT_DIR}/python
+  eval export FPS_BIN_DIR=${FPS_BUILD_DIR}/bin
+  eval export FPS_LIB_DIR=${FPS_BUILD_DIR}/lib
+  eval export FPS_OS_VENDOR=$(fps__get_os_vendor)
+  eval export FPS_OS_VERSION=$(fps__get_os_version)
+  
+  if [[ -z ${FPS_TOOLCHAIN_DIR}   ]] ; then 
+    eval export FPS_TOOLCHAIN_DIR=$(readlink -f ${FPS_ROOT_DIR}/../fps_toolchain 2> /dev/null)
+  fi
+
+  if [[ -z ${FPS_COMPILER_DIR} ]] ; then 
+    eval export FPS_COMPILER_DIR=${FPS_DEFAULT_GCC_DIR}
+  fi
+
+  unset FPS_COMPILER_VENDOR 
+  unset FPS_COMPILER_VERSION
+  unset FPS_C_COMPILER
+  unset FPS_CXX_COMPILER
+
+  eval export FPS_COMPILER_VENDOR=$(fps__get_compiler_vendor "${FPS_COMPILER_DIR}")
+  eval export FPS_C_COMPILER=$(fps__get_c_compiler "${FPS_COMPILER_DIR}" "${FPS_COMPILER_VENDOR}")
+  eval export FPS_CXX_COMPILER=$(fps__get_cxx_compiler "${FPS_COMPILER_DIR}" "${FPS_COMPILER_VENDOR}")
+  eval export FPS_COMPILER_VERSION=$(fps__get_compiler_version ${FPS_CXX_COMPILER})
+}
+
+#
+# fps__print_environment
+#
+function fps__print_environment()
+{
+  echo "\
+  [ FPS Build Environment ] 
+    FPS_ROOT_DIR         :: ${FPS_ROOT_DIR}
+    FPS_BUILD_DIR        :: ${FPS_BUILD_DIR}
+    FPS_CMAKE_DIR        :: ${FPS_CMAKE_DIR}
+    FPS_EXTERNAL_DIR     :: ${FPS_EXTERNAL_DIR}
+    FPS_CPP_DIR          :: ${FPS_CPP_DIR}
+    FPS_SCRIPTS_DIR      :: ${FPS_SCRIPTS_DIR}
+    FPS_BIN_DIR          :: ${FPS_BIN_DIR}
+    FPS_LIB_DIR          :: ${FPS_LIB_DIR}
+    FPS_OS_VENDOR        :: ${FPS_OS_VENDOR}
+    FPS_OS_VERSION       :: ${FPS_OS_VERSION}
+    FPS_TOOLCHAIN_DIR    :: ${FPS_TOOLCHAIN_DIR}
+    FPS_COMPILER_DIR     :: ${FPS_COMPILER_DIR}
+    FPS_COMPILER_VERSION :: ${FPS_COMPILER_VERSION}
+    FPS_COMPILER_VENDOR  :: ${FPS_COMPILER_VENDOR}"
+}
+
+#
+# fps__path_append
+#       Append a string to the end of a ':' delimited variable.  Don't create duplicate entries.
+#
+function fps__path_append()
+{
+  [[ $# -eq 0 ]] && return
+  local var_name="${1}"
+  local var_value="${!var_name}"
+  shift
+
+  [[ $# -eq 0 ]] && return
+  for arg in ${@} ; do
+    case ":${var_value}:" in
+      *":${arg}:"* ) ;;
+      *            ) var_value="${var_value}:${arg}" ;;
+    esac
+  done
+  eval export ${var_name}="${var_value}"
+}
+
+#
+# fps__path_prepend
+#       Prepend a string to the beginning of a ':' delimited variable.  Don't create duplicate entries.
+#
+function fps__path_prepend()
+{
+  [[ $# -eq 0 ]] && return
+
+  # Get path variable name & value
+  local var_name="${1}"
+  local var_value="${!var_name}"
+  shift
+
+  [[ $# -eq 0 ]] && return
+
+  # Reverse argument list
+  local args_reversed=
+  for arg in ${@} ; do
+    args_reversed="${arg} ${args_reversed}"
+  done
+
+  for arg in ${args_reversed} ; do
+    case ":${var_value}:" in
+      *":${arg}:"* ) ;;
+      *            ) var_value="${arg}:${var_value}" ;;
+    esac
+  done
+  eval export ${var_name}="${var_value}"
+}
+

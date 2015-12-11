@@ -1,0 +1,378 @@
+#!/bin/bash
+
+SCRIPT_NAME="$(basename "$(test -L "$0" && readlink -e "$0" || echo "$0")")"
+SCRIPT_DIR="$(dirname "$(readlink -e ${0})")"
+
+source ${SCRIPT_DIR}/fpsmake.common
+if [[ -z ${FPS_ROOT_DIR} ]] ; then 
+  fps__init_environment
+fi
+
+if [[ -z ${FPS_ROOT_DIR} ]] ; then 
+  echo "" 1>&2 
+  echo "[ ${SCRIPT_NAME} ] :: Failed to find root directory for this checkout :: Line ${LINENO}" 1>&2
+  echo "" 1>&2 
+  exit 1
+fi
+
+export FPS_COMPONENTS_DIR=${FPS_EXTERNAL_DIR}/components
+
+unset ARG_VERBOSE 
+unset ARG_EDIT 
+unset ARG_CLEAN
+unset ARG_QUERY
+ARG_COMPONENTS_DIR=${FPS_COMPONENTS_DIR}
+
+USAGE_TEXT="
+SYNOPSIS 
+        ${SCRIPT_NAME} <options> [component 1] [package 2] ... [package N]
+
+OPTIONS
+        -v, --verbose
+            Enable verbose output. 
+
+        -d DIRECTORY
+            Specify the path to the external libraries directory to be configured.
+            Default: '${FPS_COMPONENTS_DIR}'
+
+        -c, --clean
+            Remove existing component configuration before making updates.
+
+        -q, --query
+            Display current component configuration without making changes.  
+
+        -e, --edit COMPONENT_NAME_1 COMPONENT_NAME_2 ... COMPONENT_NAME_N
+            Open the component configuration file w/ vim (or $EDITOR).
+            Example: ${SCRIPT_NAME} --edit boost jsoncpp agent++
+
+        -h, --help :
+            Print this message and exit.
+"
+
+
+#
+# Parse arguments.  For boolean args, simply use -z to check for existance.
+#
+while true ; do
+  case "$1" in
+    -v | --verbose | -verbose )  ARG_VERBOSE=1 ;           shift ;;
+    -e | --edit    | -edit )     ARG_EDIT=1 ;              shift ;; 
+    -c | --clean   | -clean )    ARG_CLEAN=1 ;             shift ;;
+    -d | --dir     | -dir )      ARG_COMPONENTS_DIR=${2};   shift 2 ;;
+    -q | --query   | -query )    ARG_QUERY=1 ;             shift ;;
+    -h | --help    | -help )     echo "${USAGE_TEXT}" ;    exit 0 ;;
+     * ) break ;;
+  esac
+done
+
+#
+# Define destination directories for selected libraries and generated cmake requirement modules.
+#
+LIBRARY_DIR=${FPS_EXTERNAL_DIR}/lib
+MODULE_DIR=${FPS_EXTERNAL_DIR}/cmake-modules
+INDICATOR_FILE=${FPS_EXTERNAL_DIR}/${FPS_EXTERNAL_INDICATOR}
+[[ ! -d ${LIBRARY_DIR} ]] && mkdir -p ${LIBRARY_DIR} 
+[[ ! -d ${MODULE_DIR}  ]] && mkdir -p ${MODULE_DIR}  
+
+echo ""
+echo "[ External Component Configuration ]"
+echo "|" 
+echo "|--[ Root             Dir ] => [ ${FPS_ROOT_DIR} ]"
+echo "|--[ Build            Dir ] => [ ${FPS_BUILD_DIR} ]"
+echo "|--[ Toolchain Cfg    Dir ] => [ ${ARG_COMPONENTS_DIR} ]"
+echo "|--[ Toolchain Lib    Dir ] => [ ${LIBRARY_DIR} ]"
+echo "|--[ Toolchain Module Dir ] => [ ${MODULE_DIR} ]"
+
+#
+# Validate ARG_COMPONENTS_DIR and change to the indicated directory. 
+#
+OLD_PWD=`pwd`
+if [[ ! -d ${ARG_COMPONENTS_DIR} ]] ; then 
+  echo "" 2>&1
+  echo "[ ${SCRIPT_NAME} ] :: ERROR :: Target directory '${ARG_COMPONENTS_DIR}' does not exist :: Line ${LINENO}" 2>&1
+  echo "" 2>&1
+  exit 1 
+fi 
+
+#
+# Start in the external components directory.
+#
+cd ${ARG_COMPONENTS_DIR}
+
+#
+# If no components were identified on the command line, set COMPONENTS_LIST to everything.
+#
+COMPONENTS_LIST=${@}
+if [[ -z ${COMPONENTS_LIST} ]] ; then 
+  COMPONENTS_LIST=""
+
+  #
+  # Aggressively clean when asked.
+  # 
+  if [[ ! -z ${ARG_CLEAN} ]] ; then 
+    echo "|--[ Operation            ] => [ clean ]"
+
+    rm -f ${LIBRARY_DIR}/*  2> /dev/null
+    rm -f ${MODULE_DIR}/*   2> /dev/null
+    rm -f ${INDICATOR_FILE} 2> /dev/null
+  fi
+
+  for pkg_name in `ls` ; do 
+    if [[ -d ${pkg_name} ]] ; then COMPONENTS_LIST="${COMPONENTS_LIST} ${pkg_name}" ; fi
+  done
+fi
+
+if   [[ ! -z ${ARG_EDIT}  ]] ; then 
+  echo "|--[ Operation            ] => [ edit ]"
+else
+  echo "|--[ Operation            ] => [ install ]"
+fi
+
+#
+# If edit mode was requested, deliver it unto the user.
+#
+if [[ ! -z ${ARG_EDIT} ]] ; then 
+  if [[ -z ${EDITOR} ]] ; then EDITOR=`which vim` ; fi
+
+  edit_args=""
+  for pkg_name in `echo "${COMPONENTS_LIST}"` ; do 
+    if [[ -d "${pkg_name}" && -f "${pkg_name}/${pkg_name}.env" ]] ; then 
+      edit_args="${edit_args} ${pkg_name}/${pkg_name}.env"
+    fi
+  done
+
+  if [[ -z ${edit_args} ]] ; then 
+    echo "" 2>&1
+    echo "[ ${SCRIPT_NAME} ] :: ERROR :: No component definitions found in '${ARG_COMPONENTS_DIR}' :: Line ${LINENO}" 2>&1
+    echo "" 2>&1
+    exit 1
+  fi
+
+  if [[ ! -z ${ARG_VERBOSE} ]] ; then 
+    echo "|--[ Edit Command              ] => [ ${EDITOR} ${edit_args} ]"
+  fi
+
+  ${EDITOR} ${edit_args}
+  exit 0
+fi
+
+if [[ ! -e ${LIBRARY_DIR} ]] ; then mkdir -p ${LIBRARY_DIR} ; fi
+if [[ ! -e ${MODULE_DIR} ]]  ; then mkdir -p ${MODULE_DIR} ; fi
+
+#
+# Export our output directories so we can refer to them from within the various COMPONENT_ENV_FILES
+#
+export LIBRARY_DIR      # Configured libraries directory - This is where libs will live.
+export FPS_EXTERNAL_DIR   # Path to the root of the external libs tree.
+export COMPONENTS_ROOT=${ARG_COMPONENTS_DIR} 
+
+for component_dir in `echo "${COMPONENTS_LIST}"` ; do 
+  COMPONENT_CFG=${component_dir}/${component_dir}.env
+  [[ ! -f ${COMPONENT_CFG} ]] && continue 
+
+  unset COMPONENT_LABEL                # Components that share a label are aggregated into a requirement group.
+  unset COMPONENT_PATH                 # Path to installed component files.
+  unset COMPONENT_DESCRIPTION          # Text description of component.
+  unset COMPONENT_INCLUDE_DIRS         # Space delimited list of include directories.
+  unset COMPONENT_SYS_INCLUDE_DIRS     # Space delimited list of include directories - These are treated as system headers and no warnings are generated during compilation.
+  unset COMPONENT_LIBRARY_DIRS         # Space delimited list of directories containing compiled component-specific library files.
+  unset COMPONENT_LIBRARY_NAMES        # Optional : Whitespace delimited list of library names to link with.  
+                                       #            If not specified, all libraries in COMPONENT_LIBRARY_DIRS will be linked.
+  unset COMPONENT_REQUIREMENTS         # Optional : Whitespace delimited list of additional libraries required by the component libraries.
+  unset COMPONENT_COMPILER_FLAGS       # Optional : Whitespace delimited list of additional compiler flags to include when compiling against 
+                                       #            this component.
+  export COMPONENT_NAME="${component_dir}"
+
+  source ${COMPONENT_CFG} 
+
+  if [[ -z ${COMPONENT_LABEL} ]] ; then 
+    echo "" 2>&1
+    echo "[ ${SCRIPT_NAME} ] :: ERROR :: 'COMPONENT_LABEL' missing from '${COMPONENTS_ROOT}/${component_dir}/${COMPONENT_CFG}' :: Line ${LINENO}" 2>&1
+    echo "" 2>&1
+    exit 1
+  fi
+
+  if [[ -z ${COMPONENT_PATH} ]] ; then 
+    echo "" 2>&1
+    echo "[ ${SCRIPT_NAME} ] :: ERROR :: 'COMPONENT_PATH' missing from '${COMPONENTS_ROOT}/${component_dir}/${COMPONENT_CFG}'" 2>&1
+    echo "" 2>&1
+    exit 1
+  fi
+
+  if [[ -z ${COMPONENT_DESCRIPTION} ]] ; then 
+    COMPONENT_DESCRIPTION="${COMPONENT_NAME} version: ${COMPONENT_PATH}"
+  fi 
+
+  echo ""
+  echo "[ ${COMPONENT_NAME} ]"
+  echo "|--[ Component Config ] => [ ${COMPONENTS_ROOT}/${component_dir}/${COMPONENT_CFG} ]"
+  echo "|--[ Label            ] => [ ${COMPONENT_LABEL} ]"
+  echo "|--[ Description      ] => [ ${COMPONENT_DESCRIPTION} ]"
+  echo "|--[ Path             ] => [ ${COMPONENT_PATH} ]"
+
+  #
+  # Import locations of component header files and build cmake style list for build module.
+  #
+  cm_module_include_dirs="" 
+  if [[ ! -z ${COMPONENT_INCLUDE_DIRS} ]] ; then 
+    for include_dir in `echo "${COMPONENT_INCLUDE_DIRS}"` ; do
+      if [[ -z ${cm_module_include_dirs} ]] ; then 
+        cm_module_include_dirs="${include_dir}"
+      else 
+        cm_module_include_dirs="${cm_module_include_dirs} ${include_dir}"
+      fi
+    done
+  fi
+
+  #
+  # Import locations of component SYSTEM header files and build cmake style list for build module.
+  # 
+  cm_module_sys_include_dirs="" 
+  if [[ ! -z ${COMPONENT_SYS_INCLUDE_DIRS} ]] ; then 
+    for include_dir in `echo "${COMPONENT_SYS_INCLUDE_DIRS}"` ; do
+      if [[ -z ${cm_module_sys_include_dirs} ]] ; then 
+        cm_module_sys_include_dirs="${include_dir}"
+      else 
+        cm_module_sys_include_dirs="${cm_module_sys_include_dirs} ${include_dir}"
+      fi
+    done
+  fi
+
+  #
+  # Import names of any additional libraries required when by linking with this component.
+  #
+  cm_module_requires=""  
+  if [[ ! -z ${COMPONENT_REQUIREMENTS} ]] ; then 
+    for lib_name in `echo "${COMPONENT_REQUIREMENTS}"` ; do
+      if [[ -z ${cm_module_requires} ]] ; then 
+        cm_module_requires="${lib_name}"
+      else 
+        cm_module_requires="${cm_module_requires} ${lib_name}"
+      fi
+    done
+    echo "|--[ Requirements     ] => [ ${cm_module_requires} ]"
+  fi
+
+  cm_module_compiler_flags=""
+  if [[ ! -z ${COMPONENT_COMPILER_FLAGS}  ]] ; then 
+    for flag in `echo ${COMPONENT_COMPILER_FLAGS}` ; do 
+      if [[ -z ${cm_module_compiler_flags} ]] ; then
+        cm_module_compiler_flags="${flag}"
+      else 
+        cm_module_compiler_flags="${cm_module_compiler_flags} ${flag}" 
+      fi
+    done
+  fi
+
+  #
+  # If COMPONENT_LIBRARY_NAMES is specified, then set the PROVIDES section to it's value.
+  # This is useful when a component provides multiple library files, but we only want to link 
+  # with a subset by default.
+  #
+  cm_module_provides=""
+  lib_names_manually_specified=""
+  if [[ ! -z ${COMPONENT_LIBRARY_NAMES} ]] ; then 
+    cm_module_provides="${COMPONENT_LIBRARY_NAMES}"
+    lib_names_manually_specified=1
+  fi
+
+
+  #
+  # Copy compiled library binaries to common linkage directory and build list of library filenames
+  #
+  [[ -z ${COMPONENT_LIBRARY_DIRS} && -d ${COMPONENT_PATH}/lib ]] && export COMPONENT_LIBRARY_DIRS="${COMPONENT_PATH}/lib"
+  if [[ ! -z ${COMPONENT_LIBRARY_DIRS} ]] ; then 
+    for lib_dir in `echo ${COMPONENT_LIBRARY_DIRS}` ; do 
+      if [[ ! -d ${lib_dir} ]] ; then continue ; fi 
+
+      pushd ${lib_dir} &> /dev/null
+      for lib_file in `echo "$(ls {*.a,*.so,*.so.*} 2> /dev/null)"` ; do
+        if [[ -d "${lib_file}" ]] ; then continue ; fi
+
+        if [[ -z ${ARG_QUERY} ]] ; then 
+          cp -fP ${lib_file} ${LIBRARY_DIR} 
+          if [[ $? -ne 0 ]] ; then
+            echo "" 2>&1
+            echo "[ ${SCRIPT_NAME} ] :: ERROR :: Failed to copy library '${lib_file}' to directory '${LIBRARY_DIR}' :: Line ${LINENO}" 2>&1
+            echo "" 2>&1
+            exit 1
+          fi
+        fi
+        
+        #
+        # If the library ends in '.so' or '.a' we add it to the PROVIDES section 
+        # ( if lib names weren't manually specified )
+        #
+        if [[ ${lib_file} =~ \.(a|so)$ ]] ; then 
+          if [[ -z ${lib_names_manually_specified} ]] ; then 
+            if [[ -z ${cm_module_provides} ]] ; then 
+              cm_module_provides="${lib_file}"
+            else
+              cm_module_provides="${cm_module_provides} ${lib_file}"
+            fi
+          fi
+        fi
+      done 
+      pushd &> /dev/null
+    done
+  fi
+  echo "|--[ Provides         ] => [ ${cm_module_provides} ]"
+
+  #
+  # Register this component with CMake.
+  #
+  nl=$'\n' 
+  if [[ ! -z ${COMPONENT_LABEL} ]] ; then 
+    cm_library_dir="${LIBRARY_DIR}"
+    cm_module_file="${MODULE_DIR}/${COMPONENT_NAME}.cmake"
+
+    if [[ -z ${ARG_QUERY} ]] ; then 
+      if [[ -f ${cm_module_file} ]] ; then 
+        rm -f ${cm_module_file} 
+      fi
+    fi
+
+    cm_module_txt="fps_add_external_component( 
+    LABEL                \"${COMPONENT_LABEL}\"
+    DESCRIPTION          \"${COMPONENT_DESCRIPTION}\""
+
+    # PATH                 \"${COMPONENT_PATH}\""
+
+    if [[ ! -z ${cm_module_include_dirs} ]] ; then 
+      cm_module_txt="${cm_module_txt}${nl}    INCLUDE_DIRS         \"${cm_module_include_dirs}\""
+    fi
+
+    if [[ ! -z ${cm_module_sys_include_dirs} ]] ; then 
+      cm_module_txt="${cm_module_txt}${nl}    SYSTEM_INCLUDE_DIRS  \"${cm_module_sys_include_dirs}\""
+    fi
+
+    if [[ ! -z ${cm_module_sys_include_dirs} ]] ; then 
+      cm_module_txt="${cm_module_txt}${nl}    SYSTEM_INCLUDE_DIRS  \"${cm_module_sys_include_dirs}\""
+    fi
+
+    if [[ ! -z ${cm_module_compiler_flags} ]] ; then 
+      cm_module_txt="${cm_module_txt}${nl}    COMPILER_FLAGS       \"${cm_module_compiler_flags}\""
+    fi
+
+    if [[ ! -z ${cm_module_requires} ]] ; then 
+      cm_module_txt="${cm_module_txt}${nl}    REQUIRES             \"${cm_module_requires}\""
+    fi
+
+    if [[ ! -z ${cm_module_txt} ]] ; then 
+      cm_module_txt="${cm_module_txt}${nl}    PROVIDES             \"${cm_module_provides}\""
+    fi
+    cm_module_txt="${cm_module_txt}${nl})"
+
+    if [[ -z ${ARG_QUERY} ]] ; then 
+      echo "${cm_module_txt}" > ${cm_module_file}
+    fi
+    if [[ ! -z ${ARG_VERBOSE} ]] ; then 
+      echo "|--[ Module File      ] => [ ${cm_module_file} ]" 
+    fi
+  fi
+
+done 
+
+touch ${INDICATOR_FILE} 
+
+cd ${OLD_PWD}

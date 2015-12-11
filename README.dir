@@ -1,0 +1,32 @@
+[ fps_platform/ ] :: This is the top-level directory of the fps_platform repository.  
+| 
+|--[ build/ ] :: Automatically created by fpsmake.  Houses out-of-tree build intermediates and binaries.
+|
+|--[ cpp/ ] :: C++ source code can be found in the cpp/ subdirectory.  
+|  |--[      lib/ ] :: Houses c++ library source code.
+|  |--[ examples/ ] :: Houses c++ example programs that demonstrate component usage.
+|  |--[     test/ ] :: Houses c++ unit tests for non-library components.
+|  |--[     app/  ] :: Houses c++ application source code.
+|
+|--[ cmake/ ] :: CMake customization scripts can be found in this directory.
+|  |--[            fps_constants.cmake ] :: Definitions of fps_* cmake variables.
+|  |--[                  fps_gcc.cmake ] :: GCC version specific extensions/logic.
+|  |--[ fps_api__add_application.cmake ] :: Implementation of fps_add_application() function.
+|  |--[     fps_api__add_library.cmake ] :: Implementation of fps_add_library() function.
+|  |--[   fps_api__add_unit_test.cmake ] :: Implementation of fps_add_unit_test function.
+|
+|--[ external/ ] :: External library configuration files and scripts can be found here.
+|  |--[ components/ ] :: External component requirements are defined here.
+|  |--[        lib/ ] :: fpsmake.configure copies custom external libraries here for easy access.
+|
+|--[ scripts/ ] :: The fpsmake command line scripts can be found here.
+|  |--[                   fpsmake ] :: Core fpsmake script.
+|  |--[            fpsmake.common ] :: Common functionality shared by fpsmake scripts.
+|  |--[         fpsmake.configure ] :: Manages external library configuration in fps_platform/external.
+|  |--[          fpsmake.elf_tool ] :: Converts data files to linkable .o files.
+|  |--[ fpsmake.update_build_info ] :: Embeds JSON encoded build information into binaries. 
+|
+|--[ python/ ] :: Python components will live here.
+|
+
+
