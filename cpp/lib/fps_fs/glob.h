@@ -10,14 +10,32 @@ namespace fps {
 namespace fs  {
 
   //----------------------------------------------------------------------------------------------------
+  // Bash style glob-expression evaluator (Wraps linux system ::glob() function).  
+  //
+  // Example: 
+  // 
+  //    fs::Glob cpp_src_files( "*.{h,cpp,tcc,hpp,cc}" ) ;
+  //    if( cpp_src_files.empty() )
+  //    { std::cout << "Error : No matches for Glob( '" << cpp_src_files.expression() << "' )" << std::endl ;
+  //    }
+  //    else
+  //    { 
+  //      std::cout << "[ Glob( " << cpp_src_files.expression() << " ) ]" << std::endl ;
+  //      for( auto itr = cpp_src_files.begin() ; itr != cpp_src_files.end() ; ++itr ) 
+  //        std::cout << "  + " << *itr << std::endl ;
+  //    }
+  //
+  //----------------------------------------------------------------------------------------------------
   class Glob
   {
   private :
+    //---------------------------------------------------------------------------
     std::string   expr_ ;
     glob_t        glob_ ;
     uint32_t      flags_ ;
     int32_t       error_id_ ;
   
+    //---------------------------------------------------------------------------
     Glob( const Glob & rhs ) ;
 
   public :
