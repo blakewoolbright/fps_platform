@@ -69,7 +69,6 @@ namespace string  {
     template<typename T> T to_unsigned( const char * buf, uint32_t buf_len ) ;
     template<typename T> T to_signed  ( const char * buf, uint32_t buf_len ) ;
 
-
     //-------------------------------------------------------------------------
     // Conversion struct that can be specialized for specific type conversions.
     //-------------------------------------------------------------------------
@@ -84,6 +83,14 @@ namespace string  {
     to( const char * buf, uint32_t buf_len ) 
     { 
       return detail::Convert<T>::to( buf, buf_len ) ;
+    }
+
+    //-------------------------------------------------------------------------
+    template<typename T>
+    T 
+    to( const std::string & str )
+    { 
+      return detail::Convert<T>::to( str.c_str(), str.length() ) ;
     }
 
     //-------------------------------------------------------------------------

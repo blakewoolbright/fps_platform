@@ -19,7 +19,14 @@ namespace net {
     detail::UAddress impl_ ; 
 
     //-----------------------------------------------------------------------------
-    static bool resolve( const std::string & url, Address & dest ) ;
+    inline void set( uint32_t ip, uint16_t port ) { impl_.encode( ip, port ) ; }
+
+  public :
+    //-----------------------------------------------------------------------------
+    static bool        resolve ( std::string url, Address & dest ) ;
+    static std::string trim_url( const std::string & url ) ;
+    static uint16_t    get_port_from_url( const std::string & url ) ;
+    static std::string get_host_from_url( const std::string & url ) ;
 
   public :
     //-----------------------------------------------------------------------------
@@ -29,7 +36,8 @@ namespace net {
     inline Address( const char * ip, uint16_t port ) ;
 
     //-----------------------------------------------------------------------------
-    inline Address( const char * url ) ;
+    inline explicit Address( const char * url ) ;
+    inline explicit Address( const std::string & url ) ;
 
     //-----------------------------------------------------------------------------
     inline bool empty()       const { return impl_.empty()       ; }
@@ -48,6 +56,9 @@ namespace net {
     //-----------------------------------------------------------------------------
     inline bool to_native  ( ::sockaddr_in & dest ) const ;
     inline void from_native( const sockaddr_in & src ) ;
+
+    //-----------------------------------------------------------------------------
+    inline void clear() { impl_.clear() ; }
 
     //-----------------------------------------------------------------------------
     inline std::string to_string( bool show_port=false ) const ;
@@ -77,6 +88,24 @@ namespace net {
       impl_.encode( util::bswap( dst_addr.s_addr ), port ) ;
     else 
       impl_.encode_port( port ) ;
+  }
+
+  //-------------------------------------------------------------------------------
+  Address::Address( const char * url )
+  { 
+    impl_.clear() ;
+    
+    if( !resolve( std::string( url ), *this ) )
+      clear() ; 
+  }
+
+  //-------------------------------------------------------------------------------
+  Address::Address( const std::string & url )
+  { 
+    impl_.clear() ;
+    
+    if( !resolve( url, *this ) )
+      clear() ; 
   }
 
   //-------------------------------------------------------------------------------
