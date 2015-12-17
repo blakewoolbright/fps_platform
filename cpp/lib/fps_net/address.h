@@ -8,7 +8,6 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-
 namespace fps {
 namespace net {
 
@@ -23,8 +22,10 @@ namespace net {
 
   public :
     //-----------------------------------------------------------------------------
-    static bool        resolve ( std::string url, Address & dest ) ;
-    static std::string trim_url( const std::string & url ) ;
+    static bool        resolve_url( std::string url, Address & dest ) ;
+    static std::string trim_url   ( const std::string & url ) ;
+
+    //-----------------------------------------------------------------------------
     static uint16_t    get_port_from_url( const std::string & url ) ;
     static std::string get_host_from_url( const std::string & url ) ;
 
@@ -40,12 +41,15 @@ namespace net {
     inline explicit Address( const std::string & url ) ;
 
     //-----------------------------------------------------------------------------
+    inline uint8_t operator[]( uint32_t octet ) const ;
+
+    //-----------------------------------------------------------------------------
     inline bool empty()       const { return impl_.empty()       ; }
     inline bool is_wildcard() const { return impl_.is_wildcard() ; }
 
     //-----------------------------------------------------------------------------
-    inline uint32_t ip  ()    const { return impl_.decoded_ip()   ; }
-    inline uint16_t port()    const { return impl_.decoded_port() ; }
+    inline uint32_t ip  () const { return impl_.decoded_ip()   ; }
+    inline uint16_t port() const { return impl_.decoded_port() ; }
 
     //-----------------------------------------------------------------------------
     inline uint64_t encode() const { return impl_.encoded() ; }
@@ -62,17 +66,6 @@ namespace net {
 
     //-----------------------------------------------------------------------------
     inline std::string to_string( bool show_port=false ) const ;
-
-    //-----------------------------------------------------------------------------
-    inline 
-    uint8_t 
-    operator[]( uint32_t octet ) const
-    { 
-      if( octet > 3 ) return 0 ;
-
-      uint32_t value = impl_.decoded_ip() ;
-      return reinterpret_cast<const uint8_t *>( &value )[ 3 - octet ] ;
-    }
   } ;
 
   //-------------------------------------------------------------------------------
@@ -81,31 +74,24 @@ namespace net {
   //-------------------------------------------------------------------------------
   Address::Address( const char * ip, uint16_t port )   
   { 
-    impl_.clear() ;
-    
-    ::in_addr dst_addr ;
-    if( 0 != ::inet_aton( ip, &dst_addr ) ) 
-      impl_.encode( util::bswap( dst_addr.s_addr ), port ) ;
-    else 
+    if( resolve_url( std::string( ip ), *this ) )
       impl_.encode_port( port ) ;
+    else 
+      clear() ;  // TODO: Throw exception?
   }
 
   //-------------------------------------------------------------------------------
   Address::Address( const char * url )
   { 
-    impl_.clear() ;
-    
-    if( !resolve( std::string( url ), *this ) )
-      clear() ; 
+    if( !resolve_url( std::string( url ), *this ) )
+      clear() ;  // TODO: Throw exception?
   }
 
   //-------------------------------------------------------------------------------
   Address::Address( const std::string & url )
   { 
-    impl_.clear() ;
-    
-    if( !resolve( url, *this ) )
-      clear() ; 
+    if( !resolve_url( url, *this ) )
+      clear() ;  // TODO: Throw exception?
   }
 
   //-------------------------------------------------------------------------------
@@ -126,6 +112,17 @@ namespace net {
   Address::from_native( const ::sockaddr_in & src ) 
   { 
     impl_.encode( util::bswap( src.sin_addr.s_addr ), util::bswap( src.sin_port ) ) ;
+  }
+
+  //-----------------------------------------------------------------------------
+  inline 
+  uint8_t 
+  Address::operator[]( uint32_t octet ) const
+  { 
+    if( octet > 3 ) return 0 ;
+
+    uint32_t value = impl_.decoded_ip() ;
+    return reinterpret_cast<const uint8_t *>( &value )[ 3 - octet ] ;
   }
 
   //-------------------------------------------------------------------------------

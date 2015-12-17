@@ -12,6 +12,8 @@ BOOST_AUTO_TEST_CASE( fps_net__address )
   std::vector<std::string> test_addrs = { "192.168.1.1:12345"
                                         , "tcp://192.168.1.1:27501"
                                         , "http://192.168.254.10:27502/dir/script.ext?var=value"
+                                        , "http://www.google.com"
+                                        , "https://www.google.com:6666"
                                         } ;
                                          
 
