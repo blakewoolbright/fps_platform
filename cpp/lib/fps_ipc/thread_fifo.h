@@ -1,5 +1,5 @@
-#ifndef FPS__IPC__FIFO__H
-#define FPS__IPC__FIFO__H
+#ifndef FPS__IPC__THREAD_FIFO__H
+#define FPS__IPC__THREAD_FIFO__H
 
 #include <type_traits>
 #include <cstdlib>
