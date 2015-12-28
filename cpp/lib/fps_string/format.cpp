@@ -1,5 +1,6 @@
-#include "format.h"
+#include "fps_string.h"
 #include <cstring>
+#include <cctype>
 #include <iostream>
 #include <stdarg.h>
 #include <boost/algorithm/string/trim.hpp>

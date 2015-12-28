@@ -1,10 +1,11 @@
 #ifndef FPS__SYSTEM__SYSTEM__H
 #define FPS__SYSTEM__SYSTEM__H
 
+#include <stdint.h>
 #include <thread>
 #include <sched.h>
 #include <unistd.h>
-#include <stdint.h>
+#include <cstring>
 
 namespace fps {
 namespace system {
@@ -18,6 +19,12 @@ namespace system {
   network interfaces
   
   */
+
+  //------------------------------------------------------------------------
+  int64_t l1_cache_size() ;  
+
+  //------------------------------------------------------------------------
+  int64_t l1_cacheline_size() ;  
 
   //------------------------------------------------------------------------
   inline
@@ -89,29 +96,7 @@ namespace system {
     inline void reset() { CPU_ZERO( &mask_ ) ; }
 
     //----------------------------------------------------------------------
-    inline
-    std::string
-    to_string() const 
-    {
-      std::string rv ;
-      uint32_t tgt_count = size() ; 
-      uint32_t cur_count = 0 ;
-      for( uint32_t idx = 0 
-         ; idx < CPU_SETSIZE && cur_count < tgt_count 
-         ; ++idx 
-         ) 
-      { if( !CPU_ISSET( idx, &mask_ ) ) 
-          continue ;
-
-        string::append( rv, "%u,", idx ) ;
-        ++cur_count ;
-      }
-
-      if( !rv.empty() ) 
-        rv.pop_back() ;
-      
-      return rv ;
-    }
+    std::string to_string() const ;
     
     //----------------------------------------------------------------------
     inline 

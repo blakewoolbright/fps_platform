@@ -1,7 +1,8 @@
 #define BOOST_TEST_MODULE fps_ipc
 
 #include "fps_ipc/thread_fifo.h"
-#include "fps_string/fps_string.h"
+#include "fps_ipc/ipc_util.h"
+#include "fps_string/format.h"
 #include "fps_util/signal.h"
 #include "fps_time/fps_time.h"
 
@@ -136,6 +137,16 @@ run_writer_thread( fifo_t * fifo )
             << std::endl << std::flush ;
 }
 
+struct AlignTester
+{
+  uint64_t a_ ;
+  uint64_t b_ ;
+  uint64_t c_ ;
+  uint64_t d_ ;
+
+  void *   e_ ;
+} ;
+
 BOOST_AUTO_TEST_CASE( fps_ipc__fifo )
 {
   fifo_t * fifo = new fifo_t( 128 ) ;
@@ -150,5 +161,12 @@ BOOST_AUTO_TEST_CASE( fps_ipc__fifo )
 
   reader_thread.join() ;
   writer_thread.join() ;
+
+  typedef ipc::detail::Align64<AlignTester> test_t ;
+  std::cout << "sizeof ( test_t )      : " << sizeof ( test_t ) << std::endl 
+            << "alignof( test_t )      : " << alignof( test_t ) << std::endl 
+            << "sizeof ( AlignTester ) : " << sizeof ( AlignTester ) << std::endl 
+            << "alignof( AlignTester ) : " << alignof( AlignTester ) << std::endl 
+            << std::endl ;
 }
 

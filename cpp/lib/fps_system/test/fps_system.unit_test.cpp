@@ -1,6 +1,6 @@
 #define BOOST_TEST_MODULE fps_system
 
-#include "fps_string/fps_string.h"
+#include "fps_string/format.h"
 #include "fps_system/fps_system.h"
 
 #include <boost/test/unit_test.hpp>

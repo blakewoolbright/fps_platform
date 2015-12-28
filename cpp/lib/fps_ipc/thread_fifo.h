@@ -9,6 +9,10 @@ namespace fps {
 namespace ipc {
 
 //--------------------------------------------------------------------------------
+// TODO: Minimum size of each array slot must be at least one cacheline.
+//       (See: <system-hdrs>/adm-i386/cache.h - Macro: L1_CACHE_BYTES)
+//
+//--------------------------------------------------------------------------------
 template<typename T>
 class ThreadFifo
 {

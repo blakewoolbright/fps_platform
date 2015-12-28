@@ -2,7 +2,6 @@
 #define FPS__STRING__FORMAT__H
 
 #include <unistd.h>
-#include <cctype>
 #include <string>
 #include <vector>
 #include <algorithm>
