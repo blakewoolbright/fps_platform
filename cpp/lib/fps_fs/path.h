@@ -145,7 +145,7 @@ namespace fs  {
   bool 
   Path::exists() const 
   {
-    return ( valid_ ) ? true : sync() ;
+    return ( !valid_ && !sync() ) ? false : true ;
   }
   
   //--------------------------------------------------------------------------------------------------
