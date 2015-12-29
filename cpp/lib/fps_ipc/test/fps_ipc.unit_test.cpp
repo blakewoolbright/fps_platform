@@ -53,7 +53,7 @@ run_reader_thread( fifo_t * fifo )
   uint32_t r_fail  = 0 ;
 
   std::vector<TestMessage> r_vec ;
-  r_vec.reserve( 1024 ) ;
+  r_vec.reserve( 1025 ) ;
   
   bool rdr_exit_flag = false ;
   while( !rdr_exit_flag )
@@ -138,7 +138,7 @@ run_writer_thread( fifo_t * fifo )
 
 BOOST_AUTO_TEST_CASE( fps_ipc__fifo )
 {
-  fifo_t * fifo = new fifo_t( 128 ) ;
+  fifo_t * fifo = new fifo_t( 511 ) ;
   
   std::cout << "[ ipc::ThreadFifo<> unit test ]" << std::endl 
             << "|--[ fifo.size()     :: " << fifo->size() << " ]" << std::endl 

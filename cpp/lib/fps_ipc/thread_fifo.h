@@ -137,14 +137,19 @@ ThreadFifo<T>::write( const T & value )
   if( size_ == capacity_ ) 
     return false ;
 
-  // Normalize write index
-  w_idx_ = w_idx_ & (capacity_ - 1) ;
-  
   // Write data to buffer
-  data_[ w_idx_++ ] = value ;
+  data_[ w_idx_ ] = value ;
  
   // Increase fifo size by 1
   __sync_fetch_and_add( &size_, 1 ) ; 
+
+  // Increment & normalize write index 
+  // TODO: Figure out how to ditch the conditional
+  if( w_idx_ == (capacity_-1) ) 
+    w_idx_ = 0 ;
+  else 
+    ++w_idx_ ;
+  
   return true ;
 }
 
@@ -157,14 +162,19 @@ ThreadFifo<T>::read( T & result )
   if( size_ == 0 ) 
     return false ;
 
-  // Normalize read index
-  r_idx_ = r_idx_ & (capacity_-1) ;
-
   // Read data element
-  result = data_[ r_idx_++ ] ;
+  result = data_[ r_idx_ ] ;
   
   // Reduce fifo size by 1
   __sync_fetch_and_sub( &size_, 1 ) ;
+
+  // Increment & normalize read index 
+  // TODO: Figure out how to ditch the conditional
+  if( r_idx_ == (capacity_-1) ) 
+    r_idx_ = 0 ;
+  else 
+    ++r_idx_ ;
+
   return true ;
 }
 

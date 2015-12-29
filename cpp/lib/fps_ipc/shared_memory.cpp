@@ -33,6 +33,27 @@ namespace ipc {
   }
 
   //-------------------------------------------------------------------------------------------
+  bool
+  SharedMemory::validate_name( const std::string & name ) 
+  {
+    if( name.size() < 2 || name[0] != '/' ) 
+      return false ;
+ 
+    uint32_t slash_count = 0 ;
+    for( auto itr = name.begin() ; itr != name.end() ; ++itr ) 
+    { 
+      if( *itr != '/' )  
+        continue ;
+
+      ++slash_count ;
+      if( slash_count > 1 ) 
+        return false ;
+    }
+    
+    return true ;
+  }
+
+  //-------------------------------------------------------------------------------------------
   // Create a new shm segment w/ the indicated name and size (in bytes).
   // This function should be used by writer / producer implementations.  Reader / consumer 
   // implementations should just call open().
@@ -44,7 +65,6 @@ namespace ipc {
     error_ = 0 ;
     flags_ = O_RDONLY ;
     name_  = string::stripped( name ) ;
-
 
     fd_    = ::shm_open( name_.c_str(), flags_, 0666 ) ;
     if( fd_ < 0 )
@@ -83,9 +103,14 @@ namespace ipc {
     close() ;
 
     error_ = 0 ;
-    flags_ = O_CREAT | O_RDWR | O_EXCL ;
     name_  = string::stripped( name ) ;
+    
+    if( !validate_name( name_ ) ) 
+    { error_ = EINVAL ;
+      return false ;
+    }
 
+    flags_ = O_CREAT | O_RDWR | O_EXCL ;
     fd_    = ::shm_open( name_.c_str(), flags_, 0666 ) ;
     if( fd_ < 0 ) 
     { error_ = errno ;
@@ -115,13 +140,24 @@ namespace ipc {
     error_  = 0 ;
     if( is_open() ) 
     { 
-      // ::munmap() 
-      if( ::close( fd_ ) != 0 ) 
-      { error_ = errno ;
+      // Remove mmaping of shm region.
+      if( ::munmap( ptr_, size_ ) != 0 ) 
+      { 
+        error_ = errno ;
         rv     = false ;
+      }
+
+      // Close underlying file handle
+      if( ::close( fd_ ) != 0 ) 
+      { 
+        if( error_ == 0 ) 
+        { error_ = errno ;
+          rv     = false ;
+        }
       }
     }
 
+    // Clear members
     ptr_   = NULL ;
     size_  =  0 ;
     flags_ =  0 ;
