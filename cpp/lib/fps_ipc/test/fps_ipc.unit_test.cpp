@@ -1,7 +1,6 @@
 #define BOOST_TEST_MODULE fps_ipc
 
-#include "fps_ipc/thread_fifo.h"
-#include "fps_ipc/ipc_util.h"
+#include "fps_ipc/fps_ipc.h"
 #include "fps_string/format.h"
 #include "fps_util/signal.h"
 #include "fps_time/fps_time.h"
@@ -137,16 +136,6 @@ run_writer_thread( fifo_t * fifo )
             << std::endl << std::flush ;
 }
 
-struct AlignTester
-{
-  uint64_t a_ ;
-  uint64_t b_ ;
-  uint64_t c_ ;
-  uint64_t d_ ;
-
-  void *   e_ ;
-} ;
-
 BOOST_AUTO_TEST_CASE( fps_ipc__fifo )
 {
   fifo_t * fifo = new fifo_t( 128 ) ;
@@ -161,6 +150,22 @@ BOOST_AUTO_TEST_CASE( fps_ipc__fifo )
 
   reader_thread.join() ;
   writer_thread.join() ;
+}
+
+BOOST_AUTO_TEST_CASE( fps_ipc__shared_memory )
+{
+  /*
+  struct AlignTester
+  {
+    uint64_t a_ ;
+    uint64_t b_ ;
+    uint64_t c_ ;
+    uint64_t d_ ;
+
+    void *   e_ ;
+    uint64_t f_[3] ;
+    char     x_ ;
+  } ;
 
   typedef ipc::detail::Align64<AlignTester> test_t ;
   std::cout << "sizeof ( test_t )      : " << sizeof ( test_t ) << std::endl 
@@ -168,5 +173,34 @@ BOOST_AUTO_TEST_CASE( fps_ipc__fifo )
             << "sizeof ( AlignTester ) : " << sizeof ( AlignTester ) << std::endl 
             << "alignof( AlignTester ) : " << alignof( AlignTester ) << std::endl 
             << std::endl ;
+  */
+
+  std::cout << std::endl 
+            << "[ ipc::SharedMemory unit tests ]" << std::endl ;
+
+  {
+    ipc::SharedMemory shm ;
+    BOOST_CHECK_MESSAGE
+    ( !shm.is_writable() 
+    , string::sprintf( "\n\tipc::SharedMemory :: Member 'is_writable()' should fail prior to init." )
+    ) ;
+
+    BOOST_CHECK_MESSAGE
+    ( !shm.is_readable() 
+    , string::sprintf( "\n\tipc::SharedMemory :: Member 'is_readable()' should fail prior to init." )
+    ) ;
+
+    BOOST_CHECK_MESSAGE
+    ( shm.size() == 0
+    , string::sprintf( "\n\tipc::SharedMemory :: Member 'size()' should return zero prior to init." ) 
+    ) ;
+
+    if( !shm.create( "/fps_ipc.unit_test.1024", 1024 ) ) 
+    { std::cout << "Error creating shared memory file: '" << shm.name() << "', errno: " << shm.last_error() << std::endl ;
+    }
+    
+    std::cout << "|--[ size : " << shm.size() << " ]" << std::endl ;
+  }
+    
 }
 

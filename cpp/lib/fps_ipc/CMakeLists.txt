@@ -2,6 +2,7 @@ fps_add_library(
   NAME        fps_ipc
   DEPENDS     fps_system
               fps_string
+              fps_fs
   FILES       fps_ipc.cpp
               shared_memory.cpp 
 )

@@ -157,7 +157,7 @@ ThreadFifo<T>::read( T & result )
   if( size_ == 0 ) 
     return false ;
 
-  // Normalize write index
+  // Normalize read index
   r_idx_ = r_idx_ & (capacity_-1) ;
 
   // Read data element
