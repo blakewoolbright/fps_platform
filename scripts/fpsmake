@@ -363,7 +363,11 @@ FPSMAKE_ENV_VARS=\
 if [[ ! -z ${ARG_ENV} ]] ; then
   for var in `echo ${FPSMAKE_ENV_VARS}` ; do 
     var_value=${!var}
-    [[ ${var} == "PATH" ]] && var_value="${FPS_BIN_DIR}:${var_value}"
+    if [[ ${var} == "PATH" ]] ; then 
+      var_value="${FPS_BIN_DIR}:${var_value}"
+    elif [[ ${var} == "LD_LIBRARY_PATH" && ${FPS_COMPILER_DIR} != "/usr" ]] ; then 
+      var_value="${var_value}:${FPS_COMPILER_DIR}/lib64"
+    fi
     echo "export ${var}=${var_value}" 
     unset var_value
   done

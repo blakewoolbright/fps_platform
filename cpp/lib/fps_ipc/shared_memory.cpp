@@ -65,6 +65,8 @@ namespace ipc {
     error_ = 0 ;
     flags_ = O_RDONLY ;
     name_  = string::stripped( name ) ;
+    if( !name_.empty() && name_[0] != '/' ) 
+      name_.insert( name_.begin(), '/' ) ;
 
     fd_    = ::shm_open( name_.c_str(), flags_, 0666 ) ;
     if( fd_ < 0 )
@@ -104,6 +106,8 @@ namespace ipc {
 
     error_ = 0 ;
     name_  = string::stripped( name ) ;
+    if( !name_.empty() && name_[0] != '/' ) 
+      name_.insert( name_.begin(), '/' ) ;
     
     if( !validate_name( name_ ) ) 
     { error_ = EINVAL ;
