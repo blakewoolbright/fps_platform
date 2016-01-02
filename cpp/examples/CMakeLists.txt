@@ -3,3 +3,5 @@ fps_add_application(
   DEPENDS       fps_util
   FILES         display_build_info.cpp
 )
+
+add_subdirectory( ipc )

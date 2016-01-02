@@ -69,7 +69,7 @@ BOOST_AUTO_TEST_CASE( fps_ipc__shm__basics )
     , string::sprintf( "\n\tipc::ShmRegion :: Member 'size()' should return zero prior to init." ) 
     ) ;
 
-    if( !shm.create( test_path.leaf(), test_size ) )
+    if( !shm.try_create( test_path.leaf(), test_size ) )
     { std::cout << "Error creating shared memory file: '" << shm.name() << "', errno: " << shm.last_error() << std::endl ;
     }
     

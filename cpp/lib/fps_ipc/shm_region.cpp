@@ -59,7 +59,7 @@ namespace ipc {
   // implementations should just call open().
   //-------------------------------------------------------------------------------------------
   bool
-  ShmRegion::open( const std::string & name )
+  ShmRegion::try_open( const std::string & name )
   {
     close() ;
     error_ = 0 ;
@@ -97,10 +97,10 @@ namespace ipc {
   //-------------------------------------------------------------------------------------------
   // Create a new shm segment w/ the indicated name and size (in bytes).
   // This function should be used by writer / producer implementations.  Reader / consumer 
-  // implementations should just call open().
+  // implementations should just call try_open().
   //-------------------------------------------------------------------------------------------
   bool
-  ShmRegion::create( const std::string & name, uint32_t size_in_bytes )
+  ShmRegion::try_create( const std::string & name, uint32_t size_in_bytes )
   {
     close() ;
 

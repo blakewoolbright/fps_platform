@@ -3,6 +3,7 @@
 
 #include "fps_string/fps_string.h"
 #include "fps_system/fps_system.h"
+#include "fps_fs/path.h"
 
 #include <sys/mman.h>
 #include <fcntl.h>    
@@ -61,20 +62,47 @@ namespace ipc {
     //
     // This function should be called by producer/writer processes during initialization.
     //----------------------------------------------------------------------------------------
-    bool create( const std::string & name, uint32_t size_in_bytes ) ;
+    bool try_create( const std::string & name, uint32_t size_in_bytes ) ;
 
     //----------------------------------------------------------------------------------------
-    bool open  ( const std::string & name ) ;
+    bool try_open  ( const std::string & name ) ;
 
     //----------------------------------------------------------------------------------------
     bool close() ;
   
-    // NOTE: Should I add a way for users to call msync() 
+    //----------------------------------------------------------------------------------------
+    inline void * data() { return ptr_ ; }
 
     //----------------------------------------------------------------------------------------
-    inline void * data() const { return ptr_    ; }
+    template<typename U>
+    inline
+    U * 
+    open( const std::string & name ) 
+    { 
+      fs::Path shm_path( "/dev/shm", name ) ;
+      if( !shm_path.exists() ) 
+      {
+        if( try_create( name, sizeof( U ) ) )
+          return static_cast<U *>( new (data()) U() ) ;
+      }
+      else
+      {
+        if( try_open( name ) ) 
+          return static_cast<U *>( data() ) ;
+      }
+      return NULL ;
+    }
 
     //----------------------------------------------------------------------------------------
+    template<typename U>
+    inline
+    U * 
+    cast() 
+    { return static_cast<U *>( data() ) ;
+    }
+
+    //----------------------------------------------------------------------------------------
+    inline fs::Path    path()        const { return fs::Path( "/dev/shm", name_ ) ; } 
     inline std::string name()        const { return name_   ; }
     inline uint32_t    size()        const { return size_   ; }
     inline int32_t     last_error()  const { return error_  ; }

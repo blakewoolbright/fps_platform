@@ -14,6 +14,7 @@ namespace ipc {
 
   namespace detail 
   {
+    /*
     //--------------------------------------------------------------------------------
     template<typename T>
     class
@@ -27,6 +28,7 @@ namespace ipc {
       RingBuffer_Base( RingBuffer_Base      && ) = delete ;
 
     } ;
+    */
   }
 
   //----------------------------------------------------------------------------------
@@ -34,25 +36,22 @@ namespace ipc {
   //       1) Compile-time fixed buffer size.
   //       2) Overwrite unread records rather than blocking.
   //----------------------------------------------------------------------------------
-  template<typename T, uint32_t T_Capacity>
+  template<typename T>
   class
-  RingBuffer
+  RingBuffer_Base
   {
   private :
     //--------------------------------------------------------------------------------
     typedef std::size_t            size_type ;
     typedef std::atomic<size_type> atomic_idx_t ;
-    typedef typename std::aligned_storage< sizeof( T ), alignof( T ) >::type storage_t ;
 
     //--------------------------------------------------------------------------------
-    static const size_type Capacity = T_Capacity ;
     atomic_idx_t r_idx_ alignas( constants::Cache_Line_Size ) ;
     atomic_idx_t w_idx_ alignas( constants::Cache_Line_Size ) ;
-    storage_t data_[ Capacity ] ;
     
     //--------------------------------------------------------------------------------
-    RingBuffer( const RingBuffer & ) = delete ;
-    RingBuffer( RingBuffer      && ) = delete ;
+    RingBuffer_Base( const RingBuffer_Base & ) = delete ;
+    RingBuffer_Base( RingBuffer_Base      && ) = delete ;
 
   protected :
 
@@ -117,7 +116,7 @@ namespace ipc {
           return false ; 
 
       // Use placement new to copy construct in place.
-      new ( dest + w_nxt ) T( src ); 
+      new ( dest + w_nxt ) T( src ) ; 
 
       // Update write index
       w_idx_.store( w_nxt, std::memory_order_release ) ;
@@ -145,10 +144,9 @@ namespace ipc {
       return true ;
     }
 
-
-  public :
+  protected :
     //--------------------------------------------------------------------------------
-    inline RingBuffer() : r_idx_( 0 ), w_idx_( 0 ) {}
+    inline RingBuffer_Base() { init() ; } 
 
     //--------------------------------------------------------------------------------
     // Note: Not thread safe!  This should be called by the writer during 
@@ -156,7 +154,7 @@ namespace ipc {
     //--------------------------------------------------------------------------------
     inline
     void 
-    reset()
+    init()
     {
       w_idx_.store( 0, std::memory_order_relaxed ) ;
       r_idx_.store( 0, std::memory_order_release ) ;
@@ -179,10 +177,58 @@ namespace ipc {
     bool 
     is_lock_free() const
     {
-      return w_idx_.is_lock_free() && r_idx_.is_lock_free();
+      return w_idx_.is_lock_free() && r_idx_.is_lock_free() ;
     }
-
   } ;
+
+  //-------------------------------------------------------------------------------------------------
+  template<typename T, std::size_t T_Capacity>
+  class
+  RingBuffer_Fixed 
+    : public RingBuffer_Base<T>
+  {
+  public :
+    //-----------------------------------------------------------------------------------------------
+    static const std::size_t Capacity = T_Capacity + 1 ;
+    static const bool        Is_Fixed = true ;
+
+    //-----------------------------------------------------------------------------------------------
+    typedef RingBuffer_Base<T> base_t ;
+    typedef typename std::aligned_storage< sizeof( T ) * Capacity, alignof( T ) >::type storage_t ;
+
+  private :
+    //-----------------------------------------------------------------------------------------------
+    storage_t storage_ ;
+    
+    //-----------------------------------------------------------------------------------------------
+    inline T * data() { return reinterpret_cast<T*>( &storage_ ) ; }
+
+  public :
+    
+    //-----------------------------------------------------------------------------------------------
+    inline
+    RingBuffer_Fixed() 
+      : base_t() 
+    {}
+
+    //-----------------------------------------------------------------------------------------------
+    inline 
+    bool 
+    push( const T & src ) 
+    { 
+      return base_t::push( src, data(), Capacity ) ;
+    }
+  
+    //-----------------------------------------------------------------------------------------------
+    inline 
+    bool
+    pop( T & dest ) 
+    { 
+      return base_t::pop( dest, data(), Capacity ) ;
+    }
+  
+  } ;
+
 }}
 
 #endif
