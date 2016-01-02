@@ -1,4 +1,4 @@
-#include "fps_ipc/shared_memory.h" 
+#include "fps_ipc/shm_region.h" 
 #include "fps_string/fps_string.h"
 #include "fps_fs/path.h"
 
@@ -17,7 +17,7 @@ namespace fps {
 namespace ipc {
 
   //-------------------------------------------------------------------------------------------
-  SharedMemory::SharedMemory() 
+  ShmRegion::ShmRegion() 
     : fd_   ( -1 )
     , size_ ( 0 )
     , flags_( 0 )
@@ -27,14 +27,14 @@ namespace ipc {
   }
 
   //-------------------------------------------------------------------------------------------
-  SharedMemory::~SharedMemory() 
+  ShmRegion::~ShmRegion() 
   { 
     close() ;
   }
 
   //-------------------------------------------------------------------------------------------
   bool
-  SharedMemory::validate_name( const std::string & name ) 
+  ShmRegion::validate_name( const std::string & name ) 
   {
     if( name.size() < 2 || name[0] != '/' ) 
       return false ;
@@ -59,7 +59,7 @@ namespace ipc {
   // implementations should just call open().
   //-------------------------------------------------------------------------------------------
   bool
-  SharedMemory::open( const std::string & name )
+  ShmRegion::open( const std::string & name )
   {
     close() ;
     error_ = 0 ;
@@ -100,7 +100,7 @@ namespace ipc {
   // implementations should just call open().
   //-------------------------------------------------------------------------------------------
   bool
-  SharedMemory::create( const std::string & name, uint32_t size_in_bytes )
+  ShmRegion::create( const std::string & name, uint32_t size_in_bytes )
   {
     close() ;
 
@@ -138,7 +138,7 @@ namespace ipc {
 
   //-------------------------------------------------------------------------------------------
   bool
-  SharedMemory::close()
+  ShmRegion::close()
   {
     bool rv = true ;
     error_  = 0 ;
@@ -172,7 +172,7 @@ namespace ipc {
 
   //-------------------------------------------------------------------------------------------
   bool 
-  SharedMemory::reserve( uint32_t bytes ) 
+  ShmRegion::reserve( uint32_t bytes ) 
   {
     error_ = 0 ;
 

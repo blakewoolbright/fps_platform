@@ -3,13 +3,15 @@
 
 #include <type_traits>
 #include <cstdlib>
-#include <stdint.h>
+#include "fps_ipc/constants.h"
 
 namespace fps {
 namespace ipc {
 
 //--------------------------------------------------------------------------------
-// TODO: Minimum size of each array slot must be at least one cacheline.
+// TODO: Test the following
+// 
+//       Should each array slot occupy an entire cache line?
 //       (See: <system-hdrs>/adm-i386/cache.h - Macro: L1_CACHE_BYTES)
 //
 //--------------------------------------------------------------------------------
@@ -18,17 +20,17 @@ class ThreadFifo
 {
 public :
   typedef T value_t ;
-  static const uint64_t Alignment = 64 ;
+  static const std::size_t Alignment = constants::Cache_Line_Size ;
 
 private :
   //------------------------------------------------------------------------------
-  // Note: The 64 bit alignment specifiers guarantee that the size_, r_idx, and 
-  //       w_idx_ members will reside in their own cache lines.
+  // Note: The 'alignas' specifiers below guarantee that the size_, r_idx, and 
+  //       w_idx_ members will reside in distinct cache lines.
   //------------------------------------------------------------------------------
-  uint64_t          capacity_ alignas( 64 ) ;
-  volatile uint64_t size_     alignas( 64 ) ;
-  uint64_t          r_idx_    alignas( 64 ) ;
-  uint64_t          w_idx_    alignas( 64 ) ;
+  uint64_t          capacity_ alignas( Alignment ) ;
+  volatile uint64_t size_     alignas( Alignment ) ;
+  uint64_t          r_idx_    alignas( Alignment ) ;
+  uint64_t          w_idx_    alignas( Alignment ) ;
   T               * data_ ;
 
   ThreadFifo( const ThreadFifo & ) ;

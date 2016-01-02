@@ -4,7 +4,7 @@ fps_add_library(
               fps_string
               fps_fs
   FILES       fps_ipc.cpp
-              shared_memory.cpp 
+              shm_region.cpp 
 )
 
 add_subdirectory( test ) 

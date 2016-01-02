@@ -36,7 +36,7 @@ BOOST_AUTO_TEST_CASE( fps_ipc__shm__basics )
   */
 
   std::cout << std::endl 
-            << "[ ipc::SharedMemory unit tests ]" 
+            << "[ ipc::ShmRegion unit tests ]" 
             << std::endl ;
 
 
@@ -47,26 +47,26 @@ BOOST_AUTO_TEST_CASE( fps_ipc__shm__basics )
     if( test_path.exists() ) 
     { BOOST_CHECK_MESSAGE
       ( test_path.rm() 
-      , string::sprintf( "\n\tipc::SharedMemory :: Failed to remove dangling shm file '/dev/shm/%s'"
+      , string::sprintf( "\n\tipc::ShmRegion :: Failed to remove dangling shm file '/dev/shm/%s'"
                        , test_path.c_str()
                        ) 
       ) ;
     }
 
-    ipc::SharedMemory shm ;
+    ipc::ShmRegion shm ;
     BOOST_CHECK_MESSAGE
     ( !shm.is_writable() 
-    , string::sprintf( "\n\tipc::SharedMemory :: Member 'is_writable()' should fail prior to init." )
+    , string::sprintf( "\n\tipc::ShmRegion :: Member 'is_writable()' should fail prior to init." )
     ) ;
 
     BOOST_CHECK_MESSAGE
     ( !shm.is_readable() 
-    , string::sprintf( "\n\tipc::SharedMemory :: Member 'is_readable()' should fail prior to init." )
+    , string::sprintf( "\n\tipc::ShmRegion :: Member 'is_readable()' should fail prior to init." )
     ) ;
 
     BOOST_CHECK_MESSAGE
     ( shm.size() == 0
-    , string::sprintf( "\n\tipc::SharedMemory :: Member 'size()' should return zero prior to init." ) 
+    , string::sprintf( "\n\tipc::ShmRegion :: Member 'size()' should return zero prior to init." ) 
     ) ;
 
     if( !shm.create( test_path.leaf(), test_size ) )

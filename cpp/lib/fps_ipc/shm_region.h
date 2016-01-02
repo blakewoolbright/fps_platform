@@ -1,5 +1,5 @@
-#ifndef FPS__IPC__SHARED_MEMORY__H
-#define FPS__IPC__SHARED_MEMORY__H
+#ifndef FPS__IPC__SHM_REGION__H
+#define FPS__IPC__SHM_REGION__H
 
 #include "fps_string/fps_string.h"
 #include "fps_system/fps_system.h"
@@ -20,7 +20,7 @@ namespace ipc {
   */
 
   //-------------------------------------------------------------------------------------------
-  class SharedMemory
+  class ShmRegion
   {
   private :
     //----------------------------------------------------------------------------------------
@@ -32,9 +32,9 @@ namespace ipc {
     void      * ptr_   ; 
    
     //----------------------------------------------------------------------------------------
-    SharedMemory( const SharedMemory & ) ;
-    SharedMemory( SharedMemory && ) ;
-    SharedMemory & operator=( const SharedMemory & ) ;
+    ShmRegion( const ShmRegion & ) ;
+    ShmRegion( ShmRegion && ) ;
+    ShmRegion & operator=( const ShmRegion & ) ;
 
     //----------------------------------------------------------------------------------------
     bool reserve( uint32_t bytes ) ;
@@ -44,8 +44,8 @@ namespace ipc {
 
   public : 
     //----------------------------------------------------------------------------------------
-    SharedMemory() ;
-    ~SharedMemory() ;
+    ShmRegion() ;
+    ~ShmRegion() ;
 
     //----------------------------------------------------------------------------------------
     // Create a read/write shm segment w/ the indicated name and size (in bytes).  

@@ -8,11 +8,11 @@ fps_add_unit_test (
 )
   
 fps_add_unit_test ( 
-  NAME          fps_ipc.shared_memory
+  NAME          fps_ipc.shm
   REQUIRES      boost
   DEPENDS       fps_string
                 fps_time
                 fps_ipc
                 fps_fs
-  FILES         fps_ipc.shared_memory.unit_test.cpp 
+  FILES         fps_ipc.shm.unit_test.cpp 
 )
