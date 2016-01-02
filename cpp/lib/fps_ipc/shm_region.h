@@ -4,6 +4,7 @@
 #include "fps_string/fps_string.h"
 #include "fps_system/fps_system.h"
 #include "fps_fs/path.h"
+#include "fps_ipc/ipc_util.h"
 
 #include <sys/mman.h>
 #include <fcntl.h>    
@@ -65,7 +66,7 @@ namespace ipc {
     bool try_create( const std::string & name, uint32_t size_in_bytes ) ;
 
     //----------------------------------------------------------------------------------------
-    bool try_open  ( const std::string & name ) ;
+    bool try_open  ( const std::string & name, ipc::Access access ) ;
 
     //----------------------------------------------------------------------------------------
     bool close() ;
@@ -77,7 +78,7 @@ namespace ipc {
     template<typename U>
     inline
     U * 
-    open( const std::string & name ) 
+    open( const std::string & name, ipc::Access access ) 
     { 
       fs::Path shm_path( "/dev/shm", name ) ;
       if( !shm_path.exists() ) 
@@ -87,7 +88,7 @@ namespace ipc {
       }
       else
       {
-        if( try_open( name ) ) 
+        if( try_open( name, access ) ) 
           return static_cast<U *>( data() ) ;
       }
       return NULL ;

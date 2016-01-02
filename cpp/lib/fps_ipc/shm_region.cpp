@@ -59,7 +59,7 @@ namespace ipc {
   // implementations should just call open().
   //-------------------------------------------------------------------------------------------
   bool
-  ShmRegion::try_open( const std::string & name )
+  ShmRegion::try_open( const std::string & name, Access access )
   {
     close() ;
     error_ = 0 ;
@@ -67,6 +67,9 @@ namespace ipc {
     name_  = string::stripped( name ) ;
     if( !name_.empty() && name_[0] != '/' ) 
       name_.insert( name_.begin(), '/' ) ;
+
+    if( access == Read_Write ) 
+      flags_ |= O_RDWR ;
 
     fd_    = ::shm_open( name_.c_str(), flags_, 0666 ) ;
     if( fd_ < 0 )
@@ -81,8 +84,12 @@ namespace ipc {
       error_ = EBADF ;
       return false ;
     }
+  
+    int access_flags = PROT_READ ;
+    if( access == Read_Write ) 
+      access_flags |= PROT_WRITE ;
 
-    ptr_ = ::mmap( NULL, shm_path.size(), PROT_READ, MAP_SHARED, fd_, 0 ) ;
+    ptr_ = ::mmap( NULL, shm_path.size(), access_flags, MAP_SHARED, fd_, 0 ) ;
     if( ptr_ == MAP_FAILED ) 
     { int32_t save_errno = errno ;
       close() ;

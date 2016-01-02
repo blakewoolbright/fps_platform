@@ -40,11 +40,12 @@ namespace ipc {
   class
   RingBuffer_Base
   {
-  private :
+  public :
     //--------------------------------------------------------------------------------
     typedef std::size_t            size_type ;
     typedef std::atomic<size_type> atomic_idx_t ;
 
+  private :
     //--------------------------------------------------------------------------------
     atomic_idx_t r_idx_ alignas( constants::Cache_Line_Size ) ;
     atomic_idx_t w_idx_ alignas( constants::Cache_Line_Size ) ;
@@ -137,7 +138,7 @@ namespace ipc {
         return false ;
 
       dest = src[ r_cur ] ;
-      src[ r_cur ].~T() ; // TODO: Only call if dtor exists
+      // src[ r_cur ].~T() ; // TODO: Only call if dtor exists
 
       size_type r_nxt = advance_index( r_cur, capacity ) ;
       r_idx_.store( r_nxt, std::memory_order_release ) ;
@@ -171,6 +172,22 @@ namespace ipc {
     }
 
     //--------------------------------------------------------------------------------
+    inline 
+    size_type
+    read_index() 
+    { size_type rv = r_idx_.load( std::memory_order_relaxed ) ;
+      return rv ;
+    }
+
+    //--------------------------------------------------------------------------------
+    inline 
+    size_type
+    write_index() 
+    { size_type rv = w_idx_.load( std::memory_order_relaxed ) ;
+      return rv ;
+    }
+
+    //--------------------------------------------------------------------------------
     // Return true if we're using lock-free atomics
     //--------------------------------------------------------------------------------
     inline
@@ -189,15 +206,16 @@ namespace ipc {
   {
   public :
     //-----------------------------------------------------------------------------------------------
+    typedef RingBuffer_Base<T>         base_t ;
+    typedef typename base_t::size_type size_type ;
+
+    //-----------------------------------------------------------------------------------------------
     static const std::size_t Capacity = T_Capacity + 1 ;
     static const bool        Is_Fixed = true ;
 
-    //-----------------------------------------------------------------------------------------------
-    typedef RingBuffer_Base<T> base_t ;
-    typedef typename std::aligned_storage< sizeof( T ) * Capacity, alignof( T ) >::type storage_t ;
-
   private :
     //-----------------------------------------------------------------------------------------------
+    typedef typename std::aligned_storage< sizeof( T ) * Capacity, alignof( T ) >::type storage_t ;
     storage_t storage_ ;
     
     //-----------------------------------------------------------------------------------------------
@@ -227,6 +245,19 @@ namespace ipc {
       return base_t::pop( dest, data(), Capacity ) ;
     }
   
+    //-----------------------------------------------------------------------------------------------
+    inline 
+    size_type
+    read_index() 
+    { return base_t::read_index() ;
+    }
+
+    //-----------------------------------------------------------------------------------------------
+    inline 
+    size_type
+    write_index() 
+    { return base_t::write_index() ;
+    }
   } ;
 
 }}
