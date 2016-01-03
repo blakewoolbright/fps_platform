@@ -81,6 +81,7 @@ namespace ipc {
              : new ( begin_ ) T( std::forward<Args>( args )... ) 
              ;
     }
+
   } ;
 
 }}

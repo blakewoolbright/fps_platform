@@ -5,6 +5,7 @@
 #include "fps_system/fps_system.h"
 #include "fps_fs/path.h"
 #include "fps_ipc/ipc_util.h"
+#include "fps_ipc/mapped_memory.h"
 
 #include <sys/mman.h>
 #include <fcntl.h>    
@@ -47,6 +48,20 @@ namespace ipc {
     //----------------------------------------------------------------------------------------
     ShmSegment() ;
     ~ShmSegment() ;
+
+    //----------------------------------------------------------------------------------------
+    MappedMemory 
+    mmap( uint32_t size, uint32_t offset, ipc::Access access ) 
+    {
+      if( offset >= size_ ) 
+        return MappedMemory() ;
+
+      int access_flags = PROT_READ ;
+      if( access == Read_Write ) 
+        access_flags |= PROT_WRITE ;
+
+      // void * rv_ptr = ::mmap( NULL, 
+    }  
 
     //----------------------------------------------------------------------------------------
     // Create a read/write shm segment w/ the indicated name and size (in bytes).  

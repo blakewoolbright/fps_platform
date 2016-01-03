@@ -14,20 +14,6 @@ namespace ipc {
   namespace detail 
   {
     //--------------------------------------------------------------------------------
-    template<typename T>
-    struct ForwardConstruct 
-    {
-      template<typename ...Args>
-      static 
-      inline
-      T *
-      call( Args &&... args )
-      { 
-      }
-    } ; 
-
-
-    //--------------------------------------------------------------------------------
     /*
     template<typename T, uint64_t T_Size>
     union PadType 
