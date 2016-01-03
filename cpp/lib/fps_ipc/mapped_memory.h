@@ -15,7 +15,6 @@ namespace ipc {
     //-----------------------------------------------------------------------------------
     void       * begin_ ;
     std::size_t  size_  ;
-    uint32_t     error_ ;
 
   public :
     //-----------------------------------------------------------------------------------
@@ -23,7 +22,6 @@ namespace ipc {
     MappedMemory() 
       : begin_( NULL ) 
       , size_ ( 0 )
-      , error_( EOK ) 
     {}
       
     //-----------------------------------------------------------------------------------
@@ -31,8 +29,23 @@ namespace ipc {
     MappedMemory( void * begin, std::size_t size ) 
       : begin_( begin )
       , size_ ( size )
-      , error_( ( begin_ == NULL || size_ == 0 ) ? EINVAL : EOK )
     {}
+
+    //-----------------------------------------------------------------------------------
+    inline
+    MappedMemory( const MappedMemory & rhs ) 
+      : begin_( rhs.begin_ ) 
+      , size_ ( rhs.size_  )
+    {}
+
+    //-----------------------------------------------------------------------------------
+    inline
+    MappedMemory &
+    operator=( const MappedMemory & rhs ) 
+    { begin_ = rhs.begin_ ;
+      size_  = rhs.size_  ;
+      return *this ;
+    }
 
     //-----------------------------------------------------------------------------------
     inline 
@@ -40,14 +53,34 @@ namespace ipc {
     clear() 
     { begin_ = NULL ;
       size_  = 0 ;
-      errno_ = EOK ;
     }
 
     //-----------------------------------------------------------------------------------
-    inline bool         empty()      const { return begin_ == NULL || size_ == 0 ; }
-    inline const void * begin()      const { return begin_ ; }
-    inline std::size_t  size()       const { return size_ ; }
-    inline uint32_t     last_error() const { return error_ ; }
+    inline bool         empty() const { return begin_ == NULL || size_ == 0 ; }
+    inline const void * begin() const { return begin_ ; }
+    inline std::size_t  size()  const { return size_ ; }
+
+    //-----------------------------------------------------------------------------------
+    template<typename T>
+    T *  
+    construct() 
+    { 
+      return ( empty() ) 
+             ? NULL 
+             : new ( begin_ ) T() 
+             ;
+    }
+
+    //-----------------------------------------------------------------------------------
+    template<typename T, typename... Args>
+    T *  
+    construct( Args &&... args ) 
+    { 
+      return ( empty() ) 
+             ? NULL 
+             : new ( begin_ ) T( std::forward<Args>( args )... ) 
+             ;
+    }
   } ;
 
 }}

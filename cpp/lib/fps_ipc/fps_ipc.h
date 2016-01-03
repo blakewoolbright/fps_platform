@@ -4,6 +4,7 @@
 #include "fps_ipc/thread_fifo.h"
 #include "fps_ipc/shm_region.h"
 #include "fps_ipc/shm_fifo.h"
+#include "fps_ipc/mapped_memory.h"
 
 namespace fps {
 namespace ipc {
