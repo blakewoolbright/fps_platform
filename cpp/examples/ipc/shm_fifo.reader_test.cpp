@@ -40,3 +40,20 @@ main( int argc, char * argv[] )
 
   return 0 ;
 }
+#if 0
+
+  ipc::ShmSegment shm_segment ;
+  
+  shm_segment.open( "/dev/shm/fps.test_segment.spsc_q", ipc::Read_Write,  ) ;
+    
+  ipc::MappedMemory shm_control = shm_segment.mmap<ipc::ShmFifoControl>() ;
+  ipc::MappedMemory shm_content = shm_segment.mmap<ipc::ShmFifoQueue>() ;
+  
+  ipc::MappedMemory<ipc::ShmFifoControl> fifo_ctl_block( 
+  ipc::MappedMemory<ipc::ShmFifoContent> fifo_cnt_block( ;
+
+  shm_fifo_meta.
+
+
+
+#endif
