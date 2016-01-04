@@ -42,9 +42,8 @@ main( int argc, char * argv[] )
 }
 #if 0
 
-  ipc::ShmSegment shm_segment ;
-  
-  shm_segment.open( "/dev/shm/fps.test_segment.spsc_q", ipc::Read_Write,  ) ;
+  ipc::SharedMemory shm ;
+  shm.open( "/dev/shm/fps.test_segment.spsc_q", ipc::Read_Write ) ;
     
   ipc::MappedMemory shm_control = shm_segment.mmap<ipc::ShmFifoControl>() ;
   ipc::MappedMemory shm_content = shm_segment.mmap<ipc::ShmFifoQueue>() ;

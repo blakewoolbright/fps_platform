@@ -8,10 +8,9 @@ namespace fs  {
 
   //--------------------------------------------------------------------------------------------------
   Path::Path() 
-    : path_()
-    , leaf_idx_( 0 ) 
+    : leaf_idx_( 0 ) 
     , valid_   ( false )
-    , error_id_( EBADF ) 
+    , error_id_( 0 ) 
   { 
     std::memset( &stat_, 0, sizeof( stat_ ) ) ; 
   }
@@ -63,6 +62,19 @@ namespace fs  {
   } 
 
   //--------------------------------------------------------------------------------------------------
+  Path & 
+  Path::operator=( const Path & rhs ) 
+  {
+    path_     = rhs.path_ ;
+    leaf_idx_ = rhs.leaf_idx_ ; 
+    valid_    = rhs.valid_ ;
+    error_id_ = rhs.error_id_ ;
+    
+    std::memcpy( &stat_, &(rhs.stat_), sizeof( stat_ ) ) ;
+    return *this ;
+  }
+
+  //--------------------------------------------------------------------------------------------------
   uint32_t 
   Path::get_leaf_idx( const std::string & in_path ) 
   { 
@@ -86,14 +98,11 @@ namespace fs  {
   Path::sync() const 
   {
     valid_ = !static_cast<bool>( ::lstat( path_.c_str(), &stat_ ) ) ;
+    if( !valid_ )  
+      error_id_ = errno ;
 
-    if( valid_ )  
-      return true ;
-
-    error_id_ = errno ;
-    return false ;
+    return valid_ ;
   }
-
 
   //------------------------------------------------------------------------------------------------
   bool 

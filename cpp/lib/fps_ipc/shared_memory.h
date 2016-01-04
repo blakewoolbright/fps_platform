@@ -1,11 +1,10 @@
-#ifndef FPS__IPC__SHM_SEGMENT__H
-#define FPS__IPC__SHM_SEGMENT__H
+#ifndef FPS__IPC__SHARED_MEMORY__H
+#define FPS__IPC__SHARED_MEMORY__H
 
 #include "fps_string/fps_string.h"
 #include "fps_system/fps_system.h"
 #include "fps_fs/path.h"
 #include "fps_ipc/ipc_util.h"
-#include "fps_ipc/mapped_memory.h"
 
 #include <sys/mman.h>
 #include <fcntl.h>    
@@ -14,16 +13,7 @@ namespace fps {
 namespace ipc {
 
   //-------------------------------------------------------------------------------------------
-  /*
-  static const int32_t Read_Only   = O_RDONLY ;
-  static const int32_t Read_Write  = O_RDWR   ;
-  static const int32_t Create      = O_CREAT  ;
-  static const int32_t Truncate    = O_TRUNC  ;
-  static const int32_t Exclusive   = O_EXCL   ;
-  */
-
-  //-------------------------------------------------------------------------------------------
-  class ShmSegment
+  class SharedMemory
   {
   private :
     //----------------------------------------------------------------------------------------
@@ -34,81 +24,62 @@ namespace ipc {
     std::string name_  ;  // Name of filesystem node associated w/ this shm region.
    
     //----------------------------------------------------------------------------------------
-    ShmSegment( const ShmSegment & ) ;
-    ShmSegment( ShmSegment && ) ;
-    ShmSegment & operator=( const ShmSegment & ) ;
+    SharedMemory( const SharedMemory & ) ;
+    SharedMemory( SharedMemory && ) ;
+    SharedMemory & operator=( const SharedMemory & ) ;
 
     //----------------------------------------------------------------------------------------
-    bool reserve( uint32_t bytes ) ;
+    bool sanitize_name() ;
 
     //----------------------------------------------------------------------------------------
-    static bool validate_name( const std::string & name ) ;
+    bool load_size_from_filesystem() ;
 
   public : 
     //----------------------------------------------------------------------------------------
-    ShmSegment() ;
-    ~ShmSegment() ;
+    SharedMemory() ;
+    ~SharedMemory() ;
 
     //----------------------------------------------------------------------------------------
-    MappedMemory 
-    mmap( uint32_t size, uint32_t offset, ipc::Access access ) 
-    {
-      if( offset >= size_ ) 
-        return MappedMemory() ;
-
-      int access_flags = PROT_READ ;
-      if( access == Read_Write ) 
-        access_flags |= PROT_WRITE ;
-
-      // void * rv_ptr = ::mmap( NULL, 
-    }  
-
-    //----------------------------------------------------------------------------------------
-    // Create a read/write shm segment w/ the indicated name and size (in bytes).  
+    // Open or Create a shm segment w/ the indicated name and access rights.  
     //
-    // Return true on success, false on failure (and sets internal error_ member).
-    // This function passes the flagset O_CREAT | O_RDWR | O_EXCL to shm_open and sets 
-    // the file level permissions to 0666 (octal).  The function will fail if any of the 
-    // following is true :
-    // 1) The 'name' argument is empty.
-    // 2) Another shm segment w/ the same name already exists.
-    // 3) The shm segment was created, but resizing failed.
-    // 4) The segment was not successfully mmap()'d.
+    // The "flags" argument should be the bitwise OR of one or more flag values 
+    // defined in the ipc::access namespace ( ipc_util.h ).  At the moment, the following 
+    // flags are supported :
+    //   access::Read_Only   ( Read access )
+    //   access::Read_Write  ( Read and write access )
+    //   access::Create      ( Create the segment if it doesn't exist )
+    //   access::Exclusive   ( Fail if the segment already exists and access::Create was specified )
     //
-    // This function should be called by producer/writer processes during initialization.
+    // When a segment is created, the filesystem permissions are default to 0666 (octal).
+    //
+    // Return true on success, false on failure.  On failure, the associated "errno" value
+    // can be retrieved via the last_error() member function to assist w/ debugging.
     //----------------------------------------------------------------------------------------
-    bool try_create( const std::string & name, uint32_t size_in_bytes ) ;
+    bool open( const std::string & name, uint32_t flags ) ;
 
     //----------------------------------------------------------------------------------------
-    bool try_open  ( const std::string & name, ipc::Access access ) ;
+    // Try to open an existing shm segment w/ the indicated name w/ the indicated access
+    // flags.  
+    //
+    // The "flags" member should be the result of OR'ing together one or more of the 
+    // flag definitions in the ipc::access namespace ( ipc_util.h ).
+    //
+    // On success, return true.  On failure, return false.  
+    //----------------------------------------------------------------------------------------
+    // bool open_or_fail( const std::string & name, uint32_t flags ) ;
 
     //----------------------------------------------------------------------------------------
     bool close() ;
-  
-    //----------------------------------------------------------------------------------------
-    template<typename U>
-    inline
-    U * 
-    open( const std::string & name, ipc::Access access ) 
-    { 
-      /*
-      fs::Path shm_path( "/dev/shm", name ) ;
-      if( !shm_path.exists() ) 
-      {
-        if( try_create( name, sizeof( U ) ) )
-          return static_cast<U *>( new (data()) U() ) ;
-      }
-      else
-      {
-        if( try_open( name, access ) ) 
-          return static_cast<U *>( data() ) ;
-      }
-      */
-      return NULL ;
-    }
 
     //----------------------------------------------------------------------------------------
+    // Reserve/resize this shm segment to ensure it can hold the indicated number of bytes.
+    // Return true on success, false on failure.  
+    //----------------------------------------------------------------------------------------
+    bool resize( uint32_t bytes ) ;
+  
+    //----------------------------------------------------------------------------------------
     inline fs::Path    path()        const { return fs::Path( "/dev/shm", name_ ) ; } 
+    inline int32_t     fd()          const { return fd_     ; }
     inline std::string name()        const { return name_   ; }
     inline uint32_t    size()        const { return size_   ; }
     inline int32_t     last_error()  const { return error_  ; }

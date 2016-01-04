@@ -4,6 +4,7 @@ fps_add_library(
   FILES   exception.cpp
           logic_error.cpp
           runtime_error.cpp
+          fps_except.cpp
 )
 
 add_subdirectory( test )

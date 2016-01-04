@@ -1,0 +1,53 @@
+//RnW1FifoFixed.h
+#pragma once
+#include <memory>
+
+//multiple reader single writer first in first out fixed length ring buffer queue
+//compatible with x86/x86_64 GCC
+template<typename T,uint32_t N> class RnW1FifoFixed
+{
+private:
+  const uint32_t MASK = 2*N-1;
+public:
+  RnW1FifoFixed()
+    :m_array(new T[N]),m_read(0),m_write(0)
+  {
+    static_assert(std::is_default_constructible<T>::value,"T does not have a default constructor.");
+    static_assert(std::is_copy_assignable<T>::value,"T does not support copy assignment.");
+    static_assert(N!=0,"N is too small.");
+    static_assert(N!=0x80000000,"N is too large.");
+    static_assert((N&(N-1))==0,"N is not a power of two.");
+  }
+  //one thread
+  bool Write(T t)
+  {
+    //full
+    if(m_write-m_read==N)
+      return false;
+    m_array[m_write&MASK] = t;
+    //CPU does not reorder writes
+    //prevent compiler from reordering writes
+    asm volatile("":::"memory");
+    m_write++;
+    return true;
+  }
+  //multiple threads
+  bool Read(T& t)
+  {
+    while(true)
+    {
+      //use a constant m_read each loop
+      uint32_t read = m_read;
+      //empty
+      if(read==m_write)
+        return false;
+      t = m_array[read&MASK];
+      if(__sync_bool_compare_and_swap(&m_read,read,read+1))
+        return true;
+    }
+  }
+private:
+  std::unique_ptr<T[]> m_array;
+  uint32_t m_read;
+  uint32_t m_write;
+};

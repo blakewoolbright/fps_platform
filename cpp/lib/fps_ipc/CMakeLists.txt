@@ -3,9 +3,10 @@ fps_add_library(
   DEPENDS     fps_system
               fps_string
               fps_fs
+              fps_except
   FILES       fps_ipc.cpp
-              shm_region.cpp 
-              shm_segment.cpp 
+              shared_memory.cpp 
+              mapped_memory.cpp
 )
 
 add_subdirectory( test ) 

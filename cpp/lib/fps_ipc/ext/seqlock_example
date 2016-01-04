@@ -1,0 +1,77 @@
+how to implement a seqlock lock using c++11 atomic library
+
+I want to write a seqlock using c++11 atomic library. I have read some questions about seqlock on stackoverflow， but no one helped me. The algorithm I use is common, and you can find it everywhere.That's my code:
+
+struct sequence_spinlock_t {
+
+    void write_lock() {
+        lock.lock();
+        flags.fetch_add(1, memory_order_acquire); //A
+
+    }
+
+    void write_unlock() {
+        flags.fetch_add(1, memory_order_release); //B
+        lock.unlock();
+    }
+
+    void read_enter(uintptr_t *flag) {
+        for (;;) {
+            uintptr_t f = flags.load(memory_order_acquire); //C
+            if ((f & 1) == 0) {
+                *flag = f;
+                break;
+            }
+            pause();
+        }
+    }
+
+    bool_ read_leave(uintptr_t flag) {                                        
+
+        uintptr_t f = flags.load(memory_order_relaxed); //D
+        return f == flag;
+    }
+
+    spinlock_t lock;
+    atomic_uintptr_t flags;
+};
+
+    //read thread
+    uintptr_t flag;
+    do {
+        lock.read_enter(&flag);      (0)
+        //read something             (1)
+    } while(!lock.read_leave(flag))  (2)
+
+
+    //write thread
+    lock.write_lock();              (3)
+    //write something               (4)
+    lock.write_unlock();            (5)
+
+I ensure I use the memory_order tags correctly at B and C.
+
+I don't think it's correct at A and D.
+
+Think about we read and write protected data at same time.I worry that the read value of flags at D is too old, and we don't read the newest value written by write_lock().But we read the newest value of protected data written by the write thread(That may not happens on x86 system, but I don't assume the code is running on x86.).After read thread finished reading protected data, because of the read value of flags is too old, I don't find the sequence have been increased.read thread yield out from loop and we make a bug.
+
+The read value of protected data at (1) is written at (4), and the read value of flags at (2) is NOT written at (3) (it is written when we unlock write lock last time.).That is why I think there is a bug.
+
+But I really don't know to fix this.I have tried to make a “synchronized with” relationship between read_leavee() and write_locke()(I want "read_leave() synchronized with write_locke()").But there is no store action in read_leave(),So I failed.
+
+(Oh!The c++ standard specification is too hard for me to understand.Partly because I'm not from an English speaking country.)
+
+
+
+
+Using memory_order_relaxed in read_leave is per se ok, but you indeed need to ensure that the data values have been loaded before loading the flag variable. You can do this with std::atomic_thread_fence. I.e. your read_leave ought to look like
+
+    bool read_leave(uintptr_t flag) {
+        atomic_thread_fence(memory_order_acquire);
+        uintptr_t f = flag.load(memory_order_relaxed);
+        return f == flag;
+    }
+
+
+FWIW, with this change your code looks roughly like Example 3 in http://safari.ece.cmu.edu/MSPC2012/slides_posters/boehm-slides.pdf
+

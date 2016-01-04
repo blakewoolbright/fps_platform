@@ -5,10 +5,12 @@ namespace fps {
 namespace ipc {
 
   //--------------------------------------------------------------------------------
-  enum 
-  Access 
-  { Read_Only
-  , Read_Write
+  namespace access 
+  {
+    static const uint32_t Read_Only  = 0 ;
+    static const uint32_t Read_Write = 1 ;
+    static const uint32_t Create     = 2 ;
+    static const uint32_t Exclusive  = 4 ;
   } ;
 
   namespace detail 

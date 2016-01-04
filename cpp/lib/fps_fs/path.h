@@ -58,9 +58,10 @@ namespace fs  {
     Path( const Path & rhs ) ;
 
     //------------------------------------------------------------------------------------------------
-    inline const std::string & str()       const { return path_ ; }         
-    inline const char        * c_str()     const { return path_.c_str() ; } 
-    inline int32_t             error_id()  const { return error_id_ ; }   
+    inline const std::string & str()        const { return path_ ; }         
+    inline const char        * c_str()      const { return path_.c_str() ; } 
+    inline int32_t             error_id()   const { return error_id_ ; }   //TODO: Rename last_error()
+    inline int32_t             last_error() const { return error_id_ ; }   
 
     //------------------------------------------------------------------------------------------------
     inline std::string leaf()   const ; // The target file/directory/device name
@@ -72,6 +73,7 @@ namespace fs  {
     //------------------------------------------------------------------------------------------------
     // TODO: operator=, operator==, operator!= 
     //------------------------------------------------------------------------------------------------
+    Path & operator=( const Path & rhs ) ;
 
     //------------------------------------------------------------------------------------------------
     // Return misc. attributes for current filesystem node
@@ -91,6 +93,7 @@ namespace fs  {
     inline int32_t     gid()              const ; 
 
     //------------------------------------------------------------------------------------------------
+    inline bool valid()       const { return valid_ && !path_.empty() ; }
     inline bool empty()       const { return path_.empty() ; }               
     inline bool is_absolute() const { return !empty() && path_[0] == '/' ; } 
     inline bool is_relative() const { return !empty() && path_[0] != '/' ; } 
