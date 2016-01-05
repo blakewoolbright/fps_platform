@@ -4,6 +4,7 @@
 #include "fps_ipc/shared_memory.h"
 #include "fps_ipc/mapped_memory.h"
 #include "fps_ipc/thread_fifo.h"
+#include "fps_ipc/swmr_ring_buffer.h"
 
 namespace fps {
 namespace ipc {

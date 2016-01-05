@@ -1,6 +1,9 @@
 #ifndef FPS__IPC__IPC_UTIL__H
 #define FPS__IPC__IPC_UTIL__H
 
+#include <ctime>
+#include <sched.h>
+
 namespace fps {
 namespace ipc {
 
@@ -12,6 +15,41 @@ namespace ipc {
     static const uint32_t Create     = 2 ;
     static const uint32_t Exclusive  = 4 ;
   } ;
+
+  //--------------------------------------------------------------------------------
+  inline
+  void
+  progressive_yield( uint32_t counter )
+  {
+    // 1) If the yield counter is close to zero, optimistically retry immediately.
+    if( counter < 4 ) 
+    {
+    }
+    // 2) Once we've passed the optimistic retry threshold, start executing an
+    //    x86 "pause" instruction before returning.
+    else if( weight < 16 ) 
+    {
+      __asm__( "pause;" ) ;
+    }
+    // 3) After passing the "pause" threshold, start yielding our timeslice 
+    //    before returning.  Additionally, execute this logic any time the
+    //    value of counter is odd. 
+    else if( weight < 32 || (weight & 1) )
+    {
+      ::sched_yield() ;
+    }
+    // 4) After passing the sched_yield() threshold, sleep for one microsecond
+    //    every time the counter value is numerically even.
+    else
+    {
+      // g++ -Wextra warns on {} or {0}
+      ::timespec timeout ;
+      timeout.tv_sec  = 0 ;
+      timeout.tv_nsec = 1000 ;
+
+      ::nanosleep( &timeout, 0 ) ;
+    }
+  }
 
   namespace detail 
   {
