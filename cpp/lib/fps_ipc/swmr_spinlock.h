@@ -12,7 +12,7 @@ namespace swmr {
   //----------------------------------------------------------------------------
   // Synchronization lock for lossy single writer/multi-reader designs.
   //----------------------------------------------------------------------------
-  class SWMR_Spinlock
+  class SpinLock
   {
   private :
     std::atomic<uint64_t> state_ ;
@@ -20,7 +20,7 @@ namespace swmr {
   public :
     //--------------------------------------------------------------------------
     inline
-    SWMR_Spinlock() 
+    SpinLock() 
       : state_( 0 )
     {}
     
@@ -37,7 +37,7 @@ namespace swmr {
     void
     write_end() 
     {
-      state_.fetch_add( 1, std::memory_order_acquire ) ;
+      state_.fetch_add( 1, std::memory_order_release ) ;
     }
 
     //--------------------------------------------------------------------------

@@ -39,8 +39,8 @@ namespace ipc {
     void
     write_end() 
     {
-      lock_.lock() ;
-      state_.fetch_add( 1, std::memory_order_acquire ) ;
+      state_.fetch_add( 1, std::memory_order_release ) ;
+      lock_.unlock() ;
     }
 
     //--------------------------------------------------------------------------
@@ -63,7 +63,7 @@ namespace ipc {
     {
       std::atomic_thread_fence( std::memory_order_acquire ) ;
       uint64_t state = state_.load( std::memory_order_relaxed ) ;
-      return state == begin_state ;
+      return ( state == begin_state ) ;
     }
   } ;
 
