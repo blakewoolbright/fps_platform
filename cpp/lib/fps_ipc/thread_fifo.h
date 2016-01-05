@@ -143,7 +143,7 @@ ThreadFifo<T>::write( const T & value )
   data_[ w_idx_ ] = value ;
  
   // Increase fifo size by 1
-  __sync_fetch_and_add( &size_, 1 ) ; 
+  ::__sync_fetch_and_add( &size_, 1 ) ; 
 
   // Increment & normalize write index 
   // TODO: Figure out how to ditch the conditional
@@ -168,7 +168,7 @@ ThreadFifo<T>::read( T & result )
   result = data_[ r_idx_ ] ;
   
   // Reduce fifo size by 1
-  __sync_fetch_and_sub( &size_, 1 ) ;
+  ::__sync_fetch_and_sub( &size_, 1 ) ;
 
   // Increment & normalize read index 
   // TODO: Figure out how to ditch the conditional
