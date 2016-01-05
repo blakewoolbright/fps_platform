@@ -43,21 +43,21 @@ namespace ipc {
   } ;
 
   //----------------------------------------------------------------------------
-  class Spinlock_Intrinsic 
+  class SpinLock_Intrinsic 
   {
   public:
-    uint32_t lock_ ;
+    uint32_t state_ ;
 
   public:
     //----------------------------------------------------------------------------
-    inline Spinlock_Intrinsic() : lock_( 0 ) {}
+    inline SpinLock_Intrinsic() : state_( 0 ) {}
 
     //----------------------------------------------------------------------------
     inline
     bool 
     try_lock()
     {
-      uint32_t old_value = ::__sync_lock_test_and_set( &lock, 1 );
+      uint32_t old_value = ::__sync_lock_test_and_set( &state_, 1 );
       return ( 0 == old_value ) ;
     }
 
@@ -76,9 +76,11 @@ namespace ipc {
     void 
     unlock()
     {
-      ::__sync_lock_release( &lock_ ) ;
+      ::__sync_lock_release( &state_ ) ;
     }
   } ;
+
+  typedef SpinLock_Intrinsic SpinLock ;
 
 }}
 

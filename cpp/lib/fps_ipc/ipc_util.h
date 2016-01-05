@@ -27,14 +27,14 @@ namespace ipc {
     }
     // 2) Once we've passed the optimistic retry threshold, start executing an
     //    x86 "pause" instruction before returning.
-    else if( weight < 16 ) 
+    else if( counter < 16 ) 
     {
       __asm__( "pause;" ) ;
     }
     // 3) After passing the "pause" threshold, start yielding our timeslice 
     //    before returning.  Additionally, execute this logic any time the
     //    value of counter is odd. 
-    else if( weight < 32 || (weight & 1) )
+    else if( counter < 32 || (counter & 1) )
     {
       ::sched_yield() ;
     }
