@@ -1,5 +1,5 @@
-#ifndef FPS__IPC__SEQUENCED_SPINLOCK__H
-#define FPS__IPC__SEQUENCED_SPINLOCK__H
+#ifndef FPS__IPC__SWMR_SPINLOCK__H
+#define FPS__IPC__SWMR_SPINLOCK__H
 
 #include "fps_ipc/spinlock.h"
 #include <cstdint>
@@ -7,22 +7,21 @@
 
 namespace fps {
 namespace ipc {
+namespace swmr {
 
   //----------------------------------------------------------------------------
   // Synchronization lock for lossy single writer/multi-reader designs.
   //----------------------------------------------------------------------------
-  class SequencedSpinLock
+  class SWMR_Spinlock
   {
   private :
-    SpinLock              lock_  ;
     std::atomic<uint64_t> state_ ;
   
   public :
     //--------------------------------------------------------------------------
     inline
-    SequencedSpinLock() 
-      : lock_ () 
-      , state_( 0 )
+    SWMR_Spinlock() 
+      : state_( 0 )
     {}
     
     //--------------------------------------------------------------------------
@@ -30,7 +29,6 @@ namespace ipc {
     void
     write_begin() 
     {
-      lock_.lock() ;
       state_.fetch_add( 1, std::memory_order_acquire ) ;
     }
 
@@ -39,7 +37,6 @@ namespace ipc {
     void
     write_end() 
     {
-      lock_.lock() ;
       state_.fetch_add( 1, std::memory_order_acquire ) ;
     }
 
@@ -67,6 +64,7 @@ namespace ipc {
     }
   } ;
 
-}}
+}}}
 
 #endif
+
