@@ -1,31 +1,17 @@
-if( 0 )
-  fps_add_application( 
-    NAME     shm_fifo.reader_test
-    DEPENDS  fps_ipc
-    FILES    shm_fifo.reader_test.cpp
-  )
-
-  fps_add_application( 
-    NAME     shm_fifo.writer_test
-    DEPENDS  fps_ipc
-    FILES    shm_fifo.writer_test.cpp
-  )
-endif()
-
 fps_add_application( 
-  NAME     shared_memory.example
+  NAME     example.shared_memory
   DEPENDS  fps_ipc
-  FILES    shared_memory.example.cpp
+  FILES    example.shared_memory.cpp
 )
 
 fps_add_application( 
-  NAME     swmr_queue.writer_example
+  NAME     example.swmr_shm_queue.writer
   DEPENDS  fps_ipc 
-  FILES    swmr_queue.writer_example.cpp
+  FILES    example.swmr_shm_queue.writer.cpp
 )
 
 fps_add_application( 
-  NAME     swmr_queue.reader_example
+  NAME     example.swmr_shm_queue.reader
   DEPENDS  fps_ipc 
-  FILES    swmr_queue.reader_example.cpp
+  FILES    example.swmr_shm_queue.reader.cpp
 )
