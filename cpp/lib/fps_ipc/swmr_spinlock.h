@@ -43,7 +43,7 @@ namespace swmr {
     //--------------------------------------------------------------------------
     inline 
     uint64_t 
-    read_begin() 
+    read_begin() const
     {
       for( ;; ) 
       { uint64_t state = state_.load( std::memory_order_acquire ) ;
@@ -56,7 +56,7 @@ namespace swmr {
     //--------------------------------------------------------------------------
     inline 
     bool 
-    read_end( uint64_t begin_state ) 
+    read_end( uint64_t begin_state ) const
     {
       std::atomic_thread_fence( std::memory_order_acquire ) ;
       uint64_t state = state_.load( std::memory_order_relaxed ) ;

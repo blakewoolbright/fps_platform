@@ -10,36 +10,36 @@ namespace fps {
 namespace ipc {
 namespace swmr {
 
-  //--------------------------------------------------------------------------
+  //-----------------------------------------------------------------------------------
   template<typename T>
   class Slot 
   {
   private :
-    //------------------------------------------------------------------------
+    //---------------------------------------------------------------------------------
     swmr::SpinLock lock_  ;
     uint32_t       valid_ ;
     T              data_  ;
 
+    //---------------------------------------------------------------------------------
+    inline void write_begin() { lock_.write_begin() ; }
+    inline void write_end()   { lock_.write_end()   ; }
+    
+    //---------------------------------------------------------------------------------
+    inline uint64_t read_begin()                 const { return lock_.read_begin() ; }
+    inline bool     read_end  ( uint64_t state ) const { return lock_.read_end( state ) ; }
+
   public : 
-    //------------------------------------------------------------------------
+    //---------------------------------------------------------------------------------
     inline Slot() : valid_( false ) {}
 
-    //------------------------------------------------------------------------
+    //---------------------------------------------------------------------------------
     inline       T & data()       { return data_ ; }
     inline const T & data() const { return data_ ; }
-    
-    //------------------------------------------------------------------------
-    inline void write_begin() { lock_.write_begin() ; }
-    inline void write_end()   { lock_.write_begin() ; }
-    
-    //------------------------------------------------------------------------
-    inline uint64_t read_begin()                 { return lock_.read_begin() ; }
-    inline bool     read_end  ( uint64_t state ) { return lock_.read_begin() ; }
 
-    //------------------------------------------------------------------------
+    //---------------------------------------------------------------------------------
     inline 
     bool 
-    read( T & dest ) 
+    read( T & dest ) const
     {
       if( !valid_ ) 
         return false ; 
@@ -49,7 +49,7 @@ namespace swmr {
       return lock_.read_end( begin_state ) ;
     }
 
-    //------------------------------------------------------------------------
+    //---------------------------------------------------------------------------------
     inline 
     void 
     write( const T & value ) 
@@ -88,7 +88,18 @@ namespace swmr {
     RingBuffer & operator=( const RingBuffer & ) = delete ;
 
     //------------------------------------------------------------------------
-    inline slot_t * data() { return reinterpret_cast<slot_t *>( &storage_ ) ; }
+    inline 
+    slot_t * 
+    data() 
+    { return reinterpret_cast<slot_t *>( &storage_ ) ; 
+    }
+
+    //------------------------------------------------------------------------
+    inline 
+    const slot_t * 
+    data() const 
+    { return reinterpret_cast<const slot_t *>( &storage_ ) ; 
+    }
     
     //------------------------------------------------------------------------
     // TODO: Add std::enable_if< std::is_default_constructable<T>::value > 
@@ -104,7 +115,7 @@ namespace swmr {
     inline void write( const T & value ) ;
 
     //------------------------------------------------------------------------
-    inline bool read( uint32_t idx, T & dest ) ;
+    inline bool read( uint32_t idx, T & dest ) const ;
 
     //------------------------------------------------------------------------
     inline uint32_t advance( uint32_t idx ) const ;
@@ -160,7 +171,7 @@ namespace swmr {
   template<typename T, uint32_t T_Capacity>
   bool
   RingBuffer<T,T_Capacity>::
-  read( uint32_t r_idx, T & dest ) 
+  read( uint32_t r_idx, T & dest ) const
   {
     if( r_idx >= Capacity )  //TODO: Add unlikely() macro
       return false ;

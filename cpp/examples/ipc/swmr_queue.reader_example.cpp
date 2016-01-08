@@ -43,7 +43,7 @@ main( int argc, char * argv[] )
             << "|--[ sizeof( rb_t ) : " << sizeof( rb_t ) << " ]" << std::endl 
             << "|" << std::endl ;
   
-  rb_t * swmr_rb = shm_map.cast<rb_t>() ;
+  const rb_t * swmr_rb = shm_map.cast<rb_t>() ;
 
   if( !swmr_rb ) 
   { std::cout << "Error :: Failed to construct swmr_queue in mapped shm segment (errno: " << errno << ")" << std::endl ;

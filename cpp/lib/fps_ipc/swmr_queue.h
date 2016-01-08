@@ -9,12 +9,13 @@ namespace swmr {
 
   //--------------------------------------------------------------------------
   template<typename T, uint32_t T_Capacity>
-  struct Queue
+  struct QueueReader
   {
   private :
     //------------------------------------------------------------------------
     typedef swmr::RingBuffer<T, T_Capacity> rb_t ;
-    rb_t * rb_ ;
+    uint32_t r_idx_ ;
+    rb_t   * rb_ ;
 
     
     
