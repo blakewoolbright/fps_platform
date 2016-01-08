@@ -23,3 +23,9 @@ fps_add_application(
   DEPENDS  fps_ipc 
   FILES    swmr_queue.writer_example.cpp
 )
+
+fps_add_application( 
+  NAME     swmr_queue.reader_example
+  DEPENDS  fps_ipc 
+  FILES    swmr_queue.reader_example.cpp
+)
