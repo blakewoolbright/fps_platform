@@ -33,6 +33,13 @@ namespace ipc {
     unmap_memory( void * ptr, uint32_t size ) ;
 
   public :
+    //-------------------------------------------------------------------------------------------
+    inline 
+    MappedMemory() 
+      : begin_ ( NULL ) 
+      , size_  ( 0 )
+      , offset_( 0 )
+    {}
 
     //-------------------------------------------------------------------------------------------
     MappedMemory( const SharedMemory & shm, uint32_t flags ) ;
@@ -53,7 +60,7 @@ namespace ipc {
     {}
 
     //-------------------------------------------------------------------------------------------
-    inline ~MappedMemory() {}
+    inline ~MappedMemory() { close() ; }
 
     //-------------------------------------------------------------------------------------------
     inline
@@ -85,9 +92,9 @@ namespace ipc {
     //-------------------------------------------------------------------------------------------
     template<typename T>
     T *  
-    alloc() 
+    construct() 
     { 
-      return ( empty() ) 
+      return ( empty() || sizeof( T ) > size() ) 
              ? NULL 
              : new ( begin_ ) T() 
              ;
@@ -96,9 +103,9 @@ namespace ipc {
     //-------------------------------------------------------------------------------------------
     template<typename T, typename... Args>
     T *  
-    alloc( Args &&... args ) 
+    construct( Args &&... args ) 
     { 
-      return ( empty() ) 
+      return ( empty() || sizeof( T ) > size() ) 
              ? NULL 
              : new ( begin_ ) T( std::forward<Args>( args )... ) 
              ;

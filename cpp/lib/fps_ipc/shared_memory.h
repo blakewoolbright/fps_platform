@@ -76,6 +76,14 @@ namespace ipc {
     // Return true on success, false on failure.  
     //----------------------------------------------------------------------------------------
     bool resize( uint32_t bytes ) ;
+
+    //----------------------------------------------------------------------------------------
+    template<typename T>
+    bool
+    resize() 
+    {   
+      return resize( static_cast<uint32_t>( sizeof( T ) ) ) ; 
+    }
   
     //----------------------------------------------------------------------------------------
     inline fs::Path    path()        const { return fs::Path( "/dev/shm", name_ ) ; } 

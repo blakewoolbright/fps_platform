@@ -3,6 +3,8 @@
 
 #include "fps_ipc/constants.h"
 #include "fps_ipc/swmr_spinlock.h"
+#include <type_traits>
+
 
 namespace fps {
 namespace ipc {
@@ -14,9 +16,9 @@ namespace swmr {
   {
   private :
     //------------------------------------------------------------------------
-    ipc::swmr::SpinLock lock_  ;
-    uint32_t            valid_ ;
-    T                   data_  ;
+    swmr::SpinLock lock_  ;
+    uint32_t       valid_ ;
+    T              data_  ;
 
   public : 
     //------------------------------------------------------------------------
@@ -93,6 +95,9 @@ namespace swmr {
     inline RingBuffer() ;
     
     //------------------------------------------------------------------------
+    void init() ;
+
+    //------------------------------------------------------------------------
     inline void write( const T & value ) ;
 
     //------------------------------------------------------------------------
@@ -109,10 +114,18 @@ namespace swmr {
     : w_idx_  ()
     , storage_() 
   {
+  } 
+
+  //--------------------------------------------------------------------------
+  template<typename T, uint32_t T_Capacity>
+  void
+  RingBuffer<T,T_Capacity>::
+  init() 
+  { 
     w_idx_.store( 0, std::memory_order_relaxed ) ;
     for( uint32_t idx = 0 ; idx < Capacity ; ++idx ) 
       new ( data() + w_idx_ ) slot_t() ;
-  } 
+  }
 
   //--------------------------------------------------------------------------
   template<typename T, uint32_t T_Capacity>
