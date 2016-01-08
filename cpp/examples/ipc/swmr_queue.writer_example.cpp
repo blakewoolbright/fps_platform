@@ -55,6 +55,21 @@ main( int argc, char * argv[] )
             << "|--[ swmr_rb->write_index() : " << swmr_rb->write_index() << " ]" << std::endl 
             << "|" << std::endl ;
 
+  msg_t msg ;
+  msg.set( 1 ) ;
+  swmr_rb->write( msg ) ;
+  std::cout << "|--[ swmr_rb->write_index() : " << swmr_rb->write_index() << " ]" << std::endl ;
+
+  msg.set( 2 ) ;
+  swmr_rb->write( msg ) ;
+  std::cout << "|--[ swmr_rb->write_index() : " << swmr_rb->write_index() << " ]" << std::endl ;
+
+  msg.set( 3 ) ;
+  swmr_rb->write( msg ) ;
+  std::cout << "|--[ swmr_rb->write_index() : " << swmr_rb->write_index() << " ]" << std::endl ;
+
+  ::usleep( 1000 ) ;
+
   std::cout << std::endl ;
   
   return 0 ;

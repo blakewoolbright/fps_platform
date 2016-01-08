@@ -22,7 +22,7 @@ namespace swmr {
 
   public : 
     //------------------------------------------------------------------------
-    inline Slot() : lock_(), valid_( false ), data_() {}
+    inline Slot() : valid_( false ) {}
 
     //------------------------------------------------------------------------
     inline       T & data()       { return data_ ; }
@@ -91,6 +91,9 @@ namespace swmr {
     inline slot_t * data() { return reinterpret_cast<slot_t *>( &storage_ ) ; }
     
     //------------------------------------------------------------------------
+    // TODO: Add std::enable_if< std::is_default_constructable<T>::value > 
+    //       check that skips construction if unavailable.
+    //------------------------------------------------------------------------
     void init() ;
 
   public :
@@ -124,12 +127,12 @@ namespace swmr {
   template<typename T, uint32_t T_Capacity>
   RingBuffer<T,T_Capacity>::
   RingBuffer() 
-    : w_idx_  ()
-    , storage_() 
   {
     init() ;
   } 
 
+  //--------------------------------------------------------------------------
+  // TODO: std::enable_if< std::is_default_constructable<T>::value > 
   //--------------------------------------------------------------------------
   template<typename T, uint32_t T_Capacity>
   void

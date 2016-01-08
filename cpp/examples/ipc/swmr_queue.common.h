@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <string>
+#include <cstring>
 
 namespace fps {
 namespace examples {
@@ -23,17 +24,24 @@ namespace swmr     {
     { std::memcpy( content_, rhs.content_, sizeof( content_ ) ) ;
     }
 
+    Message & 
+    operator=( const Message & rhs ) 
+    { std::memcpy( content_, rhs.content_, sizeof( content_ ) ) ;
+      return *this ;
+    }
+
     inline 
     void 
     set( uint64_t value ) 
-    { ::sprintf( content_, "\n%.63lu", value ) ;
+    { 
+      std::sprintf( content_, "\n%.60lu", value ) ;
     }
 
     inline 
     uint64_t 
     get() const 
     {
-      uint32_t rv = ::strtoul( content_, NULL, 10 ) ;
+      uint32_t rv = std::strtoul( content_, NULL, 10 ) ;
       return rv ;
     }
   } ;
