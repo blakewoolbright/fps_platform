@@ -38,13 +38,22 @@ main( int argc, char * argv[] )
   }
 
   std::cout << "[ fps::examples::ipc::swmr_queue - writer ]" << std::endl   
-            << "|--[ MMap.size()  : " << shm_map.size() << " ]" << std::endl ;
+            << "|--[ shm.size()     : " << shm.size() << " ]" << std::endl 
+            << "|--[ MMap.size()    : " << shm_map.size() << " ]" << std::endl 
+            << "|--[ MMap.empty()   : " << (shm_map.empty()?"true":"false") << " ]" << std::endl 
+            << "|--[ sizeof( rb_t ) : " << sizeof( rb_t ) << " ]" << std::endl 
+            << "|" << std::endl ;
   
   rb_t * swmr_rb = shm_map.construct<rb_t>() ;
+
   if( !swmr_rb ) 
-  { std::cout << "Error :: Failed to construct swmr_queue in mapped shm segment" << std::endl ;
+  { std::cout << "Error :: Failed to construct swmr_queue in mapped shm segment (errno: " << errno << ")" << std::endl ;
     return 1 ;
   }
+  
+  std::cout << "|--[ swmr_rb->capacity()    : " << rb_t::capacity() << " ]" << std::endl 
+            << "|--[ swmr_rb->write_index() : " << swmr_rb->write_index() << " ]" << std::endl 
+            << "|" << std::endl ;
 
   std::cout << std::endl ;
   

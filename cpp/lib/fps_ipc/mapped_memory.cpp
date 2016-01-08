@@ -70,15 +70,19 @@ namespace ipc {
   MappedMemory::
   map_memory( int32_t     fd
             , uint32_t    flags
-            , uint32_t    offset
             , uint32_t    size 
+            , uint32_t    offset 
             ) 
   {
     int32_t mmap_flags = PROT_READ ;
     if( flags & access::Read_Write ) 
       mmap_flags |= PROT_WRITE ;
   
-    return ::mmap( NULL, size, mmap_flags, MAP_SHARED, fd, offset ) ;
+    void * rv = ::mmap( NULL, size, mmap_flags, MAP_SHARED, fd, offset ) ;
+    return ( rv == MAP_FAILED ) 
+           ? NULL 
+           : rv 
+           ;
   }
 
   //-------------------------------------------------------------------------------------------
@@ -86,7 +90,7 @@ namespace ipc {
   MappedMemory::
   unmap_memory( void * ptr, uint32_t size ) 
   {
-    return (ptr != NULL) && (0 == ::munmap( ptr, size )) ;
+    return (0 == ::munmap( ptr, size )) ;
   }
 
   //-------------------------------------------------------------------------------------------
@@ -98,7 +102,8 @@ namespace ipc {
     if( begin_ == NULL ) 
       return false ;
   
-    size_ = shm.size() ;
+    size_   = shm.size() ;
+    offset_ = 0 ;
     return true ;
   }
 

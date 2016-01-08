@@ -13,7 +13,7 @@
 namespace fps {
 namespace ipc { 
 
-  //-------------------------------------------------------------------------------------
+  //---------------------------------------------------------------------------------------------
   struct MappedMemory
   {
   private :
@@ -25,7 +25,7 @@ namespace ipc {
     //-------------------------------------------------------------------------------------------
     static
     void * 
-    map_memory( int32_t fd, uint32_t flags, uint32_t offset, uint32_t size ) ;
+    map_memory( int32_t fd, uint32_t flags, uint32_t size, uint32_t offset ) ;
 
     //-------------------------------------------------------------------------------------------
     static 
@@ -91,12 +91,26 @@ namespace ipc {
 
     //-------------------------------------------------------------------------------------------
     template<typename T>
+    T * 
+    cast() 
+    { return reinterpret_cast<T *>( begin_ ) ;
+    }
+
+    //-------------------------------------------------------------------------------------------
+    template<typename T>
+    const T * 
+    cast() const
+    { return reinterpret_cast<const T *>( begin_ ) ;
+    }
+  
+    //-------------------------------------------------------------------------------------------
+    template<typename T>
     T *  
     construct() 
     { 
       return ( empty() || sizeof( T ) > size() ) 
              ? NULL 
-             : new ( begin_ ) T() 
+             : new ( begin_ ) T
              ;
     }
 

@@ -158,7 +158,7 @@ namespace ipc {
     init()
     {
       w_idx_.store( 0, std::memory_order_relaxed ) ;
-      r_idx_.store( 0, std::memory_order_release ) ;
+      r_idx_.store( 0, std::memory_order_relaxed ) ;
     }
 
     //--------------------------------------------------------------------------------
