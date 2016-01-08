@@ -74,6 +74,7 @@ namespace ipc {
     }
 
     //-------------------------------------------------------------------------------------------
+    // TODO : For both 'open' functions, 
     bool open( const SharedMemory & shm, uint32_t flags ) ;
     bool open( const SharedMemory & shm, uint32_t flags, uint32_t size, uint32_t offset ) ;
 

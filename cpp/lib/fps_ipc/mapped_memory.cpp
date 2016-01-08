@@ -74,6 +74,12 @@ namespace ipc {
             , uint32_t    offset 
             ) 
   {
+    // Catch offset issues here.
+    if( offset > size ) 
+    { errno = EINVAL ;
+      return NULL ;
+    }
+
     int32_t mmap_flags = PROT_READ ;
     if( flags & access::Read_Write ) 
       mmap_flags |= PROT_WRITE ;
