@@ -85,10 +85,10 @@ namespace ipc {
     bool close() ;
 
     //-------------------------------------------------------------------------------------------
-    inline bool         empty()  const { return begin_ == NULL || size_ == 0 ; }
-    inline const void * begin()  const { return begin_  ; }
-    inline std::size_t  size()   const { return size_   ; }
-    inline std::size_t  offset() const { return offset_ ; }
+    inline bool         is_open() const { return begin_ == NULL || size_ == 0 ; }
+    inline const void * begin()   const { return begin_  ; }
+    inline std::size_t  size()    const { return size_   ; }
+    inline std::size_t  offset()  const { return offset_ ; }
 
     //-------------------------------------------------------------------------------------------
     template<typename T>
@@ -109,7 +109,7 @@ namespace ipc {
     T *  
     construct() 
     { 
-      return ( empty() || sizeof( T ) > size() ) 
+      return ( is_open() || sizeof( T ) > size() ) 
              ? NULL 
              : new ( begin_ ) T
              ;
@@ -120,7 +120,7 @@ namespace ipc {
     T *  
     construct( Args &&... args ) 
     { 
-      return ( empty() || sizeof( T ) > size() ) 
+      return ( is_open() || sizeof( T ) > size() ) 
              ? NULL 
              : new ( begin_ ) T( std::forward<Args>( args )... ) 
              ;

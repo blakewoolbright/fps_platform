@@ -41,7 +41,7 @@ main( int argc, char * argv[] )
             << "|--[ rb_t::Capacity : " << rb_t::Capacity << " ]" << std::endl 
             << "|--[ shm.size()     : " << shm.size() << " ]" << std::endl 
             << "|--[ MMap.size()    : " << shm_map.size() << " ]" << std::endl 
-            << "|--[ MMap.empty()   : " << (shm_map.empty()?"true":"false") << " ]" << std::endl 
+            << "|--[ MMap.is_open() : " << (shm_map.is_open()?"true":"false") << " ]" << std::endl 
             << "|--[ sizeof( rb_t ) : " << sizeof( rb_t ) << " ]" << std::endl 
             << "|" << std::endl ;
   

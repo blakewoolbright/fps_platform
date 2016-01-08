@@ -12,6 +12,17 @@ namespace util {
   //----------------------------------------------------------------------------------
   bool set_stdio_synchronization( bool yes_no ) ;
 
+  //----------------------------------------------------------------------------------
+  // Likely/Unlikely macros 
+  //----------------------------------------------------------------------------------
+  #ifndef fps_likely 
+  #  define fps_likely(x) __builtin_expect(!!(x), 1)
+  #endif 
+
+  #ifndef fps_unlikely 
+  #  define fps_unlikely(x)   __builtin_expect(!!(x), 0)
+  #endif
+
 }}
 
 #endif

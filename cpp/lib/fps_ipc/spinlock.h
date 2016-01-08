@@ -29,7 +29,7 @@ namespace ipc {
          ; lock_.test_and_set( std::memory_order_acquire ) 
          ; ++idx 
          ) 
-      { progressive_yield( idx ) ; 
+      { ipc::progressive_yield( idx ) ; 
       }
     }
 

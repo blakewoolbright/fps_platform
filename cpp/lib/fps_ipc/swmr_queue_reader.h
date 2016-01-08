@@ -5,6 +5,7 @@
 #include "fps_fs/path.h"
 #include "fps_ipc/shared_memory.h"
 #include "fps_ipc/mapped_memory.h"
+#include "fps_util/fps_util.h" // For fps_likely/unlikely
 
 namespace fps  {
 namespace ipc  {
@@ -23,7 +24,7 @@ namespace swmr {
     ipc::SharedMemory shm_ ;
     ipc::MappedMemory shm_map_ ;
     int32_t           error_ ;
-    uint32_t          r_idx_ ;
+    mutable uint32_t  r_idx_ ;
     const impl_t    * impl_  ;
     
   public :
@@ -41,13 +42,13 @@ namespace swmr {
     bool open( const std::string & shm_q_name ) ;
 
     //------------------------------------------------------------------------
-    bool close() ;
+    void close() ;
     
     //------------------------------------------------------------------------
-    bool read( T & dest ) ;
+    bool read( T & dest ) const ;
 
     //------------------------------------------------------------------------
-    inline bool    is_open()    const { return impl_ != NULL ; }
+    inline bool    is_open()    const { return impl_ != NULL && shm_map_.is_open() ; }
     inline int32_t last_error() const { return error_ ; }
   } ;
 
@@ -68,6 +69,68 @@ namespace swmr {
   {
   }
 
+  //------------------------------------------------------------------------
+  template<typename T, uint32_t T_Capacity>
+  void 
+  ShmQueueReader<T,T_Capacity>::
+  close()
+  {
+    if( shm_.is_open() ) 
+      shm_.close() ;
+    
+    if( shm_map_.is_open() ) 
+      shm_map_.close() ;
+
+    error_ = 0 ;
+    impl_  = NULL ;
+    r_idx_ = 0 ;
+  }
+
+  //------------------------------------------------------------------------
+  template<typename T, uint32_t T_Capacity>
+  bool
+  ShmQueueReader<T,T_Capacity>::
+  open( const std::string & shm_q_name ) 
+  {
+    close() ;
+
+    if( !shm_.open( shm_q_name, ipc::access::Read_Only ) ) 
+    { error_ = shm_.last_error() ;
+      return false ;
+    }
+  
+    if( !shm_map_.open( shm_, ipc::access::Read_Only ) ) 
+    { error_ = errno ;
+      shm_.close() ;
+      return false ;
+    }
+  
+    // TODO: Should I just close the ipc::SharedMemory instance now?
+    impl_ = shm_map_.cast<impl_t>() ;
+    if( impl_ == NULL ) 
+    { shm_map_.close() ;
+      shm_.close() ;  
+      return false ;
+    }
+  
+    return true ;
+  }
+  
+  //------------------------------------------------------------------------
+  template<typename T, uint32_t T_Capacity>
+  bool
+  ShmQueueReader<T,T_Capacity>::
+  read( T & dest ) const
+  {
+    if( fps_unlikely( NULL == impl_ ) ) 
+      return false ;
+  
+    if( !impl_->read( r_idx_, dest ) ) 
+      return false ;
+
+    r_idx_ = impl_->advance( r_idx_ ) ;
+    return true ;
+  }
 }}}
 
 #endif

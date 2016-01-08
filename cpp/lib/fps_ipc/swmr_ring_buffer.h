@@ -3,8 +3,8 @@
 
 #include "fps_ipc/constants.h"
 #include "fps_ipc/swmr_spinlock.h"
+#include "fps_util/fps_util.h" // For fps_likely/unlikely
 #include <type_traits>
-
 
 namespace fps {
 namespace ipc {
@@ -190,7 +190,8 @@ namespace swmr {
   advance( uint32_t idx ) const
   {
     ++idx ;
-    while( idx >= Capacity ) idx -= Capacity ;
+    while( fps_unlikely( idx >= Capacity ) ) 
+      idx -= Capacity ;
     return idx ;
   }
 
