@@ -66,7 +66,7 @@ namespace swmr {
   template<typename T, uint32_t T_Capacity>
   ShmQueueReader<T,T_Capacity>::
   ~ShmQueueReader()  
-  {
+  { close() ;
   }
 
   //------------------------------------------------------------------------

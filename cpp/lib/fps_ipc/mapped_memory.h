@@ -19,8 +19,9 @@ namespace ipc {
   private :
     //-------------------------------------------------------------------------------------------
     void       * begin_ ;
-    std::size_t  size_  ;
-    std::size_t  offset_ ;
+    uint32_t     size_  ;
+    uint32_t     offset_ ;
+    uint32_t     error_ ;
 
     //-------------------------------------------------------------------------------------------
     static
@@ -32,6 +33,12 @@ namespace ipc {
     bool
     unmap_memory( void * ptr, uint32_t size ) ;
 
+    //-------------------------------------------------------------------------------------------
+    MappedMemory( const MappedMemory & ) = delete ;
+
+    //-------------------------------------------------------------------------------------------
+    MappedMemory & operator=( const MappedMemory & ) = delete ;
+
   public :
     //-------------------------------------------------------------------------------------------
     inline 
@@ -39,6 +46,7 @@ namespace ipc {
       : begin_ ( NULL ) 
       , size_  ( 0 )
       , offset_( 0 )
+      , error_ ( 0 )
     {}
 
     //-------------------------------------------------------------------------------------------
@@ -52,29 +60,17 @@ namespace ipc {
                 ) ;
 
     //-------------------------------------------------------------------------------------------
-    inline
-    MappedMemory( const MappedMemory & rhs ) 
-      : begin_ ( rhs.begin_ ) 
-      , size_  ( rhs.size_  )
-      , offset_( rhs.offset_ )
-    {}
-
-    //-------------------------------------------------------------------------------------------
     inline ~MappedMemory() { close() ; }
 
     //-------------------------------------------------------------------------------------------
-    inline
-    MappedMemory &
-    operator=( const MappedMemory & rhs ) 
-    { 
-      begin_  = rhs.begin_ ;
-      size_   = rhs.size_  ;
-      offset_ = rhs.offset_ ;
-      return *this ;
-    }
-
+    // TODO : For the second 'open' signature, make it less likely that someone might 
+    //        pass the size via the 'offset' argument or vice-versa.
+    //
+    // Map the indicated shared memory segment into local address space.  Return true on success,
+    // or false on failure.  On failure, the internal error_ member will be populated with the
+    // relevant system errno value describing the problem.  Users may check this value via the 
+    // 'last_error()' function.
     //-------------------------------------------------------------------------------------------
-    // TODO : For both 'open' functions, 
     bool open( const SharedMemory & shm, uint32_t flags ) ;
     bool open( const SharedMemory & shm, uint32_t flags, uint32_t size, uint32_t offset ) ;
 
@@ -85,10 +81,11 @@ namespace ipc {
     bool close() ;
 
     //-------------------------------------------------------------------------------------------
-    inline bool         is_open() const { return begin_ == NULL || size_ == 0 ; }
-    inline const void * begin()   const { return begin_  ; }
-    inline std::size_t  size()    const { return size_   ; }
-    inline std::size_t  offset()  const { return offset_ ; }
+    inline bool         is_open()    const { return begin_ == NULL || size_ == 0 ; }
+    inline const void * begin()      const { return begin_  ; }
+    inline uint32_t     size()       const { return size_   ; }
+    inline uint32_t     offset()     const { return offset_ ; }
+    inline uint32_t     last_error() const { return error_ ; }
 
     //-------------------------------------------------------------------------------------------
     template<typename T>

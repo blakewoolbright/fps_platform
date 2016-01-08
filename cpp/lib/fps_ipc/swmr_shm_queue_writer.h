@@ -23,7 +23,7 @@ namespace swmr {
     ipc::SharedMemory shm_ ;
     ipc::MappedMemory shm_map_ ;
     int32_t           error_ ;
-    const impl_t    * impl_  ;
+    impl_t          * impl_  ;
     
   public :
     //------------------------------------------------------------------------
@@ -40,13 +40,15 @@ namespace swmr {
     bool open( const std::string & shm_q_name ) ;
 
     //------------------------------------------------------------------------
-    bool close() ;
+    void close() ;
     
     //------------------------------------------------------------------------
     bool write( const T & dest ) ;
 
     //------------------------------------------------------------------------
-    inline uint32_t write_index() const 
+    inline 
+    uint32_t 
+    write_index() const 
     { return ( impl_ != NULL ) ? impl_->write_index() : 0 ; 
     }
 
@@ -69,6 +71,70 @@ namespace swmr {
   ShmQueueWriter<T,T_Capacity>::
   ~ShmQueueWriter()  
   {
+    close() ;
+  }
+
+  //------------------------------------------------------------------------
+  template<typename T, uint32_t T_Capacity>
+  void 
+  ShmQueueWriter<T,T_Capacity>::
+  close()
+  {
+    if( shm_.is_open() ) 
+      shm_.close() ;
+    
+    if( shm_map_.is_open() ) 
+      shm_map_.close() ;
+
+    error_ = 0 ;
+    impl_  = NULL ;
+  }
+
+  //------------------------------------------------------------------------
+  template<typename T, uint32_t T_Capacity>
+  bool
+  ShmQueueWriter<T,T_Capacity>::
+  open( const std::string & shm_q_name ) 
+  {
+    close() ;
+    int32_t access_flags = ipc::access::Read_Write 
+                         | ipc::access::Create 
+                         | ipc::access::Exclusive 
+                         ;
+
+    if( !shm_.open( shm_q_name, access_flags ) )
+    { error_ = shm_.last_error() ;
+      return false ;
+    }
+  
+    if( !shm_map_.open( shm_, access_flags ) ) 
+    { error_ = errno ;
+      shm_.close() ;
+      return false ;
+    }
+  
+    // TODO: Should I just close the ipc::SharedMemory instance now?
+    impl_ = shm_map_.cast<impl_t>() ;
+    if( impl_ == NULL ) 
+    { shm_map_.close() ;
+      shm_.close() ;  
+      return false ;
+    }
+  
+    return true ;
+  }
+
+  //------------------------------------------------------------------------
+  template<typename T, uint32_t T_Capacity>
+  bool 
+  ShmQueueWriter<T,T_Capacity>::
+  write( const T & src ) 
+  {
+    if( fps_unlikely( NULL == impl_ ) ) 
+      return false ; 
+
+    impl_->write( src ) ;
+    return true ;
   }
 
 }}}
