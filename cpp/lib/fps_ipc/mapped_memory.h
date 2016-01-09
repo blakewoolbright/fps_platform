@@ -81,7 +81,7 @@ namespace ipc {
     bool close() ;
 
     //-------------------------------------------------------------------------------------------
-    inline bool         is_open()    const { return begin_ == NULL || size_ == 0 ; }
+    inline bool         is_open()    const { return begin_ != NULL ; }
     inline const void * begin()      const { return begin_  ; }
     inline uint32_t     size()       const { return size_   ; }
     inline uint32_t     offset()     const { return offset_ ; }
@@ -91,14 +91,14 @@ namespace ipc {
     template<typename T>
     T * 
     cast() 
-    { return reinterpret_cast<T *>( begin_ ) ;
+    { return !is_open() ? NULL : reinterpret_cast<T *>( begin_ ) ;
     }
 
     //-------------------------------------------------------------------------------------------
     template<typename T>
     const T * 
     cast() const
-    { return reinterpret_cast<const T *>( begin_ ) ;
+    { return !is_open() ? NULL : reinterpret_cast<const T *>( begin_ ) ;
     }
   
     //-------------------------------------------------------------------------------------------
@@ -106,7 +106,7 @@ namespace ipc {
     T *  
     construct() 
     { 
-      return ( is_open() || sizeof( T ) > size() ) 
+      return ( !is_open() || sizeof( T ) > size() ) 
              ? NULL 
              : new ( begin_ ) T
              ;
@@ -117,7 +117,7 @@ namespace ipc {
     T *  
     construct( Args &&... args ) 
     { 
-      return ( is_open() || sizeof( T ) > size() ) 
+      return ( !is_open() || sizeof( T ) > size() ) 
              ? NULL 
              : new ( begin_ ) T( std::forward<Args>( args )... ) 
              ;

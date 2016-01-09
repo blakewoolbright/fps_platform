@@ -85,11 +85,11 @@ namespace ipc {
             , uint32_t    offset 
             ) 
   {
-    int32_t mmap_flags = PROT_READ ;
+    int32_t mmap_prot = PROT_READ ;
     if( flags & access::Read_Write ) 
-      mmap_flags |= PROT_WRITE ;
+      mmap_prot |= PROT_WRITE ;
   
-    void * rv = ::mmap( NULL, size, mmap_flags, MAP_SHARED, fd, offset ) ;
+    void * rv = ::mmap( NULL, size, mmap_prot, MAP_SHARED, fd, offset ) ;
     return ( rv == MAP_FAILED ) 
            ? NULL 
            : rv 
@@ -110,13 +110,14 @@ namespace ipc {
   open( const SharedMemory & shm, uint32_t flags )
   { 
     error_ = 0 ;
-    begin_ = MappedMemory::map_memory( shm.fd(), flags, shm.size(), 0 ) ;
+    uint32_t shm_size = shm.size() ;
+    begin_ = MappedMemory::map_memory( shm.fd(), flags, shm_size, 0 ) ;
     if( begin_ == NULL ) 
     { error_ = errno ;
       return false ;
     }
   
-    size_   = shm.size() ;
+    size_   = shm_size ;
     offset_ = 0 ;
     return true ;
   }

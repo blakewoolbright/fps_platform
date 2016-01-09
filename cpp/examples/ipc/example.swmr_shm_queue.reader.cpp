@@ -1,11 +1,89 @@
-#include "fps_ipc/swmr_ring_buffer.h"
-#include "fps_ipc/shared_memory.h"
-#include "fps_ipc/mapped_memory.h"
-
+#include "fps_ipc/swmr_shm_queue.h"
+#include "fps_util/signal.h"
+#include "fps_time/timer.h"
 #include "swmr_shm_queue.common.h"
+#include <iostream>
 
 using namespace fps ;
 
+//---------------------------------------------------------------------------------------
+bool exit_flag = false ;
+
+//---------------------------------------------------------------------------------------
+void interrupt_handler( int ) 
+{ 
+  exit_flag = true ;
+}
+
+//---------------------------------------------------------------------------------------
+int 
+main( int argc, char * argv[] ) 
+{
+  typedef examples::ipc::swmr::Message msg_t ;
+  typedef ipc::swmr::ShmQueueReader<msg_t, examples::ipc::swmr::Capacity> reader_t ;
+
+  std::cout << "[ swmr::ShmQueueReader ]" << std::endl ;
+  reader_t reader ;
+  std::cout << "|--[ Constructed ]" << std::endl << "|" << std::endl ;
+
+  reader.open( examples::ipc::swmr::Queue_Name ) ;
+  
+  std::cout << "|--[ CPU            => '" << examples::ipc::swmr::Reader_CPU << "' ]" << std::endl 
+            << "|--[ open()         <= '" << examples::ipc::swmr::Queue_Name << "' ]" << std::endl 
+            << "|--[ is_open()      => '" << (reader.is_open()?"true":"false") << "' ]" << std::endl 
+            << "|--[ shm.size()     => '" << reader.shared_memory().size() << "' ]" << std::endl
+            << "|--[ shm_map.size() => '" << reader.mapped_memory().size() << "' ]" << std::endl
+            << "|--[ last_error()   => '" << reader.last_error() << "' ]" << std::endl 
+            << "|" << std::endl 
+            ;
+
+  if( !reader.is_open() ) 
+  { std::cout << "|--[ ERROR        :: Failed to open reader instance ]" << std::endl 
+              << "|" << std::endl ;
+    return 1 ;
+  }
+
+  system::set_affinity( system::AffinityMask( examples::ipc::swmr::Reader_CPU ) ) ;
+
+  util::signal::set_handler( util::signal::Sig_Int,  interrupt_handler ) ;
+  util::signal::set_handler( util::signal::Sig_Term, interrupt_handler ) ;
+  
+  msg_t       msg ;
+  uint32_t    read_count = 0 ;
+  time::Timer console_timer ;
+  console_timer.set( time::Nanos_Per_Second * 3 ) ;
+  console_timer.start() ;
+  uint64_t last_delta = 0 ;
+  uint64_t last_seq   = 0 ;
+  uint64_t mismatches = 0 ;
+
+  while( !exit_flag ) 
+  {
+    uint64_t loop_ts = time::Clock::now() ;
+    if( reader.read( msg ) ) 
+    { ++read_count ;
+      msg.on_read( loop_ts ) ;
+      if( last_seq + 1 != msg.sequence() ) 
+        ++mismatches ;
+      last_seq   = msg.sequence() ;
+      last_delta = msg.read_ts() - msg.write_ts() ;
+    }
+
+    if( console_timer.expired() ) 
+    { 
+      std::cout << "|--[ read_count         => " << read_count     << " ]" << std::endl ;
+      std::cout << "|--[ last sequence      => " << msg.sequence() << " ]" << std::endl ;
+      std::cout << "|--[ last delta (nanos) => " << last_delta     << " ]" << std::endl ;
+      std::cout << "|--[ mismatches         => " << mismatches     << " ]" << std::endl ;
+      console_timer.restart() ;
+    }
+    // else { ::usleep( 10 ) ; }
+  }
+
+  return 0 ;
+}
+
+/*
 //---------------------------------------------------------------------------------------
 int 
 main( int argc, char * argv[] ) 
@@ -71,4 +149,5 @@ main( int argc, char * argv[] )
   
   return 0 ;
 }
+*/
 

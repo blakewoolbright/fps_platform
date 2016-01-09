@@ -16,7 +16,7 @@ namespace swmr {
   {
   private :
     //------------------------------------------------------------------------
-    typedef swmr::RingBuffer<T, T_Capacity> impl_t ;
+    typedef swmr::detail::RingBuffer<T, T_Capacity> impl_t ;
     static const uint32_t Capacity = T_Capacity ;
     
     //------------------------------------------------------------------------
@@ -55,6 +55,12 @@ namespace swmr {
     //------------------------------------------------------------------------
     inline bool     is_open()     const { return impl_ != NULL ; }
     inline int32_t  last_error()  const { return error_ ; }
+
+    //------------------------------------------------------------------------
+    // Note: Debug Only
+    //------------------------------------------------------------------------
+    inline const ipc::SharedMemory & shared_memory() const { return shm_ ; }
+    inline const ipc::MappedMemory & mapped_memory() const { return shm_map_ ; }
   } ;
 
   //------------------------------------------------------------------------
@@ -106,15 +112,21 @@ namespace swmr {
     { error_ = shm_.last_error() ;
       return false ;
     }
+
+    if( !shm_.resize<impl_t>() ) 
+    { error_ = shm_.last_error() ;
+      shm_.close() ;
+      return false ;
+    }
   
     if( !shm_map_.open( shm_, access_flags ) ) 
-    { error_ = errno ;
+    { error_ = shm_map_.last_error() ;
       shm_.close() ;
       return false ;
     }
   
     // TODO: Should I just close the ipc::SharedMemory instance now?
-    impl_ = shm_map_.cast<impl_t>() ;
+    impl_ = shm_map_.construct<impl_t>() ;
     if( impl_ == NULL ) 
     { shm_map_.close() ;
       shm_.close() ;  

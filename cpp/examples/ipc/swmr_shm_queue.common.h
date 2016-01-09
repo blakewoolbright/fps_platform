@@ -11,6 +11,62 @@ namespace ipc      {
 namespace swmr     {
 
   //---------------------------------------------------------------------------------------
+  static const uint32_t Capacity     = 1024 * 100 ;
+  static const char     Queue_Name[] = "fps.swmr_shm_queue.example" ;
+  static const uint32_t Reader_CPU   = 0 ;
+  static const uint32_t Writer_CPU   = Reader_CPU + 1 ;
+
+  //---------------------------------------------------------------------------------------
+  struct Message 
+  {
+    uint64_t seq_  ;
+    uint64_t w_ts_ ;
+    uint64_t r_ts_ ;
+
+    Message() 
+      : seq_ ( 0 ) 
+      , w_ts_( 0 )
+    {}
+
+    Message( uint64_t sequence, uint64_t timestamp ) 
+      : seq_ ( 0 ) 
+      , w_ts_( 0 )
+    {}
+
+    Message( const Message & rhs ) 
+      : seq_ ( rhs.seq_ ) 
+      , w_ts_( rhs.w_ts_ ) 
+    {}
+
+    Message & 
+    operator=( const Message & rhs ) 
+    { seq_  = rhs.seq_ ;
+      w_ts_ = rhs.w_ts_ ;
+      return *this ;
+    }
+
+    inline 
+    void 
+    on_write( uint64_t sequence, uint64_t timestamp ) 
+    { 
+      seq_  = sequence ;
+      w_ts_ = timestamp ;
+    }
+
+    inline 
+    void 
+    on_read( uint64_t timestamp )
+    { 
+      r_ts_ = timestamp ;
+    }
+
+    inline uint64_t sequence() const { return seq_ ; }
+    inline uint64_t write_ts() const { return w_ts_ ; }
+    inline uint64_t read_ts () const { return r_ts_ ; }
+  } ;
+
+  //---------------------------------------------------------------------------------------
+  /*
   struct Message
   {
     char content_[ 64 ] ; 
@@ -45,10 +101,7 @@ namespace swmr     {
       return rv ;
     }
   } ;
-
-  //---------------------------------------------------------------------------------------
-  static const uint32_t Capacity     = 1024 ;
-  static const char     Queue_Name[] = "fps.swmr_queue.example" ;
+  */
 }}}}
 
 #endif

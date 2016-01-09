@@ -7,6 +7,8 @@
 #include "fps_ipc/mapped_memory.h"
 #include "fps_util/fps_util.h" // For fps_likely/unlikely
 
+// #include <iostream>
+
 namespace fps  {
 namespace ipc  {
 namespace swmr {
@@ -17,7 +19,7 @@ namespace swmr {
   {
   private :
     //------------------------------------------------------------------------
-    typedef swmr::RingBuffer<T, T_Capacity> impl_t ;
+    typedef swmr::detail::RingBuffer<T, T_Capacity> impl_t ;
     static const uint32_t Capacity = T_Capacity ;
     
     //------------------------------------------------------------------------
@@ -48,8 +50,12 @@ namespace swmr {
     bool read( T & dest ) const ;
 
     //------------------------------------------------------------------------
-    inline bool    is_open()    const { return impl_ != NULL && shm_map_.is_open() ; }
+    inline bool    is_open()    const { return impl_ != NULL ; }
     inline int32_t last_error() const { return error_ ; }
+
+    //--------------------------------------------------------------------------
+    inline const ipc::SharedMemory & shared_memory() const { return shm_ ; }
+    inline const ipc::MappedMemory & mapped_memory() const { return shm_map_ ; }
   } ;
 
   //------------------------------------------------------------------------
@@ -75,11 +81,11 @@ namespace swmr {
   ShmQueueReader<T,T_Capacity>::
   close()
   {
-    if( shm_.is_open() ) 
-      shm_.close() ;
-    
     if( shm_map_.is_open() ) 
       shm_map_.close() ;
+
+    if( shm_.is_open() ) 
+      shm_.close( false ) ;
 
     error_ = 0 ;
     impl_  = NULL ;
@@ -95,12 +101,16 @@ namespace swmr {
     close() ;
 
     if( !shm_.open( shm_q_name, ipc::access::Read_Only ) ) 
-    { error_ = shm_.last_error() ;
+    { 
+      error_ = shm_.last_error() ;
+      // std::cout << "ShmQueueReader::open :: Failed to open shm segment" << std::endl ;
       return false ;
     }
   
     if( !shm_map_.open( shm_, ipc::access::Read_Only ) ) 
-    { error_ = errno ;
+    { 
+      error_ = shm_map_.last_error() ;
+      // std::cout << "ShmQueueReader::open :: Failed to create mmap over shm segment" << std::endl ;
       shm_.close() ;
       return false ;
     }
@@ -108,7 +118,9 @@ namespace swmr {
     // TODO: Should I just close the ipc::SharedMemory instance now?
     impl_ = shm_map_.cast<impl_t>() ;
     if( impl_ == NULL ) 
-    { shm_map_.close() ;
+    { 
+      // std::cout << "Error :: Failed to cast mapped memory to implentation type" << std::endl ;
+      shm_map_.close() ;
       shm_.close() ;  
       return false ;
     }

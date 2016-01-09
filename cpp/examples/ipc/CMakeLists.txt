@@ -7,11 +7,15 @@ fps_add_application(
 fps_add_application( 
   NAME     example.swmr_shm_queue.writer
   DEPENDS  fps_ipc 
+           fps_time
+           fps_system
   FILES    example.swmr_shm_queue.writer.cpp
 )
 
 fps_add_application( 
   NAME     example.swmr_shm_queue.reader
   DEPENDS  fps_ipc 
+           fps_time
+           fps_system
   FILES    example.swmr_shm_queue.reader.cpp
 )

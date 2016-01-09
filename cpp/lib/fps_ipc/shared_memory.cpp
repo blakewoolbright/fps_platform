@@ -29,7 +29,7 @@ namespace ipc {
   //-------------------------------------------------------------------------------------------
   SharedMemory::~SharedMemory() 
   { 
-    close() ;
+    close( false ) ;
   }
 
   //-------------------------------------------------------------------------------------------
@@ -38,8 +38,6 @@ namespace ipc {
   bool
   SharedMemory::sanitize_name()
   {
-    error_ = 0 ;
-
     // Remove whitespace.
     string::strip( name_ ) ;
 
@@ -70,8 +68,6 @@ namespace ipc {
   bool 
   SharedMemory::load_size_from_filesystem() 
   {
-    error_ = 0 ;
-
     if( name_.empty() ) 
     { 
       error_ = EINVAL ;
@@ -106,72 +102,11 @@ namespace ipc {
   }
 
   //-------------------------------------------------------------------------------------------
-  // Create a new shm segment w/ the indicated name and size (in bytes).
-  // This function should be used by writer / producer implementations.  Reader / consumer 
-  // implementations should just call open().
-  //-------------------------------------------------------------------------------------------
-  /*
-  bool
-  SharedMemory::open_or_fail( const std::string & name, uint32_t flags )
-  {
-    //
-    // Close any currently open file descriptors and reset member vars.
-    //
-    if( is_open() )
-      close() ;
-
-    error_ = 0 ;
-    flags_ = 0 ;
-    name_  = name ;
-
-    //
-    // Verify that "name" argument meets basic requirements, and normalize it.
-    // 
-    if( !sanitize_name() ) 
-    { error_ = EINVAL ;
-      name_.clear() ;
-      return false ;
-    }
-
-    //
-    // Add write permission if requested
-    //
-    if( flags & access::Read_Write )
-      flags_ |= O_RDWR ;
-
-    //
-    // Open the shared memory segment identified by "name"
-    //
-    fd_    = ::shm_open( name_.c_str(), flags_, 0666 ) ;
-    if( fd_ < 0 )
-    { error_ = errno ;
-      fd_    = -1    ;
-      return false ;
-    }
-
-    //
-    // Interrogate filesystem to determine segment size
-    // 
-    if( !load_size_from_filesystem() ) 
-    { int32_t last_err = error_ ;
-      close() ;
-
-      throw except::RuntimeError
-      ( "ipc::SharedMemory :: Error loading shm segment size from filesystem (errno: %d)"
-      , last_err
-      ) ;
-    }
-
-    return true ;
-  }
-  */
-
-  //-------------------------------------------------------------------------------------------
   bool
   SharedMemory::open( const std::string & name, uint32_t access_flags )
   {
     if( is_open() ) 
-      close() ;
+      close( false ) ;
 
     error_ = 0 ;
     size_  = 0 ;
@@ -182,7 +117,8 @@ namespace ipc {
     // Verify that "name" argument meets basic requirements, and normalize it.
     // 
     if( !sanitize_name() ) 
-    { error_ = EINVAL ;
+    { 
+      error_ = EINVAL ;
       name_.clear() ;
       return false ;
     }
@@ -202,7 +138,8 @@ namespace ipc {
     //
     fd_    = ::shm_open( name_.c_str(), flags_, 0666 ) ;
     if( fd_ < 0 ) 
-    { error_ = errno ;
+    { 
+      error_ = errno ;
       fd_    = -1 ;
       return false ;
     }
@@ -211,13 +148,11 @@ namespace ipc {
     // Query the filesystem to determine the initial shm segment size.
     // 
     if( !load_size_from_filesystem() ) 
-    { int32_t last_err = error_ ;
-      close() ;
-
-      throw except::RuntimeError
-      ( "ipc::SharedMemory :: Error loading shm segment size from filesystem (errno: %d)"
-      , last_err
-      ) ;
+    { 
+      int32_t last_err = error_ ;
+      close( false ) ;
+      error_ = last_err ;
+      return false ;
     }
 
     return true ;
@@ -225,26 +160,32 @@ namespace ipc {
 
   //-------------------------------------------------------------------------------------------
   bool
-  SharedMemory::close()
+  SharedMemory::close( bool remove_from_fs )
   {
     bool rv = true ;
-    error_  = 0 ;
     if( is_open() ) 
     { 
       // Close underlying file handle
       if( ::close( fd_ ) != 0 ) 
       { 
         if( error_ == 0 ) 
-        { error_ = errno ;
+        { 
+          error_ = errno ;
           rv     = false ;
         }
+      }
+      else
+      { 
+        if( remove_from_fs )
+          path().rm() ;
       }
     }
 
     // Clear members
-    size_  =  0 ;
-    flags_ =  0 ;
-    fd_    = -1 ;
+    size_   =  0 ;
+    flags_  =  0 ;
+    fd_     = -1 ;
+    error_  = 0 ;
 
     return rv ;
   }
@@ -256,12 +197,14 @@ namespace ipc {
     error_ = 0 ;
 
     if( !is_open() ) 
-    { error_ = EBADF ;
+    { 
+      error_ = EBADF ;
       return false ;
     }
 
     if( !is_writable() ) 
-    { error_ = EACCES ;
+    { 
+      error_ = EACCES ;
       return false ;
     }
 
@@ -275,7 +218,8 @@ namespace ipc {
       error_     = 0 ;
       int result = ::ftruncate( fd_, bytes ) ;
       if( result == 0 ) 
-      { size_ = bytes ;
+      { 
+        size_ = bytes ;
         return true ;
       }
 

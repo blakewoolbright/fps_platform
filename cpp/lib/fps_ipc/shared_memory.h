@@ -58,18 +58,12 @@ namespace ipc {
     bool open( const std::string & name, uint32_t flags ) ;
 
     //----------------------------------------------------------------------------------------
-    // Try to open an existing shm segment w/ the indicated name w/ the indicated access
-    // flags.  
-    //
-    // The "flags" member should be the result of OR'ing together one or more of the 
-    // flag definitions in the ipc::access namespace ( ipc_util.h ).
-    //
-    // On success, return true.  On failure, return false.  
+    // Close the file descriptor associated with this shm segment.  If the 'remove_from_fs' 
+    // argument is true, also delete the undlerlying file from the shm file system.
+    // Return true on success, on failure set internal 'error_' member to the associated 
+    // system errno value and return false 
     //----------------------------------------------------------------------------------------
-    // bool open_or_fail( const std::string & name, uint32_t flags ) ;
-
-    //----------------------------------------------------------------------------------------
-    bool close() ;
+    bool close( bool remove_from_fs = false ) ;
 
     //----------------------------------------------------------------------------------------
     // Reserve/resize this shm segment to ensure it can hold the indicated number of bytes.

@@ -2,13 +2,14 @@
 #define FPS__IPC__SWMR_RING_BUFFER__H
 
 #include "fps_ipc/constants.h"
-#include "fps_ipc/swmr_spinlock.h"
 #include "fps_util/fps_util.h" // For fps_likely/unlikely
+#include "fps_ipc/swmr_sequence_lock.h"
 #include <type_traits>
 
 namespace fps {
 namespace ipc {
 namespace swmr {
+namespace detail {
 
   //-----------------------------------------------------------------------------------
   template<typename T>
@@ -16,9 +17,9 @@ namespace swmr {
   {
   private :
     //---------------------------------------------------------------------------------
-    swmr::SpinLock lock_  ;
-    uint32_t       valid_ ;
-    T              data_  ;
+    swmr::SequenceLock lock_  ;
+    uint32_t           valid_ ;
+    T                  data_  ;
 
     //---------------------------------------------------------------------------------
     inline void write_begin() { lock_.write_begin() ; }
@@ -195,6 +196,6 @@ namespace swmr {
     return idx ;
   }
 
-}}}
+}}}}
 
 #endif
