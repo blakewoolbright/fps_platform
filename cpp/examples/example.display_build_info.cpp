@@ -1,5 +1,5 @@
 #include "fps_string/fps_string.h"
-#include "fps_util/build_info.h"
+#include "fps_build_info/fps_build_info.h"
 #include "fps_util/singleton.h"
 
 #include <iostream>

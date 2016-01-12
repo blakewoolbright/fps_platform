@@ -30,7 +30,7 @@ namespace json {
     //--------------------------------------------------------------------------
     tree_t              tree_ ;
     Value               root_ ;
-    mutable std::string text_ ;
+    mutable std::string err_text_ ;
 
   public :
     //--------------------------------------------------------------------------
@@ -38,7 +38,7 @@ namespace json {
     ~Document() ;
   
     //--------------------------------------------------------------------------
-    inline const std::string & error_msg() const { return text_ ; }
+    inline const std::string & error_msg() const { return err_text_ ; }
     inline bool                empty()     const { return root_.empty() ; }
   
     //--------------------------------------------------------------------------

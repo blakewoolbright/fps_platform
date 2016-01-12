@@ -1,4 +1,4 @@
-#include "build_info.h"
+#include "fps_build_info.h"
 #include <sstream>
 
 #if defined( FPS__ENABLE_BUILD_INFO ) 

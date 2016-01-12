@@ -2,7 +2,6 @@
 
 #include "fps_json/fps_json.h"
 #include "fps_string/fps_string.h"
-#include "fps_util/build_info.h"
 #include "fps_util/singleton.h"
 #include "fps_util/byte_queue.h"
 
@@ -12,6 +11,7 @@
 
 using namespace fps ;
 
+/*
 //---------------------------------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE( fps_util__build_info ) 
 {
@@ -33,8 +33,8 @@ BOOST_AUTO_TEST_CASE( fps_util__build_info )
             << "|--[ build_info.linkage   : '" << bi.linkage() << "'" << std::endl 
             << "|--[ build_info.compiler  : '" << bi.compiler() << "'" << std::endl 
             << "|" << std::endl ;
-  
 }
+*/
 
 //---------------------------------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE( fps_util__byte_queue ) 
