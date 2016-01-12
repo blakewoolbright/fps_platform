@@ -6,6 +6,11 @@
 #include "fps_ipc/swmr_sequence_lock.h"
 #include <type_traits>
 
+//
+// Single-Writer/Multiple-Reader obstruction free (for the writer) ringbuffer 
+// implementation.  
+//
+
 namespace fps {
 namespace ipc {
 namespace swmr {
