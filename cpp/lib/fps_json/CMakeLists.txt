@@ -2,6 +2,7 @@ fps_add_library(
   NAME      fps_json
   REQUIRES  boost
   DEPENDS   fps_string
+            fps_fs
   FILES     value.cpp
             document.cpp
 )

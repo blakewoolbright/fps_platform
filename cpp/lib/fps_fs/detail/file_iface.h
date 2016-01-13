@@ -22,6 +22,7 @@ namespace detail {
     virtual bool    open( const char *, const char * ) = 0 ;
     virtual bool    close()                            = 0 ;
     virtual bool    flush()                            = 0 ;
+    virtual bool    set_blocking_io( bool yes_no )     = 0 ;
     virtual bool    eof() const                        = 0 ;
     virtual bool    is_open() const                    = 0 ;
     virtual bool    get_error_flag() const             = 0 ;

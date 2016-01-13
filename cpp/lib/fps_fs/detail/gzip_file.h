@@ -41,7 +41,7 @@ namespace detail {
     //------------------------------------------------------------------------------------
     inline
     bool 
-    set_nonblocking() 
+    set_blocking_io( bool yes_no ) 
     {
       return false ;
     }

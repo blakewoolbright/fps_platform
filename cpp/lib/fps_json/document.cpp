@@ -1,5 +1,6 @@
 #include "fps_json/document.h"
 #include "fps_string/fps_string.h"
+#include "fps_fs/file.h"
 #include <sys/types.h>
 #include <unistd.h>
 #include <cstdio>
@@ -34,9 +35,8 @@ namespace json {
     if( out_data.empty() && !err_text_.empty() ) 
       return false ;
 
-    FILE *  out_file = ::fopen( filename.c_str(), "wb" ) ;
-    int32_t out_fd   = ::fileno( out_file ) ;
-    if( out_file == NULL || out_fd < 0 ) 
+    fs::File out_file( filename, "wb" ) ;
+    if( !out_file.is_open() ) 
     { 
       string::format( err_text_
                     , "Failed to open file '%s' for writing"
@@ -45,31 +45,20 @@ namespace json {
       return false ;
     }
 
-    bool     rv = true ;
-    uint32_t bytes_written = 0 ;
-    while( bytes_written < out_data.size() ) 
-    {
-      int32_t w_rv = ::write( out_fd
-                            , out_data.c_str() + bytes_written
-                            , out_data.size()  - bytes_written
-                            ) ;
-      if( w_rv < 0 ) 
-      { 
-        string::format( err_text_
-                      , "Failed to write %u of %u bytes to output file (errno: %d)"
-                      , ( out_data.size() - bytes_written ) 
-                      , out_data.size() 
-                      , errno
-                      ) ;
-        rv = false ;
-        break ;
-      }
-      
-      bytes_written += w_rv ; 
+    // Use blocking I/O so we don't have to worry about partial writes.
+    out_file.set_blocking_io( false ) ;
+    int32_t w_rv = out_file.write( out_data.c_str(), out_data.size() ) ;
+    if( w_rv < 0 ) 
+    { 
+      string::format( err_text_
+                    , "Failed to write %u bytes to output file (errno: %d)"
+                    , out_data.size() 
+                    , errno
+                    ) ;
+      return false ;
     }
-    
-    ::fclose( out_file ) ;
-    return rv ;
+
+    return true ;
   }
 
   //----------------------------------------------------------------------------

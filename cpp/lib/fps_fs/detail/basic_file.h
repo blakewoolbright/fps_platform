@@ -36,7 +36,7 @@ namespace detail {
     BasicFile( FILE * fp, const char * mode="r" ) 
       : fp_( fp )
     {
-      set_nonblocking() ;
+      set_blocking_io( true ) ;
     }
 
     //------------------------------------------------------------------------------------
@@ -45,13 +45,18 @@ namespace detail {
     //------------------------------------------------------------------------------------
     inline
     bool 
-    set_nonblocking() 
+    set_blocking_io( bool yes_no ) 
     {
       if( !fp_ || (fp_==::stdout) || (fp_==::stderr) ) 
         return false ;
 
-      int32_t fcntl_rv = ::fcntl( ::fileno( fp_ ), F_GETFL ) ;
-      ::fcntl( ::fileno( fp_ ), F_SETFL, fcntl_rv | O_NONBLOCK ) ;
+      int32_t fcntl_flags = ::fcntl( ::fileno( fp_ ), F_GETFL ) ;
+      if( yes_no ) 
+        fcntl_flags &= ~O_NONBLOCK ;
+      else 
+        fcntl_flags |= O_NONBLOCK ;
+
+      ::fcntl( ::fileno( fp_ ), F_SETFL, fcntl_flags ) ;
       return true ;
     }
 
@@ -97,7 +102,7 @@ namespace detail {
       if( fp_ == NULL ) 
         return false ;
 
-      set_nonblocking() ; 
+      set_blocking_io( true ) ; 
       return true ;
     }
 
@@ -123,7 +128,20 @@ namespace detail {
     int32_t 
     read( char * dest, uint32_t len ) 
     { 
-      return fp_ ? ::fread( reinterpret_cast<void*>(dest), sizeof(char), len, fp_ ) : -1 ; 
+      return ::fread( reinterpret_cast<void*>(dest), sizeof(char), len, fp_ ) ;
+
+      /*
+      if( !fp_ )
+      { 
+        errno = EBADF ;
+        return false ;
+      }
+      int32_t rv = ::read( ::fileno( fp_ ), dest, len ) ;
+      return ( rv < 0 && (errno == EAGAIN || errno == EWOULDBLOCK) ) 
+             ? 0 
+             : rv 
+             ;
+      */
     }
 
     //------------------------------------------------------------------------------------
@@ -132,7 +150,20 @@ namespace detail {
     int32_t 
     write( const char * buf, uint32_t len ) 
     { 
-      return fp_ ? ::fwrite( buf, sizeof(char), len, fp_) : -1 ; 
+      return ::fwrite( buf, sizeof(char), len, fp_ ) ;
+      /*
+      if( fp_ == NULL ) 
+      { 
+        = EBADF ;
+        return false ;
+      }
+      
+      int32_t rv = ::write( ::fileno( fp_ ), buf, len ) ;
+      return ( rv < 0 && (errno == EAGAIN || errno == EWOULDBLOCK) ) 
+             ? 0 
+             : rv 
+             ;
+      */
     }
   } ;
 

@@ -42,6 +42,14 @@ namespace fs  {
     bool flush() ;
 
     //------------------------------------------------------------------------------------
+    inline 
+    bool
+    set_blocking_io( bool yes_no )
+    { 
+      return impl_ ? impl_->set_blocking_io( yes_no ) : false ;
+    }
+
+    //------------------------------------------------------------------------------------
     inline
     int32_t
     read( char * rx_dest, uint32_t rx_bytes )
