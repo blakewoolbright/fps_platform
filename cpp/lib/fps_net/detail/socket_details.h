@@ -1,5 +1,5 @@
-#ifndef FPS__NET__DETAIL__SOCKET__H
-#define FPS__NET__DETAIL__SOCKET__H
+#ifndef FPS__NET__DETAIL__SOCKET_DETAILS__H
+#define FPS__NET__DETAIL__SOCKET_DETAILS__H
 
 #include <sys/types.h>
 #include <sys/socket.h>
