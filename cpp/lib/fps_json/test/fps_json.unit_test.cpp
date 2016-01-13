@@ -49,7 +49,7 @@ BOOST_AUTO_TEST_CASE( fps_json )
     std::cout << bi_doc.error_msg() << std::endl ;
   BOOST_CHECK( ok ) ;
 
-  json::Value bi_node = bi_doc.root().find( "build_info" ) ;
+  json::Value bi_node = bi_doc.find( "build_info" ) ;
   BOOST_CHECK( bi_node.valid() ) ;
 
   std::cout << "|--[ build_info.tag       : '" << bi_node.find( "tag" ).data() << "'" << std::endl 
