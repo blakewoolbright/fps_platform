@@ -1,4 +1,6 @@
 fps_net  : { TCPSocket, UDPSocket, EpollMonitor, SelectMonitor, Listener, Dispatcher }
 fps_ipc  : { swsr::ThreadQueue }
 fps_time : { Stopwatch( using cpu tsc counter ) }
+fps_log  : { Figure out how to handle out-of-process logging }
+fps_util : { IntegralSet<>, IntegralMultiset<>, AssociativeIntegralSet<> }
 
