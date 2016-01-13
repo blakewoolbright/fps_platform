@@ -43,7 +43,7 @@ main( int argc, char * argv[] )
     return 1 ;
   }
 
-  system::set_affinity( system::AffinityMask( examples::ipc::swmr::Reader_CPU ) ) ;
+  system::cpu::set_affinity( system::cpu::AffinityMask( examples::ipc::swmr::Reader_CPU ) ) ;
 
   util::signal::set_handler( util::signal::Sig_Int,  interrupt_handler ) ;
   util::signal::set_handler( util::signal::Sig_Term, interrupt_handler ) ;
