@@ -3,7 +3,7 @@
 
 #include <type_traits>
 #include <cstdlib>
-#include <stdint.h>
+#include <cstdint>
 #include <atomic>
 
 #include "fps_ipc/constants.h"

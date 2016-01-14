@@ -1,6 +1,7 @@
 #include "byte_queue.h"
 
 namespace fps  {
+namespace util {
 
   //--------------------------------------------------------------------------------------
   ByteQueue::ByteQueue( uint32_t capacity ) 
@@ -76,4 +77,4 @@ namespace fps  {
 
   }
   
-}
+}}

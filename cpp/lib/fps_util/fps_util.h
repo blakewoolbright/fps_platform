@@ -1,6 +1,10 @@
 #ifndef FPS__UTIL__H
 #define FPS__UTIL__H
 
+#include "fps_util/macros.h"
+#include "fps_util/comparators.h"
+#include "fps_util/algorithms.h"
+
 namespace fps  {
 namespace util {
 
@@ -11,17 +15,6 @@ namespace util {
   // Note    : Always affects stdout, stdin, and stderr.
   //----------------------------------------------------------------------------------
   bool set_stdio_synchronization( bool yes_no ) ;
-
-  //----------------------------------------------------------------------------------
-  // Likely/Unlikely macros 
-  //----------------------------------------------------------------------------------
-  #ifndef fps_likely 
-  #  define fps_likely(x) __builtin_expect(!!(x), 1)
-  #endif 
-
-  #ifndef fps_unlikely 
-  #  define fps_unlikely(x)   __builtin_expect(!!(x), 0)
-  #endif
 
 }}
 

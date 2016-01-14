@@ -1,12 +1,13 @@
 #ifndef FPS__UTIL__BYTE_QUEUE__H
 #define FPS__UTIL__BYTE_QUEUE__H
 
-#include <stdint.h>
+#include <cstdint>
 #include <cstring>
 
 #include "fps_util/extractors.h"
 
-namespace fps {
+namespace fps  {
+namespace util {
 
   //-----------------------------------------------------------------------
   class ByteRange
@@ -233,7 +234,7 @@ namespace fps {
     w_size_ = capacity_ ;
   }
 
-}
+}}
 
 #endif
 

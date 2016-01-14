@@ -1,4 +1,8 @@
-#include "fps_util.h"
+#include "fps_util/fps_util.h"
+#include "fps_util/bswap.h"
+#include "fps_util/signal.h"
+#include "fps_util/singleton.h"
+
 #include <iostream>
 #include <ios>
 

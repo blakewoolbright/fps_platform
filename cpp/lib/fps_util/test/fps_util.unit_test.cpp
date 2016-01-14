@@ -11,38 +11,13 @@
 
 using namespace fps ;
 
-/*
-//---------------------------------------------------------------------------------------------------
-BOOST_AUTO_TEST_CASE( fps_util__build_info ) 
-{
-  std::cout << "[ util::BuildInfo unit tests ]" << std::endl ;
-  BOOST_CHECK_MESSAGE( util::BuildInfo::Is_Available
-                     , "\n\tfps::util::BuildInfo :: Embedded build information not present in binary" 
-                     ) ;
-  
-  util::BuildInfo & bi = util::Singleton<util::BuildInfo>::instance() ;
-  BOOST_CHECK_MESSAGE( bi.valid() 
-                     , "\n\tfps::util::BuildInfo :: Build info present but invalid"
-                     ) ;
-
-  std::cout << "|--[ build_info.tag       : '" << bi.tag() << "'" << std::endl 
-            << "|--[ build_info.timestamp : '" << bi.timestamp() << "'" << std::endl 
-            << "|--[ build_info.user      : '" << bi.user() << "'" << std::endl 
-            << "|--[ build_info.host      : '" << bi.host() << "'" << std::endl 
-            << "|--[ build_info.type      : '" << bi.type() << "'" << std::endl 
-            << "|--[ build_info.linkage   : '" << bi.linkage() << "'" << std::endl 
-            << "|--[ build_info.compiler  : '" << bi.compiler() << "'" << std::endl 
-            << "|" << std::endl ;
-}
-*/
-
 //---------------------------------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE( fps_util__byte_queue ) 
 {
   std::cout << "[ util::ByteQueue unit tests ]" << std::endl ;
   
   uint32_t Capacity = 1024 ;
-  fps::ByteQueue bq( Capacity ) ;
+  util::ByteQueue bq( Capacity ) ;
   
   BOOST_CHECK_MESSAGE
   ( bq.empty() 
@@ -81,7 +56,7 @@ BOOST_AUTO_TEST_CASE( fps_util__byte_queue )
   std::vector<std::string> dq_vec ;
   while( !bq.empty() ) 
   {
-    fps::ByteRange q_data = bq.extract<extract::ByNewline>() ;
+    util::ByteRange q_data = bq.extract<extract::ByNewline>() ;
     if( !q_data ) 
       break ;
 
