@@ -1,7 +1,7 @@
 #ifndef FPS__TIME__CONSTANTS__H
 #define FPS__TIME__CONSTANTS__H
 
-#include <stdint.h>
+#include <cstdint>
 
 namespace fps  {
 namespace time {

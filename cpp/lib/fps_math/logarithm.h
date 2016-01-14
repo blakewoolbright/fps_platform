@@ -1,7 +1,7 @@
 #ifndef FPS__MATH__LOGARITHM_H
 #define FPS__MATH__LOGARITHM_H
 
-#include <stdint.h>
+#include <cstdint>
 
 namespace fps {
 namespace math {

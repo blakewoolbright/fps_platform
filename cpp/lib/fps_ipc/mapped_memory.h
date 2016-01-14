@@ -3,7 +3,7 @@
 
 #include <errno.h>
 #include <unistd.h>
-#include <stdint.h>
+#include <cstdint>
 #include <errno.h>
 
 #include "fps_ipc/shared_memory.h"

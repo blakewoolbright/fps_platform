@@ -3,7 +3,7 @@
 
 #include "fps_util/bswap.h"
 
-#include <stdint.h>
+#include <cstdint>
 #include <type_traits>
 #include <string>
 #include <cstring>

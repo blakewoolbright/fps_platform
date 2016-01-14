@@ -1,7 +1,7 @@
 #ifndef FPS__SYSTEM__CPU__AFFINITY_MASK__H
 #define FPS__SYSTEM__CPU__AFFINITY_MASK__H
 
-#include <stdint.h>
+#include <cstdint>
 #include <thread>
 #include <sched.h>
 #include <unistd.h>

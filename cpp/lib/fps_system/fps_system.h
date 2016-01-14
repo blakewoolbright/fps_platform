@@ -1,7 +1,7 @@
 #ifndef FPS__SYSTEM__SYSTEM__H
 #define FPS__SYSTEM__SYSTEM__H
 
-#include <stdint.h>
+#include <cstdint>
 #include <thread>
 #include <sched.h>
 #include <unistd.h>

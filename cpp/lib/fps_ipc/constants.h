@@ -1,7 +1,7 @@
 #ifndef FPS_IPC__CONSTANTS__H
 #define FPS_IPC__CONSTANTS__H
 
-#include <stdint.h>
+#include <cstdint>
 
 namespace fps { 
 namespace ipc {

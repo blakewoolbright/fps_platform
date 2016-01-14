@@ -1,7 +1,7 @@
 #ifndef FPS__UTIL__EXTRACT__H
 #define FPS__UTIL__EXTRACT__H
 
-#include <stdint.h>
+#include <cstdint>
 
 namespace fps  {
 namespace extract {

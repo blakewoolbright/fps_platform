@@ -2,7 +2,7 @@
 #define FPS__UTIL__BSWAP__H
 
 #include <byteswap.h>
-#include <stdint.h>
+#include <cstdint>
 
 namespace fps {
 namespace util {

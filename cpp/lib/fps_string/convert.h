@@ -1,7 +1,7 @@
 #ifndef FPS__STRING__CONVERT__H
 #define FPS__STRING__CONVERT__H
 
-#include <stdint.h>
+#include <cstdint>
 #include <cstdlib>
 #include <cstring>
 #include <string>

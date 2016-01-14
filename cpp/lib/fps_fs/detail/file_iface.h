@@ -1,7 +1,7 @@
 #ifndef FPS__FS__DETAIL__FILE_IFACE__H
 #define FPS__FS__DETAIL__FILE_IFACE__H
 
-#include <stdint.h>
+#include <cstdint>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>

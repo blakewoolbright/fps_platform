@@ -1,7 +1,7 @@
 #ifndef FPS__TIME__CLOCK__H
 #define FPS__TIME__CLOCK__H
 
-#include <stdint.h>
+#include <cstdint>
 #include <sys/time.h>
 #include <time.h>
 #include "fps_time/constants.h"
