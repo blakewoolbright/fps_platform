@@ -3,7 +3,7 @@
 
 #include <type_traits>
 #include <cstdlib>
-#include "fps_ipc/constants.h"
+#include "fps_system/fps_system.h"
 
 namespace fps {
 namespace ipc {
@@ -19,7 +19,7 @@ class RingBuffer
 {
 public :
   typedef T value_t ;
-  static const std::size_t Alignment = constants::Cache_Line_Size ;
+  static const std::size_t Alignment = system::cpu::Cache_Line_Size ;
 
 private :
   //------------------------------------------------------------------------------

@@ -1,8 +1,8 @@
 #ifndef FPS__IPC__SWMR_RING_BUFFER__H
 #define FPS__IPC__SWMR_RING_BUFFER__H
 
-#include "fps_ipc/constants.h"
-#include "fps_util/fps_util.h" // For fps_likely/unlikely
+#include "fps_system/fps_system.h"  // For cache line size
+#include "fps_util/fps_util.h"      // For fps_likely/unlikely
 #include "fps_ipc/swmr_sequence_lock.h"
 #include <type_traits>
 
@@ -86,7 +86,7 @@ namespace detail {
     typedef std::atomic<uint32_t> atomic_idx_t ;
 
     //------------------------------------------------------------------------
-    atomic_idx_t w_idx_ alignas( constants::Cache_Line_Size ) ;
+    atomic_idx_t w_idx_ alignas( system::cpu::Cache_Line_Size ) ;
     storage_t    storage_ ;
 
     //------------------------------------------------------------------------

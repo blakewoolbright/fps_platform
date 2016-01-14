@@ -10,6 +10,15 @@ namespace util   {
   template<typename T, typename T_Compare=util::compare::Ascending<T> >
   struct SortedVector
   {
+  private :
+    uint32_t capacity_ ;
+    uint32_t size_ ;
+  
+  public :
+    SortedVector()  ;
+    ~SortedVector() ;
+
+  
   } ;
 
 
