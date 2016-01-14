@@ -95,8 +95,9 @@ OPTIONS
             Specify the number of concurrent processes to use during compilation.
             By default, ${SCRIPT_NAME} uses 1/2 of the available system cores plus 1.
 
-        --run-ctest
-            Build everything, then run ctest from the appropriate subdirectory of FPS_ROOT_DIR/build.
+        --run-tests 
+            Build everything, then run all unit testws from the appropriate subdirectory of FPS_ROOT_DIR/build.
+            
 
         --build-tag [ STRING ]
             Specify a tag string to associate with this build.
@@ -143,7 +144,7 @@ ARG_WITH_CTAGS=
 ARG_ENV=
 ARG_ENV_DIRS=
 ARG_BAMBOO=
-ARG_RUN_CTEST=
+ARG_RUN_TESTS=
 ARG_NINJA=
 ARG_EDIT_PLAN=
 ARG_VERSION=
@@ -159,7 +160,7 @@ ARG_EXTRA=
 #
 ARG_SUMMARY=`\
 getopt -o     hvrodcpj:l: \
-       --long help,verbose,version,install,run-ctest,skip-cmake,show-root,env,env-dirs,regenerate,regenerate-only,optimized,debug,clean,really-clean,profile,with-ctags,jobs:,linkage:,plan:,edit-plan:,list-plans,build-tag: \
+       --long help,verbose,version,install,run-tests,skip-cmake,show-root,env,env-dirs,regenerate,regenerate-only,optimized,debug,clean,really-clean,profile,with-ctags,jobs:,linkage:,plan:,edit-plan:,list-plans,build-tag: \
        -n    "${SCRIPT_NAME}" -- "$@" \
 `
 if [[ ${?} != 0 ]] ; then
@@ -199,7 +200,7 @@ while true ; do
     --build-tag               ) ARG_BUILD_TAG=${2}  ; shift 2 ;;
     --plan                    ) ARG_PLAN=${2}       ; shift 2 ;;
     --skip-cmake              ) ARG_SKIP_CMAKE=1    ; shift ;; 
-    --run-ctest               ) ARG_RUN_CTEST=1     ; shift ;; 
+    --run-tests               ) ARG_RUN_TESTS=1     ; shift ;; 
     --show-root               ) ARG_SHOW_ROOT=1     ; shift ;;
     --install                 ) ARG_INSTALL=1       ; shift ;;
     --really-clean            ) ARG_REALLY_CLEAN=1  ; shift ;;
@@ -615,7 +616,7 @@ else
       pushd &> /dev/null
     fi
 
-    if [[ ! -z ${ARG_RUN_CTEST} ]] ; then 
+    if [[ ! -z ${ARG_RUN_TESTS} ]] ; then 
       echo "[ ${SCRIPT_NAME} ] :: Running unit tests..."
       pushd ${FPS_BUILD_PLAN_DIR} &> /dev/null
       CTEST_CMD="ctest" 
