@@ -4,6 +4,7 @@
 #include "fps_util/macros.h"
 #include "fps_util/comparators.h"
 #include "fps_util/algorithms.h"
+#include "fps_util/sorted_vector.h"
 
 namespace fps  {
 namespace util {

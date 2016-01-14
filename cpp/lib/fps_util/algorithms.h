@@ -1,12 +1,14 @@
 #ifndef FPS__UTIL__ALGORITHMS__H
 #define FPS__UTIL__ALGORITHMS__H
 
-#include <cstdint>
 #include "fps_util/macros.h"
 #include "fps_util/comparators.h"
+#include <cstdint>
+#include <type_traits>
 
 namespace fps  {
 namespace util {
+namespace algos {
 
   //------------------------------------------------------------------------------------
   template< typename T_Container
@@ -19,10 +21,13 @@ namespace util {
     typedef typename T_Container::value_t value_t ;
 
     //----------------------------------------------------------------------------------
+    static const bool Is_Integral = std::is_integral<value_t>::value ;
+
+    //----------------------------------------------------------------------------------
     static 
     inline 
     int32_t 
-    find( value_t value, const container_t & c_ref, uint32_t c_size ) 
+    find_existing( value_t value, const container_t & c_ref, uint32_t c_size ) 
     {
       if( fps_unlikely( c_size == 0 ) )
         return -1 ;
@@ -101,7 +106,7 @@ namespace util {
     static 
     inline 
     int32_t 
-    find( value_t value, const container_t & c_ref, uint32_t c_size ) 
+    find_existing( value_t value, const container_t & c_ref, uint32_t c_size ) 
     {
       int32_t rv = 0 ;
       for( ; (rv < c_size) && T_Order::lt(c_ref[ rv ], value) ; ++rv ) ;
@@ -120,6 +125,6 @@ namespace util {
     }
   } ;
 
-}}
+}}}
 
 #endif
