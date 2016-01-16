@@ -3,8 +3,8 @@
 
 #include "fps_util/comparators.h"
 #include "fps_util/macros.h"
+#include "fps_util/detail/sorted_vector_common.h"
 #include "fps_system/fps_system.h"
-#include "fps_system/detail/sorted_vector_common.h"
 
 #include <cstdint>
 #include <type_traits>

@@ -3,8 +3,8 @@
 
 #include "fps_util/comparators.h"
 #include "fps_util/macros.h"
+#include "fps_util/detail/sorted_vector_common.h"
 #include "fps_system/fps_system.h"
-#include "fps_util/sorted_vector_common.h"
 
 #include <cstdint>
 #include <type_traits>
@@ -176,7 +176,7 @@ namespace detail
   SortedIntegralVector<T, T_Compare>::
   find_member_index( value_arg_t target ) const 
   {
-    return algos::BinarySearch<this_t, compare_t>::find_existing( target, *this, size_ ) ;
+    return algos::BinarySearch< decltype( *this ), compare_t>::find_existing( target, *this, size_ ) ;
   }
 
   //---------------------------------------------------------------------------------------
@@ -185,7 +185,7 @@ namespace detail
   SortedIntegralVector<T, T_Compare>::
   find_insert_index( value_arg_t target ) const 
   {
-    return algos::BinarySearch<this_t, compare_t>::find_position( target, *this, size_ ) ;
+    return algos::BinarySearch<decltype( *this ), compare_t>::find_position( target, *this, size_ ) ;
   }
 
   //--------------------------------------------------------------------------
