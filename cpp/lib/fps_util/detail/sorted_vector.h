@@ -3,6 +3,7 @@
 
 #include "fps_util/comparators.h"
 #include "fps_util/macros.h"
+#include "fps_util/algorithms.h"
 #include "fps_util/detail/sorted_vector_common.h"
 #include "fps_system/fps_system.h"
 

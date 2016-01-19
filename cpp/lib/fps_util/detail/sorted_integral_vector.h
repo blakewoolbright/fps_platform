@@ -3,6 +3,8 @@
 
 #include "fps_util/comparators.h"
 #include "fps_util/macros.h"
+#include "fps_util/algorithms.h"
+#include "fps_util/intrinsics.h"
 #include "fps_util/detail/sorted_vector_common.h"
 #include "fps_system/fps_system.h"
 
@@ -92,7 +94,7 @@ namespace detail
 
       //-----------------------------------------------------------------
       inline 
-      int64_t     
+      int64_t
       distance_from( const T * other ) const 
       { return static_cast<int64_t>( ptr_ - other ) ; 
       }
@@ -129,13 +131,17 @@ namespace detail
     inline void clear() ;
 
     //------------------------------------------------------------------------
+    inline const value_t & operator[]( uint32_t idx ) const ;
+    inline value_t       & operator[]( uint32_t idx ) ;
+
+    //------------------------------------------------------------------------
     inline iterator find  ( value_arg_t target ) const ;
     inline iterator insert( value_arg_t target ) ;
     inline iterator erase ( value_arg_t target ) ;
     inline iterator erase ( iterator itr ) ;
   } ;
 
-  //--------------------------------------------------------------------------
+  //----------------------------------------------------------------------------------------------------
   template<typename T, typename T_Compare>
   SortedIntegralVector<T, T_Compare>::
   SortedIntegralVector() 
@@ -146,7 +152,7 @@ namespace detail
     reserve( Default_Capacity ) ;
   }
 
-  //--------------------------------------------------------------------------
+  //----------------------------------------------------------------------------------------------------
   template<typename T, typename T_Compare>
   SortedIntegralVector<T, T_Compare>::
   SortedIntegralVector( uint32_t capacity ) 
@@ -157,7 +163,7 @@ namespace detail
     reserve( capacity ) ;
   }
 
-  //--------------------------------------------------------------------------
+  //----------------------------------------------------------------------------------------------------
   template<typename T, typename T_Compare>
   SortedIntegralVector<T, T_Compare>::
   ~SortedIntegralVector() 
@@ -170,25 +176,29 @@ namespace detail
     size_     = 0 ;
   }
 
-  //---------------------------------------------------------------------------------------
+  //----------------------------------------------------------------------------------------------------
   template<typename T, typename T_Compare>
   int32_t
   SortedIntegralVector<T, T_Compare>::
   find_member_index( value_arg_t target ) const 
   {
-    return algos::BinarySearch< decltype( *this ), compare_t>::find_existing( target, *this, size_ ) ;
+    typedef typename std::remove_reference<decltype( *this ) >::type this_t ;
+    typedef typename util::algos::BinarySearch<this_t, compare_t>    search_t ;
+    return search_t::find_existing( target, *this, size_ ) ;
   }
 
-  //---------------------------------------------------------------------------------------
+  //----------------------------------------------------------------------------------------------------
   template<typename T, typename T_Compare>
   int32_t
   SortedIntegralVector<T, T_Compare>::
   find_insert_index( value_arg_t target ) const 
   {
-    return algos::BinarySearch<decltype( *this ), compare_t>::find_position( target, *this, size_ ) ;
+    typedef typename std::remove_reference<decltype( *this ) >::type this_t ;
+    typedef typename util::algos::BinarySearch<this_t, compare_t>    search_t ;
+    return search_t::find_position( target, *this, size_ ) ;
   }
 
-  //--------------------------------------------------------------------------
+  //----------------------------------------------------------------------------------------------------
   template<typename T, typename T_Compare>
   void 
   SortedIntegralVector<T, T_Compare>::
@@ -197,7 +207,7 @@ namespace detail
     size_ = 0 ;
   }
 
-  //--------------------------------------------------------------------------
+  //----------------------------------------------------------------------------------------------------
   template<typename T, typename T_Compare>
   typename SortedIntegralVector<T, T_Compare>::iterator 
   SortedIntegralVector<T, T_Compare>::
@@ -206,38 +216,102 @@ namespace detail
     int32_t mbr_idx = find_member_index( target ) ;
     return ( mbr_idx < 0 ) 
            ? end() 
-           : iterator( &(data_[ mbr_idx ]) ) 
+           : iterator( &data_[ mbr_idx ] ) 
            ;
   }
 
-  //--------------------------------------------------------------------------
+  //----------------------------------------------------------------------------------------------------
+  template<typename T, typename T_Compare>
+  const T &
+  SortedIntegralVector<T, T_Compare>::
+  operator[]( uint32_t idx ) const 
+  {
+    return data_[ idx ] ;
+  }
+
+  //----------------------------------------------------------------------------------------------------
+  template<typename T, typename T_Compare>
+  T &
+  SortedIntegralVector<T, T_Compare>::
+  operator[]( uint32_t idx ) 
+  {
+    return data_[ idx ] ;
+  }
+
+  //----------------------------------------------------------------------------------------------------
   template<typename T, typename T_Compare>
   typename SortedIntegralVector<T, T_Compare>::iterator 
   SortedIntegralVector<T, T_Compare>::
-  insert( value_arg_t target ) 
+  insert( value_arg_t value ) 
   {
-    return end() ;
+    if( empty() ) 
+    { data_[ size_++ ] = value ; 
+      return begin() ;
+    }
+
+    int32_t idx = find_insert_index( value ) ;
+    if( idx < size_ )
+    {
+      if( data_[ idx ] == value ) 
+        return iterator( &data_[ idx ] ) ;
+  
+      if( compare_t::lt( data_[ idx ], value ) ) 
+        ++idx ;
+
+      util::intrinsic::memmove( &data_[ idx+1 ], &data_[ idx ], sizeof( T ) * (size_ - idx) ) ;
+      data_[ idx ] = value ;
+      ++size_ ;
+    }
+    else 
+    {
+      if( idx >= capacity_ )
+        reserve( capacity_ ) ;
+      
+      data_[ idx ] = value ;
+      ++size_ ;
+    }
+
+    return iterator( &data_[ idx ] ) ;
   }
 
-  //--------------------------------------------------------------------------
+  //----------------------------------------------------------------------------------------------------
   template<typename T, typename T_Compare>
   typename SortedIntegralVector<T, T_Compare>::iterator 
   SortedIntegralVector<T, T_Compare>::
-  erase( value_arg_t target ) 
+  erase( value_arg_t value ) 
   {
-    return end() ;
+    int32_t idx = find_member_index( value ) ;
+    if( idx < 0 ) 
+      return end() ;
+    
+    if( idx < ( size_ - 1 ) ) 
+      util::intrinsic::memmove( &data_[ idx ], &data_[ idx + 1 ], sizeof( T ) * (size_ - idx) ) ;
+
+    --size_ ;
+
+    return iterator( &data_[ idx ] ) ;
   }
 
-  //--------------------------------------------------------------------------
+  //----------------------------------------------------------------------------------------------------
   template<typename T, typename T_Compare>
   typename SortedIntegralVector<T, T_Compare>::iterator 
   SortedIntegralVector<T, T_Compare>::
   erase( iterator itr ) 
   {
-    return end() ;
+    // TODO: This should probably trigger a fatal exception since it indicates improper 
+    //       usage of the container.
+    if( empty() || !itr.bounds_test( begin(), end() ) ) 
+      return end() ;
+
+    int64_t idx = itr.distance_from( begin() ) ;
+    if( idx < (size_ - 1) )
+      util::intrinsic::memmove( &data_[ idx ], &data_[ idx + 1 ], sizeof( T ) * (size_ - idx) ) ;
+    --size_ ;
+
+    return iterator( &data_[ idx ] ) ;
   }
 
-  //--------------------------------------------------------------------------
+  //----------------------------------------------------------------------------------------------------
   template<typename T, typename T_Compare>
   bool
   SortedIntegralVector<T, T_Compare>::
@@ -256,9 +330,8 @@ namespace detail
                      : capacity_ + min_free_slots 
                      ;
 
-    // Save current array & capacity 
-    uint32_t   old_cap  = capacity_ ;
-    T        * old_data = data_ ;
+    // Save current array content
+    T * old_data = data_ ;
 
     // Allocate new array with increased capacity, and include an extra 
     // slot to make the end() iterator's implementation less complex.

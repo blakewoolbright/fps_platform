@@ -5,6 +5,7 @@
 #include "fps_util/comparators.h"
 #include "fps_util/algorithms.h"
 #include "fps_util/set.h"
+#include "fps_util/intrinsics.h"
 
 namespace fps  {
 namespace util {

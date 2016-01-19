@@ -72,11 +72,11 @@ namespace algos {
       {
         i_mid = (i_min + i_max) >> 1 ;
 
-        if( T_Order::greater_than( value, c_ref[ i_mid ] ) ) 
+        if( T_Order::gt( value, c_ref[ i_mid ] ) ) 
         { 
           i_min = i_mid + 1 ;
         }
-        else if( T_Order::less_than   ( value, c_ref[ i_mid ] ) ) 
+        else if( T_Order::lt( value, c_ref[ i_mid ] ) ) 
         { 
           i_max = i_mid - 1 ;
         }
