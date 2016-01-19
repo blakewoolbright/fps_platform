@@ -86,6 +86,14 @@ BOOST_AUTO_TEST_CASE( fps_util__containers__sorted_vector )
     ) ; 
   }
   
+  vec.clear() ;
+  to_stdout( vec, "vec.clear()" ) ;
+
+  BOOST_CHECK_MESSAGE
+  ( vec.empty() 
+  , "\n\tContainer not empty() after calling clear()"
+  ) ;
+
   /*
   { 
     vec_t::value_t i_value = 2 ;
