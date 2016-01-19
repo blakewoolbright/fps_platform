@@ -52,6 +52,9 @@ BOOST_AUTO_TEST_CASE( fps_util__containers__sorted_vector )
   , "\n\tSortedIntegralVector::capacity() should return non-zero after default construction" 
   ) ;
 
+  //----------------------------------------------
+  // Input values & expected post install size 
+  //----------------------------------------------
   std::vector<std::pair<uint64_t, uint64_t>> 
   input_vec = 
   { { 5, 1 }, { 5, 1 }, { 3, 2 }, { 3, 2 }
@@ -59,6 +62,9 @@ BOOST_AUTO_TEST_CASE( fps_util__containers__sorted_vector )
   , { 10, 6 }, { 0, 7 }
   } ;
 
+  //----------------------------------------------
+  // Populate container
+  //----------------------------------------------
   for( auto in_itr = input_vec.begin() ; in_itr != input_vec.end() ; ++in_itr )
   {
     auto itr = vec.insert( in_itr->first ) ;
@@ -86,6 +92,9 @@ BOOST_AUTO_TEST_CASE( fps_util__containers__sorted_vector )
     ) ; 
   }
   
+  //----------------------------------------------
+  // Clear
+  //----------------------------------------------
   vec.clear() ;
   to_stdout( vec, "vec.clear()" ) ;
 
