@@ -11,6 +11,27 @@
 using namespace fps ;
 
 //---------------------------------------------------------------------------------------------------
+template<typename T>
+void
+to_stdout( const T & container, const std::string & label ) 
+{
+  std::cout << "[ " << label << " ]" << std::endl 
+            << "|--[ Capacity : " << container.capacity() << " ]" << std::endl 
+            << "|--[ Size     : " << container.size() << " ]" << std::endl 
+            << "|--[ Empty    : " << (container.empty() ? "true" : "false") << " ]" << std::endl ;
+
+  std::string values ;
+  if( !container.empty() ) 
+  { auto itr = container.begin() ; 
+    string::append( values, "%lu", static_cast<uint64_t>( *itr ) ) ;
+
+    while( ++itr != container.end() ) 
+      string::append( values, ", %lu", static_cast<uint64_t>( *itr ) ) ;
+  }
+  std::cout << "|--[ " << values << " ]" << std::endl << std::endl ;
+}
+
+//---------------------------------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE( fps_util__containers__sorted_vector )
 {
   typedef util::detail::SortedIntegralVector<uint64_t> vec_t ;
@@ -33,8 +54,10 @@ BOOST_AUTO_TEST_CASE( fps_util__containers__sorted_vector )
 
   
   { 
-    vec_t::value_t i_value = 1 ;
+    vec_t::value_t i_value = 2 ;
     auto           i_itr   = vec.insert( i_value ) ;
+    to_stdout( vec, string::sprintf( "Insert %lu", i_value ) ) ;
+
     BOOST_CHECK_MESSAGE
     ( i_itr != vec.end() 
     , string::sprintf( "\n\tSortedIntegralVector::insert( %lu ) returned end()", i_value ) 
@@ -44,6 +67,31 @@ BOOST_AUTO_TEST_CASE( fps_util__containers__sorted_vector )
     ( vec.size() == 1
     , string::sprintf( "\n\tSortedIntegralVector::size() returned %u, expected 1", vec.size() ) 
     ) ;
+
+    ++i_value ;
+    i_itr = vec.insert( i_value ) ;
+    to_stdout( vec, string::sprintf( "Insert %lu", i_value ) ) ;
+    BOOST_CHECK_MESSAGE
+    ( vec.size() == 2
+    , string::sprintf( "\n\tSortedIntegralVector::size() returned %u, expected 2", vec.size() ) 
+    ) ;
+
+    i_itr = vec.insert( i_value ) ;
+    to_stdout( vec, string::sprintf( "Insert %lu", i_value ) ) ;
+    BOOST_CHECK_MESSAGE
+    ( vec.size() == 2
+    , string::sprintf( "\n\tSortedIntegralVector::size() returned %u, expected 2", vec.size() ) 
+    ) ;
+
+    i_value = 1 ;
+    i_itr = vec.insert( i_value ) ;
+    to_stdout( vec, string::sprintf( "Insert %lu", i_value ) ) ;
+    BOOST_CHECK_MESSAGE
+    ( vec.size() == 3
+    , string::sprintf( "\n\tSortedIntegralVector::size() returned %u, expected 3", vec.size() ) 
+    ) ;
+    i_value = 3 ;
+
   }
 
 }
