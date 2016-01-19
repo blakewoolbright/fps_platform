@@ -41,45 +41,27 @@ namespace detail
       : public boost::iterator_facade<iterator, T, boost::forward_traversal_tag, T>
     {
     private :
-      //-----------------------------------------------------------------
+      //------------------------------------------------------------------------------
       friend class boost::iterator_core_access ;
 
-      //-----------------------------------------------------------------
+      //------------------------------------------------------------------------------
       const T * ptr_ ;
 
-      //-----------------------------------------------------------------
-      inline 
-      void 
-      increment() 
-      { ++ptr_; 
-      } 
+      //------------------------------------------------------------------------------
+      inline void increment() { ++ptr_; } 
 
-      //-----------------------------------------------------------------
-      inline 
-      bool equal( const iterator & rhs ) const 
-      { return (ptr_ == rhs.ptr_) ; 
-      }
+      //------------------------------------------------------------------------------
+      inline bool equal( const iterator & rhs ) const { return (ptr_ == rhs.ptr_) ; }
 
-      //-----------------------------------------------------------------
-      inline 
-      T 
-      dereference() const 
-      { return *ptr_ ; 
-      }
+      //------------------------------------------------------------------------------
+      inline T dereference() const { return *ptr_ ; }
 
     public :
       //-----------------------------------------------------------------
-      inline 
-      iterator() 
-        : ptr_( NULL ) 
-      {}
+      inline iterator() : ptr_( NULL ) {}
 
       //-----------------------------------------------------------------
-      inline 
-      explicit 
-      iterator( const T * ptr )
-        : ptr_( ptr )
-      {}
+      inline explicit iterator( const T * ptr ) : ptr_( ptr ) {}
 
       //-----------------------------------------------------------------
       inline value_arg_t value() const { return *ptr_ ; }

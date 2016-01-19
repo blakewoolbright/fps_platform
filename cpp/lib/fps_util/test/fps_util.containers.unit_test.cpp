@@ -52,7 +52,41 @@ BOOST_AUTO_TEST_CASE( fps_util__containers__sorted_vector )
   , "\n\tSortedIntegralVector::capacity() should return non-zero after default construction" 
   ) ;
 
+  std::vector<std::pair<uint64_t, uint64_t>> 
+  input_vec = 
+  { { 5, 1 }, { 5, 1 }, { 3, 2 }, { 3, 2 }
+  , { 8, 3 }, { 5, 3 }, { 2, 4 }, { 1, 5 }
+  , { 10, 6 }, { 0, 7 }
+  } ;
+
+  for( auto in_itr = input_vec.begin() ; in_itr != input_vec.end() ; ++in_itr )
+  {
+    auto itr = vec.insert( in_itr->first ) ;
+    to_stdout( vec, string::sprintf( "insert( %lu ) -> size( %lu )", in_itr->first, in_itr->second ) ) ;
+
+    BOOST_CHECK_MESSAGE
+    ( itr != vec.end()
+    , string::sprintf( "\n\tinsert( %lu ) unexpectedly returned end()", in_itr->first ) 
+    ) ; 
+
+    BOOST_CHECK_MESSAGE
+    ( *itr == in_itr->first
+    , string::sprintf( "\n\tinsert( %lu ) :: result value != expected value (%lu != %lu)"
+                     , in_itr->first 
+                     , *itr 
+                     , in_itr->second
+                     ) 
+    ) ; 
+
+    BOOST_CHECK_MESSAGE
+    ( vec.size() == in_itr->second
+    , string::sprintf( "\n\tinsert( %lu ) :: Result size != expected size (%u != %u)" 
+                     , in_itr->first, vec.size(), static_cast<uint32_t>( in_itr->second )
+                     ) 
+    ) ; 
+  }
   
+  /*
   { 
     vec_t::value_t i_value = 2 ;
     auto           i_itr   = vec.insert( i_value ) ;
@@ -91,8 +125,7 @@ BOOST_AUTO_TEST_CASE( fps_util__containers__sorted_vector )
     , string::sprintf( "\n\tSortedIntegralVector::size() returned %u, expected 3", vec.size() ) 
     ) ;
     i_value = 3 ;
-
   }
-
+  */
 }
 
