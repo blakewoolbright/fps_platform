@@ -1,13 +1,13 @@
-#ifndef FPS__UTIL__BYTE_QUEUE__H
-#define FPS__UTIL__BYTE_QUEUE__H
+#ifndef FPS__CONTAINER__BYTE_QUEUE__H
+#define FPS__CONTAINER__BYTE_QUEUE__H
 
 #include <cstdint>
 #include <cstring>
 
-#include "fps_util/extractors.h"
+#include "fps_container/extractors.h"
 
 namespace fps  {
-namespace util {
+namespace container {
 
   //-----------------------------------------------------------------------
   class ByteRange

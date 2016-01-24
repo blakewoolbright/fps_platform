@@ -2,8 +2,8 @@
 #define FPS__FS__FILE__H
 
 #include "fps_fs/detail/file_iface.h"
-#include "fps_util/byte_queue.h"
-#include "fps_util/extractors.h"
+#include "fps_container/byte_queue.h"
+#include "fps_container/extractors.h"
 #include <string>
 
 namespace fps {

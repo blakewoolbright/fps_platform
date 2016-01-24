@@ -1,7 +1,7 @@
-#include "byte_queue.h"
+#include "fps_container/byte_queue.h"
 
 namespace fps  {
-namespace util {
+namespace container {
 
   //--------------------------------------------------------------------------------------
   ByteQueue::ByteQueue( uint32_t capacity ) 
@@ -73,8 +73,6 @@ namespace util {
            ? reclaim()                              
            : reallocate( capacity_ + min_w_bytes ) 
            ;
-    
-
   }
   
 }}

@@ -7,6 +7,7 @@ fps_add_library(
 
   DEPENDS    fps_string
              fps_util
+             fps_container
 
   FILES      path.cpp
              glob.cpp

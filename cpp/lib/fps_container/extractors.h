@@ -1,9 +1,10 @@
-#ifndef FPS__UTIL__EXTRACT__H
-#define FPS__UTIL__EXTRACT__H
+#ifndef FPS__CONTAINER__EXTRACT__H
+#define FPS__CONTAINER__EXTRACT__H
 
 #include <cstdint>
 
 namespace fps  {
+namespace container {
 namespace extract {
 
   //----------------------------------------------------------------------------------
@@ -66,6 +67,6 @@ namespace extract {
     }
   } ;
 
-}}
+}}}
 
 #endif

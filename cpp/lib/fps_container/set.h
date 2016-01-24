@@ -1,23 +1,23 @@
-#ifndef FPS__UTIL__SET__H
-#define FPS__UTIL__SET__H
+#ifndef FPS__CONTAINER__SET__H
+#define FPS__CONTAINER__SET__H
 
 #include "fps_util/macros.h"
-#include "fps_util/comparators.h"
-#include "fps_util/detail/sorted_vector.h"
-#include "fps_util/detail/sorted_integral_vector.h"
+#include "fps_container/comparators.h"
+#include "fps_container/detail/sorted_vector.h"
+#include "fps_container/detail/sorted_integral_vector.h"
 #include "fps_system/fps_system.h"
 
 #include <cstdint>
 #include <type_traits>
 #include <boost/iterator/iterator_facade.hpp>
 
-namespace fps    {
-namespace util   {
+namespace fps       {
+namespace container {
 
   //----------------------------------------------------------------------------------------
   // Resizable sorted array intended for use with small structs or primitive types.
   //----------------------------------------------------------------------------------------
-  template<typename T, typename T_Compare=util::compare::Ascending<T> >
+  template<typename T, typename T_Compare=container::compare::Ascending<T> >
   struct Set 
   {
   public :

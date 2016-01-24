@@ -1,15 +1,15 @@
-#ifndef FPS__UTIL__COMPARATORS__H
-#define FPS__UTIL__COMPARATORS__H
+#ifndef FPS__CONTAINER__COMPARATORS__H
+#define FPS__CONTAINER__COMPARATORS__H
 
 #include <type_traits>
 
 // 
 // This header defines generalized comparison operations for use w/ various 
-// internal containers/utilities.
+// containers.
 //
 
 namespace fps     {
-namespace util    {
+namespace container {
 namespace compare {
 
   //-----------------------------------------------------------------------------------
