@@ -3,6 +3,7 @@
 #
 add_subdirectory( fps_math )
 add_subdirectory( fps_string )
+add_subdirectory( fps_parameter )
 add_subdirectory( fps_except )
 add_subdirectory( fps_time ) 
 add_subdirectory( fps_util )
