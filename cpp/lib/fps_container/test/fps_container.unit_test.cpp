@@ -3,6 +3,7 @@
 #include "fps_container/byte_queue.h"
 #include "fps_container/detail/sorted_vector.h"
 #include "fps_container/detail/sorted_integral_vector.h"
+#include "fps_container/detail/make_sorted_vector.h"
 #include "fps_string/fps_string.h"
 
 #include <boost/test/unit_test.hpp>
@@ -102,7 +103,8 @@ to_stdout( const T & container, const std::string & label )
 //---------------------------------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE( fps_container__sorted_vector )
 {
-  typedef container::detail::SortedIntegralVector<uint64_t> vec_t ;
+  // typedef container::detail::SortedIntegralVector<uint64_t> vec_t ;
+  typedef container::detail::MakeSortedVector<uint64_t, false>::type_t vec_t ;
 
   vec_t vec ;
   BOOST_CHECK_MESSAGE
