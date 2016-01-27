@@ -195,20 +195,20 @@ namespace ntp {
   //---------------------------------------------------------------------------------------------- 
   // Helper macros to simplify named argument declaration.
   //---------------------------------------------------------------------------------------------- 
-  #define FPS_NTP__Value(NAME, TYPE) \
+  #define FPS_Declare_NTP_Value(NAME, TYPE) \
     struct NAME##_NTP_ID; \
     template< uint32_t T_Default > \
     struct NAME \
       : ntp::Value<NAME##_NTP_ID, TYPE, T_Default> \
     {} ; 
 
-  #define FPS_NTP__Flag(NAME) \
+  #define FPS_Declare_NTP_Flag(NAME) \
     struct NAME##_NTP_ID; \
     struct NAME \
       : ntp::Flag<NAME##_NTP_ID> \
     {} ; 
 
-  #define FPS_NTP__Type(NAME) \
+  #define FPS_Declare_NTP_Type(NAME) \
     struct NAME##_NTP_ID; \
     template< typename T> \
     struct NAME \

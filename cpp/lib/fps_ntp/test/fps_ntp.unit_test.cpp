@@ -8,33 +8,11 @@ using namespace fps ;
 
 namespace opt 
 {
-  FPS_NTP__Value( Capacity, uint32_t ) ;
-  FPS_NTP__Value( Reverse,  bool ) ;
-  FPS_NTP__Value( Weight,   int32_t ) ;
-  FPS_NTP__Flag ( Debug ) ;
-  FPS_NTP__Type ( Type ) ;
-
-  /*
-  template<uint32_t T_Default>
-  struct Capacity 
-  : ntp::Value<id::Capacity, uint32_t, T_Default>
-  {} ;
-  
-  template< bool T_Default >
-  struct Reverse
-    : ntp::Value<id::Reverse, bool, T_Default>
-  {} ;
-
-  template<int32_t T_Default>
-  struct Weight 
-    : ntp::Value<id::Weight, int32_t, T_Default>
-  {} ;
-
-  template<typename T>
-  struct Type 
-    : ntp::Type<id::Type, T>
-  {} ;
-  */
+  FPS_Declare_NTP_Value( Capacity, uint32_t ) ;
+  FPS_Declare_NTP_Value( Reverse,  bool ) ;
+  FPS_Declare_NTP_Value( Weight,   int32_t ) ;
+  FPS_Declare_NTP_Flag ( Debug ) ;
+  FPS_Declare_NTP_Type ( Type ) ;
 }
 
 //-----------------------------------------------------------------------------------------------

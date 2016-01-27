@@ -14,6 +14,83 @@ namespace container {
 namespace detail 
 {
   //--------------------------------------------------------------------------------------
+  // Shared iterator definition for 
+  template<typename T>
+  struct distinct_sorted_vector_iterator 
+    : public boost::iterator_facade< distinct_sorted_vector_iterator<T>
+                                   , T
+                                   , boost::forward_traversal_tag
+                                   , typename 
+                                     std::conditional
+                                     < std::is_integral<T>::value
+                                     , T
+                                     , const T &
+                                     >::type
+                                   >
+  {
+  private :
+    //------------------------------------------------------------------------------
+    friend class boost::iterator_core_access ;
+
+    //------------------------------------------------------------------------------
+    const T * ptr_ ;
+
+    //------------------------------------------------------------------------------
+    inline void increment() { ++ptr_; } 
+
+    //------------------------------------------------------------------------------
+    inline 
+    bool 
+    equal( const distinct_sorted_vector_iterator & rhs ) const 
+    { return (ptr_ == rhs.ptr_) ; 
+    }
+
+    //------------------------------------------------------------------------------
+    inline T dereference() const { return *ptr_ ; }
+
+  public :
+    //-----------------------------------------------------------------
+    typedef 
+    typename 
+    std::conditional< std::is_integral<T>::value
+                    , T
+                    , const T &
+                    >::type 
+    value_ref_t ;
+
+    //-----------------------------------------------------------------
+    inline 
+    distinct_sorted_vector_iterator() 
+      : ptr_( NULL ) 
+    {}
+
+    //-----------------------------------------------------------------
+    inline 
+    explicit 
+    distinct_sorted_vector_iterator( const T * ptr ) 
+      : ptr_( ptr ) 
+    {}
+
+    //-----------------------------------------------------------------
+    inline value_ref_t value() const { return *ptr_ ; }
+    inline uint32_t    count() const { return 1 ; }
+
+    //-----------------------------------------------------------------
+    inline 
+    bool 
+    bounds_test( const T * begin, const T * end ) const
+    { return (ptr_ < end && ptr_ >= begin) ;
+    }
+
+    //-----------------------------------------------------------------
+    inline 
+    int64_t
+    distance_from( const T * other ) const 
+    { return static_cast<int64_t>( ptr_ - other ) ; 
+    }
+  } ;
+
+  //--------------------------------------------------------------------------------------
   // The following "Construct" class is used to default-construct container members.  
   // User defined types are default constructed w/ placement new.  
   // Integral/primitive types are unaffected.

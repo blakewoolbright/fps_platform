@@ -104,7 +104,11 @@ to_stdout( const T & container, const std::string & label )
 BOOST_AUTO_TEST_CASE( fps_container__sorted_vector )
 {
   // typedef container::detail::SortedIntegralVector<uint64_t> vec_t ;
-  typedef container::detail::MakeSortedVector<uint64_t, false>::type_t vec_t ;
+  static constexpr uint32_t Default_Capacity = 1234 ;
+  typedef container::detail::MakeSortedVector< uint64_t
+                                             , container::opt::Reverse<false> 
+                                             , container::opt::Default_Capacity<Default_Capacity>
+                                             >::type vec_t ;
 
   vec_t vec ;
   BOOST_CHECK_MESSAGE

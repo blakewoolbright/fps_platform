@@ -3,9 +3,11 @@
 
 #include "fps_container/comparators.h"
 #include "fps_util/macros.h"
+#include "fps_system/fps_system.h"
+#include "fps_ntp/fps_ntp.h"
 #include "fps_container/algorithms.h"
 #include "fps_container/detail/sorted_vector_common.h"
-#include "fps_system/fps_system.h"
+#include "fps_container/options.h"
 
 #include <cstdint>
 #include <type_traits>
@@ -18,7 +20,7 @@ namespace detail {
   //----------------------------------------------------------------------------------------
   // Resizable sorted array intended for use with small structs or primitive types.
   //----------------------------------------------------------------------------------------
-  template<typename T, typename T_Compare=container::compare::Ascending<T> >
+  template<typename T, typename... T_Args>
   struct SortedVector
   {
   public :
@@ -29,83 +31,45 @@ namespace detail {
                  ) ;
 
     //--------------------------------------------------------------------------------------
-    static const uint32_t Default_Capacity = 32 ;
     static const bool     Is_Integral      = std::is_integral<T>::value ;
     static const bool     Is_Trivial       = std::is_trivial<T>::value ;
     // static const bool     Is_Trivial_To_Copy = std::is_trivially_copyable<T>::value ;
 
     //--------------------------------------------------------------------------------------
+    static 
+    const 
+    uint32_t 
+    Max_Capacity = ntp::get_value< opt::Max_Capacity<0>, T_Args...>::value ;
+
+    //--------------------------------------------------------------------------------------
+    static 
+    const 
+    uint32_t 
+    Default_Capacity = ntp::get_value< opt::Default_Capacity<64>, T_Args...>::value ;
+
+    //--------------------------------------------------------------------------------------
+    static 
+    const
+    bool 
+    Reverse = ntp::get_value< opt::Reverse<false>, T_Args...>::value ;
+
+    //--------------------------------------------------------------------------------------
+    typedef 
+    typename 
+    std::conditional< Reverse, compare::Descending<T>, compare::Ascending<T> >::type 
+    compare_t ;
+
+    //--------------------------------------------------------------------------------------
     typedef T         value_t ;
-    typedef T_Compare compare_t ;
     typedef const T & value_arg_t ;
 
     //--------------------------------------------------------------------------------------
-    typedef fps::container::detail::Construct<T> default_construct ;
-    typedef fps::container::detail::Copy<T>      copy_construct    ;
-    typedef fps::container::detail::Destruct <T> default_destruct  ;
+    typedef distinct_sorted_vector_iterator<value_t> iterator ;
 
     //--------------------------------------------------------------------------------------
-    struct iterator 
-      : public boost::iterator_facade<iterator, T, boost::forward_traversal_tag, T>
-    {
-    private :
-      //-----------------------------------------------------------------
-      friend class boost::iterator_core_access ;
-
-      const T * ptr_ ;
-
-      //-----------------------------------------------------------------
-      inline 
-      void 
-      increment() 
-      { ++ptr_; 
-      } 
-  
-      //-----------------------------------------------------------------
-      inline 
-      bool equal( const iterator & rhs ) const 
-      { return (ptr_ == rhs.ptr_) ; 
-      }
-
-      //-----------------------------------------------------------------
-      inline 
-      T 
-      dereference() const 
-      { return *ptr_ ; 
-      }
-  
-    public :
-      //-----------------------------------------------------------------
-      inline 
-      iterator() 
-        : ptr_( NULL ) 
-      {}
-
-      //-----------------------------------------------------------------
-      inline 
-      explicit 
-      iterator( const T * ptr )
-        : ptr_( ptr )
-      {}
-
-      //-----------------------------------------------------------------
-      inline value_arg_t value() const { return *ptr_ ; }
-      inline uint32_t    count() const { return 1 ; }
-
-      //-----------------------------------------------------------------
-      inline 
-      bool 
-      bounds_test( const T * begin, const T * end ) const
-      { return (ptr_ < end && ptr_ >= begin) ;
-      }
-
-      //-----------------------------------------------------------------
-      inline 
-      int64_t     
-      distance_from( const T * other ) const 
-      { return static_cast<int64_t>( ptr_ - other ) ; 
-      }
-    } ;
+    typedef Construct<T> default_construct ;
+    typedef Copy<T>      copy_construct    ;
+    typedef Destruct <T> default_destruct  ;
 
   private :
     //------------------------------------------------------------------------
@@ -145,8 +109,8 @@ namespace detail {
   } ;
 
   //--------------------------------------------------------------------------
-  template<typename T, typename T_Compare>
-  SortedVector<T, T_Compare>::
+  template<typename T, typename... T_Args>
+  SortedVector<T, T_Args...>::
   SortedVector() 
     : capacity_( 0 ) 
     , size_    ( 0 )
@@ -156,8 +120,8 @@ namespace detail {
   }
   
   //--------------------------------------------------------------------------
-  template<typename T, typename T_Compare>
-  SortedVector<T, T_Compare>::
+  template<typename T, typename... T_Args>
+  SortedVector<T, T_Args...>::
   SortedVector( uint32_t capacity ) 
     : capacity_( 0 ) 
     , size_    ( 0 )
@@ -167,8 +131,8 @@ namespace detail {
   }
 
   //--------------------------------------------------------------------------
-  template<typename T, typename T_Compare>
-  SortedVector<T, T_Compare>::
+  template<typename T, typename... T_Args>
+  SortedVector<T, T_Args...>::
   ~SortedVector() 
   {
     if( data_ ) 
@@ -180,9 +144,9 @@ namespace detail {
   }
 
   //--------------------------------------------------------------------------
-  template<typename T, typename T_Compare>
+  template<typename T, typename... T_Args>
   int32_t
-  SortedVector<T, T_Compare>::
+  SortedVector<T, T_Args...>::
   find_member_index( value_arg_t target ) const 
   {
     typedef typename std::remove_pointer< decltype( this ) >::type this_t ;
@@ -191,9 +155,9 @@ namespace detail {
   }
 
   //--------------------------------------------------------------------------
-  template<typename T, typename T_Compare>
+  template<typename T, typename... T_Args>
   int32_t
-  SortedVector<T, T_Compare>::
+  SortedVector<T, T_Args...>::
   find_insert_index( value_arg_t target ) const 
   {
     typedef typename std::remove_pointer< decltype( this ) >::type this_t ;
@@ -202,9 +166,9 @@ namespace detail {
   }
 
   //--------------------------------------------------------------------------
-  template<typename T, typename T_Compare>
+  template<typename T, typename... T_Args>
   void 
-  SortedVector<T, T_Compare>::
+  SortedVector<T, T_Args...>::
   clear() 
   { 
     size_ = 0 ;
@@ -213,9 +177,9 @@ namespace detail {
   }
 
   //--------------------------------------------------------------------------
-  template<typename T, typename T_Compare>
-  typename SortedVector<T, T_Compare>::iterator 
-  SortedVector<T, T_Compare>::
+  template<typename T, typename... T_Args>
+  typename SortedVector<T, T_Args...>::iterator 
+  SortedVector<T, T_Args...>::
   find( value_arg_t target ) const 
   {
     int32_t mbr_idx = find_member_index( target ) ;
@@ -226,36 +190,36 @@ namespace detail {
   }
 
   //--------------------------------------------------------------------------
-  template<typename T, typename T_Compare>
-  typename SortedVector<T, T_Compare>::iterator 
-  SortedVector<T, T_Compare>::
+  template<typename T, typename... T_Args>
+  typename SortedVector<T, T_Args...>::iterator 
+  SortedVector<T, T_Args...>::
   insert( value_arg_t target ) 
   {
     return end() ;
   }
 
   //--------------------------------------------------------------------------
-  template<typename T, typename T_Compare>
-  typename SortedVector<T, T_Compare>::iterator 
-  SortedVector<T, T_Compare>::
+  template<typename T, typename... T_Args>
+  typename SortedVector<T, T_Args...>::iterator 
+  SortedVector<T, T_Args...>::
   erase( value_arg_t target ) 
   {
     return end() ;
   }
 
   //--------------------------------------------------------------------------
-  template<typename T, typename T_Compare>
-  typename SortedVector<T, T_Compare>::iterator 
-  SortedVector<T, T_Compare>::
+  template<typename T, typename... T_Args>
+  typename SortedVector<T, T_Args...>::iterator 
+  SortedVector<T, T_Args...>::
   erase( iterator itr ) 
   {
     return end() ;
   }
 
   //--------------------------------------------------------------------------
-  template<typename T, typename T_Compare>
+  template<typename T, typename... T_Args>
   bool
-  SortedVector<T, T_Compare>::
+  SortedVector<T, T_Args...>::
   reserve( uint32_t min_free_slots ) 
   {
     if( free_slots() >= min_free_slots ) 
