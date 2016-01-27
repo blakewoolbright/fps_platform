@@ -25,6 +25,9 @@
 namespace fps {
 namespace ntp {
 
+  //
+  // Note: Workaround because gcc 4.9.x's c++11 implementation doesn't support std::enable_if_t.
+  //
   namespace detail 
   {
     template< bool B, class T = void >
@@ -32,25 +35,40 @@ namespace ntp {
   }
 
   //---------------------------------------------------------------------------------------------- 
-  // Parameter type containers
+  // Parameter type container definitions
   //---------------------------------------------------------------------------------------------- 
+  // 
+  // 'Flag' type arguments are boolean values that are implicitly true if they are present. 
+  //
   template<typename T_ID> 
   struct Flag 
-  { using id = T_ID ; 
+  { 
+    using id = T_ID ; 
   } ;
 
+  // 
+  // 'Type' type arguments are typenames 
+  //
   template<typename T_ID, typename T>
   struct Type
-  { using   id    = T_ID ;
-    using   value = T ;
+  { 
+    using id    = T_ID ;
+    using value = T ;
   } ;
 
+  //
+  // 'Template' type arguments are template typenames
+  // 
   template<typename T_ID, template<typename> class T>
   struct Template
-  { using id = T_ID ;
+  { 
+    using id = T_ID ;
     template<typename U> using value = T<U> ;
   } ;
 
+  //
+  // 'Value' type arguments are primitive values
+  //
   template<typename T_ID, typename T, T default_value>
   struct Value  
     : std::integral_constant<T, default_value>
@@ -59,20 +77,15 @@ namespace ntp {
   } ;
 
   //---------------------------------------------------------------------------------------------- 
-  // Parameter value extractors
+  // Parameter value extraction structure, 'get_value' declaration and specializations
   //---------------------------------------------------------------------------------------------- 
+  template<typename T, typename... Args> 
+  struct get_value ;
 
-  // Declaration
-  template<typename T, typename... Args> struct get_value ;
-
-  // Recursive search of variadic list
   template<typename T, typename T_Next, typename... Args> 
   struct get_value<T, T_Next, Args...>
   {
   private : 
-    // TODO : Can we stash the type of the default value here?
-    // typedef typename decltype( T) T_Next ;
-
     template<typename U, typename U_Type, typename U_Enable = void>
     struct unpack 
       : std::integral_constant< decltype( T::value ), get_value<T, Args...>::value >
@@ -90,19 +103,16 @@ namespace ntp {
     static constexpr const auto value = unpack<T, T_Next>::value ;
   } ;
 
-  // Termination Condition
   template<typename T>
   struct get_value<T> 
     : std::integral_constant< decltype( T::value ), T::value > 
   {} ;
 
   //---------------------------------------------------------------------------------------------- 
-  // Parameter type extractor 
+  // Parameter type extraction functor, 'get_template_type' & specializations
   //---------------------------------------------------------------------------------------------- 
-  // Declaration
   template<typename T, typename... Args> struct get_type ;
 
-  // Recursive search of variadic list for matching type id
   template<typename T, typename T_Next, typename... Args>
   struct get_type<T, T_Next, Args...> 
   {
@@ -124,16 +134,16 @@ namespace ntp {
     using value = typename unpack<T, T_Next>::value ;
   } ;
 
-  // Termination condition
   template<typename T>
-  struct get_type<T> { using value = typename T::value ; } ;  
+  struct get_type<T> 
+  { using value = typename T::value ; 
+  } ;  
 
   //---------------------------------------------------------------------------------------------- 
-  // Parameter type extractor ( for template types )
+  // Parameter template type extraction functor, 'get_template_type' & specializations
   //---------------------------------------------------------------------------------------------- 
   template<typename T, typename... Args> struct get_template_type ;
 
-  // Recursive search of variadic list
   template<typename T, typename T_Next, typename... Args>
   struct get_template_type<T, T_Next, Args...> 
   {
@@ -165,24 +175,45 @@ namespace ntp {
   } ;
 
   //---------------------------------------------------------------------------------------------- 
-  // Check template argument list to see whether a specific flag is present
+  // Boolean flag parameter extraction functor, 'get_flag' & specializations
   //---------------------------------------------------------------------------------------------- 
-  // 
-  // Declaration
-  template<typename T, typename... Args> struct is_present ;
+  template<typename T, typename... Args> 
+  struct get_flag ;
 
-  // Recursive search of variadic list
   template<typename T, typename T_Next, typename... Args>
-  struct is_present<T, T_Next, Args...> 
+  struct get_flag<T, T_Next, Args...> 
     : std::integral_constant< bool
-                            , std::is_same<T, T_Next>::value || is_present<T, Args...>::value
+                            , std::is_same<T, T_Next>::value || get_flag<T, Args...>::value
                             > 
   {} ;
 
-  // Termination condition
-  template<typename T> struct is_present<T> : std::false_type {} ;
+  template<typename T> 
+  struct get_flag<T> 
+    : std::false_type 
+  {} ;
 
+  //---------------------------------------------------------------------------------------------- 
+  // Helper macros to simplify named argument declaration.
+  //---------------------------------------------------------------------------------------------- 
+  #define FPS_NTP__Value(NAME, TYPE) \
+    struct NAME##_NTP_ID; \
+    template< uint32_t T_Default > \
+    struct NAME \
+      : ntp::Value<NAME##_NTP_ID, TYPE, T_Default> \
+    {} ; 
 
+  #define FPS_NTP__Flag(NAME) \
+    struct NAME##_NTP_ID; \
+    struct NAME \
+      : ntp::Flag<NAME##_NTP_ID> \
+    {} ; 
+
+  #define FPS_NTP__Type(NAME) \
+    struct NAME##_NTP_ID; \
+    template< typename T> \
+    struct NAME \
+      : ntp::Type<NAME##_NTP_ID, T> \
+    {} ; 
 }}
 
 #endif
