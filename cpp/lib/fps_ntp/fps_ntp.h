@@ -1,11 +1,29 @@
-#ifndef FPS__PARAMETER__H
-#define FPS__PARAMETER__H
+#ifndef FPS__NTP__H
+#define FPS__NTP__H
 
 #include <type_traits>
 #include <cstdint>
 
+//------------------------------------------------------------------------------------------------
+// NTP :: Named Template Parameters
+//
+// This library implements the "named template parameter" idiom.  Instead of using traditional 
+// c++ syntax like :
+//   template< bool Some_Flag, uint32_t Some_Value >
+//   struct SomeClass 
+//   {} ;
+//   ...
+//   SomeClass< true, 1024 > instance ;
+// 
+// Users may define named parameters that can be passed in any order, which makes usage 
+// more explicit, eg. :
+//   SomeClass< options::SomeFlag, options::SomeValue< 1024 > > instance ;
+//
+// See the unit test in the 'test' subdirectory for an example.
+//------------------------------------------------------------------------------------------------
+
 namespace fps {
-namespace parameter {
+namespace ntp {
 
   namespace detail 
   {
