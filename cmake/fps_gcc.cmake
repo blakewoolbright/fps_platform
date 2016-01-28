@@ -72,18 +72,9 @@ list( GET version_numbers 2 FPS_GCC_MINOR_REVISION )
 if( FPS_GCC_MAJOR_VERSION EQUAL 4 )
 
   #
-  # GCC 4.7
+  # GCC 4.8.x
   #
-  if( FPS_GCC_MINOR_VERSION EQUAL 7 )
-    list( APPEND FPS_COMMON_COMPILER_FLAGS 
-          -std=c++11 
-          -Wno-unused-but-set-variable 
-          -Wno-delete-non-virtual-dtor
-          -Wno-narrowing
-          -Wno-maybe-uninitialized
-        )
-
-  elseif( FPS_GCC_MINOR_VERSION EQUAL 8 )
+  if( FPS_GCC_MINOR_VERSION EQUAL 8 )
     list( APPEND FPS_COMMON_COMPILER_FLAGS 
           -std=c++11
           -Wno-unused-but-set-variable 
@@ -97,6 +88,9 @@ if( FPS_GCC_MAJOR_VERSION EQUAL 4 )
         # )
         # list( APPEND FPS_COMMON_LINKER_FLAGS -flto )
 
+  #
+  # GCC 4.9.x
+  #
   elseif( FPS_GCC_MINOR_VERSION EQUAL 9 )
     list( APPEND FPS_COMMON_COMPILER_FLAGS 
           -std=c++11
@@ -170,8 +164,6 @@ if( FPS_VERBOSE )
   join( "${FPS_COMMON_INCLUDE_DIRS}" ${ml_delim} msg_txt ) 
   list( APPEND log_msg "  Include Dirs   : '${msg_txt}'" )
   join( "${log_msg}" "\n${FPS_INDENT}" log_msg )
-  fps_log( "${FPS_INDENT}${log_msg}\n" )
-
 endif()
 
 

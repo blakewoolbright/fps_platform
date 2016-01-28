@@ -1,7 +1,7 @@
 #define BOOST_TEST_MODULE fps__container
 
 #include "fps_container/byte_queue.h"
-#include "fps_container/detail/sorted_vector.h"
+#include "fps_container/detail/sorted_object_vector.h"
 #include "fps_container/detail/sorted_integral_vector.h"
 #include "fps_container/detail/make_sorted_vector.h"
 #include "fps_string/fps_string.h"
@@ -77,6 +77,7 @@ BOOST_AUTO_TEST_CASE( fps_container__byte_queue )
   , "\n\tByteQueue::empty() should return true after all dequeing all content" 
   ) ;
                   
+  std::cout << "|--[ Success ]" << std::endl << std::endl ;
 }
 
 //---------------------------------------------------------------------------------------------------
@@ -84,10 +85,11 @@ template<typename T>
 void
 to_stdout( const T & container, const std::string & label ) 
 {
-  std::cout << "[ " << label << " ]" << std::endl 
-            << "|--[ Capacity : " << container.capacity() << " ]" << std::endl 
-            << "|--[ Size     : " << container.size() << " ]" << std::endl 
-            << "|--[ Empty    : " << (container.empty() ? "true" : "false") << " ]" << std::endl ;
+  std::cout << "|" << std::endl 
+            << "|--[ " << label << " ]" << std::endl 
+            << "|  |--[ Capacity : " << container.capacity() << " ]" << std::endl 
+            << "|  |--[ Size     : " << container.size() << " ]" << std::endl 
+            << "|  |--[ Empty    : " << (container.empty() ? "true" : "false") << " ]" << std::endl ;
 
   std::string values ;
   if( !container.empty() ) 
@@ -97,20 +99,24 @@ to_stdout( const T & container, const std::string & label )
     while( ++itr != container.end() ) 
       string::append( values, ", %lu", static_cast<uint64_t>( *itr ) ) ;
   }
-  std::cout << "|--[ " << values << " ]" << std::endl << std::endl ;
+  std::cout << "|  |--[ " << values << " ]" << std::endl ;
 }
 
 //---------------------------------------------------------------------------------------------------
-BOOST_AUTO_TEST_CASE( fps_container__sorted_vector )
+template<typename T_Vector>
+void
+basic_vector_test( T_Vector & vec, const std::string & label, bool is_reversed )
 {
-  // typedef container::detail::SortedIntegralVector<uint64_t> vec_t ;
-  static constexpr uint32_t Default_Capacity = 1234 ;
-  typedef container::detail::MakeSortedVector< uint64_t
-                                             , container::opt::Reverse<false> 
-                                             , container::opt::Default_Capacity<Default_Capacity>
-                                             >::type vec_t ;
+  std::cout << "[ " << label << " ]" << std::endl ;
 
-  vec_t vec ;
+  BOOST_CHECK_MESSAGE
+  ( is_reversed == T_Vector::Reverse 
+  , string::sprintf( "\n\tConfiguration mismatch - T_Vector::Reverse should be '%s'"
+                   , (is_reversed?"true":"false")
+                   ) 
+  ) ;
+
+
   BOOST_CHECK_MESSAGE
   ( vec.empty() 
   , "\n\tSortedIntegralVector::empty() should return true after default construction" 
@@ -215,5 +221,57 @@ BOOST_AUTO_TEST_CASE( fps_container__sorted_vector )
   ( vec.empty() 
   , "\n\tContainer not empty() after calling clear()"
   ) ;
+  
+  std::cout << "|" << std::endl << "|--[ Success ]" << std::endl << std::endl ;
 }
+
+//---------------------------------------------------------------------------------------------------
+struct Object1
+{
+  uint64_t seq_ ;
+  uint64_t ts_  ;
+
+  Object1() : seq_( 0 ), ts_( 0 ) {}
+  Object1( uint64_t seq, uint64_t ts ) : seq_( seq ), ts_( ts ) {}
+  // Object1( const Object1 & rhs ) : seq_( rhs.seq_ ), ts_( rhs.ts_ ) {}
+  Object1( const Object1 & rhs ) = default ;
+  ~Object1() = default ;
+
+  bool operator<( const Object1 & rhs ) const { return seq_ < rhs.seq_ ; }
+
+  Object1 & operator=( const Object1 & rhs ) 
+  { seq_ = rhs.seq_ ;
+    ts_  = rhs.ts_  ;
+    return *this ;
+  }
+
+  uint64_t sequence () const { return seq_ ; }
+  uint64_t timestamp() const { return ts_  ; }
+} ;
+ 
+
+//---------------------------------------------------------------------------------------------------
+BOOST_AUTO_TEST_CASE( fps_container__sorted_integral_vector )
+{
+  // typedef container::detail::SortedIntegralVector<uint64_t> vec_t ;
+
+  typedef container::detail::MakeSortedVector
+          < uint64_t
+          , container::opt::Reverse<false> 
+          , container::opt::Default_Capacity<1023>
+          >::type i_vec_t ;
+
+  typedef container::detail::MakeSortedVector
+          < uint64_t
+          , container::opt::Reverse<true> 
+          , container::opt::Default_Capacity<1024>
+          >::type reverse_i_vec_t ;
+  
+  i_vec_t         i_vec_1 ;
+  reverse_i_vec_t i_vec_2 ;
+
+  basic_vector_test( i_vec_1, "SortedIntegralVector (Ascending)", false ) ; 
+  basic_vector_test( i_vec_2, "SortedIntegralVector (Descending)", true ) ; 
+}
+
 

@@ -21,38 +21,57 @@ namespace detail {
   // Resizable sorted array intended for use with small structs or primitive types.
   //----------------------------------------------------------------------------------------
   template<typename T, typename... T_Args>
-  struct SortedVector
+  struct SortedObjectVector
   {
   public :
 
     //--------------------------------------------------------------------------------------
-    static_assert( !std::is_integral<T>::value 
-                 , "SortedVector<> templated on integral type (use SortedIntegralVector)"
+    static const bool Is_Integral = std::is_integral<T>::value ;
+    static const bool Is_Trivial  = std::is_trivial<T>::value ;
+    static const bool Is_Distinct = false ;
+
+    // static const bool Is_Trivial_To_Construct = std::is_trivially_constructable<T>::value ;
+
+    //--------------------------------------------------------------------------------------
+    static_assert( !Is_Integral
+                 , "SortedObjectVector<> templated on integral type (use SortedIntegralVector)"
                  ) ;
 
     //--------------------------------------------------------------------------------------
-    static const bool     Is_Integral      = std::is_integral<T>::value ;
-    static const bool     Is_Trivial       = std::is_trivial<T>::value ;
-    // static const bool     Is_Trivial_To_Copy = std::is_trivially_copyable<T>::value ;
+    // Import compile time configuration via fps::ntp (named template parameter) library.
+    //--------------------------------------------------------------------------------------
+
+      //------------------------------------------------------------------------------------
+      // Max_Capacity
+      // Limit capacity to this number of elements.  The reserve() function will 
+      // return false if it detects an attempt to reserve more than 'Max_Capacity' elements.
+      //------------------------------------------------------------------------------------
+      static 
+      const 
+      uint32_t 
+      Max_Capacity = ntp::get_value< opt::Max_Capacity<0>, T_Args...>::value ;
+
+      //------------------------------------------------------------------------------------
+      // Default_Capacity
+      // This is the default capacity of vectors that are default constructed.
+      //------------------------------------------------------------------------------------
+      static 
+      const 
+      uint32_t 
+      Default_Capacity = ntp::get_value< opt::Default_Capacity<64>, T_Args...>::value ;
+
+      //------------------------------------------------------------------------------------
+      // Reverse
+      // Sort in descending order ( default is ascending ).
+      //------------------------------------------------------------------------------------
+      static 
+      const
+      bool 
+      Reverse = ntp::get_value< opt::Reverse<false>, T_Args...>::value ;
 
     //--------------------------------------------------------------------------------------
-    static 
-    const 
-    uint32_t 
-    Max_Capacity = ntp::get_value< opt::Max_Capacity<0>, T_Args...>::value ;
-
-    //--------------------------------------------------------------------------------------
-    static 
-    const 
-    uint32_t 
-    Default_Capacity = ntp::get_value< opt::Default_Capacity<64>, T_Args...>::value ;
-
-    //--------------------------------------------------------------------------------------
-    static 
-    const
-    bool 
-    Reverse = ntp::get_value< opt::Reverse<false>, T_Args...>::value ;
-
+    // compare_t 
+    // Memberwise comparison operations/
     //--------------------------------------------------------------------------------------
     typedef 
     typename 
@@ -67,9 +86,9 @@ namespace detail {
     typedef distinct_sorted_vector_iterator<value_t> iterator ;
 
     //--------------------------------------------------------------------------------------
-    typedef Construct<T> default_construct ;
-    typedef Copy<T>      copy_construct    ;
-    typedef Destruct <T> default_destruct  ;
+    typedef fps::container::detail::Construct<T> construct_impl_t ;
+    typedef fps::container::detail::Assign<T>    assign_impl_t ;
+    typedef fps::container::detail::Destruct <T> destruct_impl_t ;
 
   private :
     //------------------------------------------------------------------------
@@ -81,11 +100,27 @@ namespace detail {
     inline int32_t find_member_index( value_arg_t target ) const ;
     inline int32_t find_insert_index( value_arg_t target ) const ;
 
+    //------------------------------------------------------------------------
+    inline 
+    void 
+    copy_range( T       * dest
+              , const T * src
+              , uint32_t  src_idx
+              , uint32_t  dest_idx
+              , uint32_t  count 
+              ) 
+    {
+      const uint32_t stop_idx = src_idx + count ; 
+      while( src_idx < stop_idx ) 
+      { assign_impl_t()( &(dest[ dest_idx++ ]), &(src[ src_idx++ ]) ) ;
+      }
+    } 
+
   public :
     //------------------------------------------------------------------------
-    inline SortedVector()  ;
-    inline SortedVector( uint32_t capacity )  ;
-    inline ~SortedVector() ;
+    inline SortedObjectVector()  ;
+    inline SortedObjectVector( uint32_t capacity )  ;
+    inline ~SortedObjectVector() ;
 
     //------------------------------------------------------------------------
     inline iterator begin()      const { return iterator( &data_[ 0 ] ) ; }
@@ -110,8 +145,8 @@ namespace detail {
 
   //--------------------------------------------------------------------------
   template<typename T, typename... T_Args>
-  SortedVector<T, T_Args...>::
-  SortedVector() 
+  SortedObjectVector<T, T_Args...>::
+  SortedObjectVector() 
     : capacity_( 0 ) 
     , size_    ( 0 )
     , data_    ( NULL ) 
@@ -121,8 +156,8 @@ namespace detail {
   
   //--------------------------------------------------------------------------
   template<typename T, typename... T_Args>
-  SortedVector<T, T_Args...>::
-  SortedVector( uint32_t capacity ) 
+  SortedObjectVector<T, T_Args...>::
+  SortedObjectVector( uint32_t capacity ) 
     : capacity_( 0 ) 
     , size_    ( 0 )
     , data_    ( NULL ) 
@@ -132,8 +167,8 @@ namespace detail {
 
   //--------------------------------------------------------------------------
   template<typename T, typename... T_Args>
-  SortedVector<T, T_Args...>::
-  ~SortedVector() 
+  SortedObjectVector<T, T_Args...>::
+  ~SortedObjectVector() 
   {
     if( data_ ) 
     { delete [] data_ ; 
@@ -146,7 +181,7 @@ namespace detail {
   //--------------------------------------------------------------------------
   template<typename T, typename... T_Args>
   int32_t
-  SortedVector<T, T_Args...>::
+  SortedObjectVector<T, T_Args...>::
   find_member_index( value_arg_t target ) const 
   {
     typedef typename std::remove_pointer< decltype( this ) >::type this_t ;
@@ -157,7 +192,7 @@ namespace detail {
   //--------------------------------------------------------------------------
   template<typename T, typename... T_Args>
   int32_t
-  SortedVector<T, T_Args...>::
+  SortedObjectVector<T, T_Args...>::
   find_insert_index( value_arg_t target ) const 
   {
     typedef typename std::remove_pointer< decltype( this ) >::type this_t ;
@@ -168,7 +203,7 @@ namespace detail {
   //--------------------------------------------------------------------------
   template<typename T, typename... T_Args>
   void 
-  SortedVector<T, T_Args...>::
+  SortedObjectVector<T, T_Args...>::
   clear() 
   { 
     size_ = 0 ;
@@ -178,8 +213,8 @@ namespace detail {
 
   //--------------------------------------------------------------------------
   template<typename T, typename... T_Args>
-  typename SortedVector<T, T_Args...>::iterator 
-  SortedVector<T, T_Args...>::
+  typename SortedObjectVector<T, T_Args...>::iterator 
+  SortedObjectVector<T, T_Args...>::
   find( value_arg_t target ) const 
   {
     int32_t mbr_idx = find_member_index( target ) ;
@@ -191,8 +226,8 @@ namespace detail {
 
   //--------------------------------------------------------------------------
   template<typename T, typename... T_Args>
-  typename SortedVector<T, T_Args...>::iterator 
-  SortedVector<T, T_Args...>::
+  typename SortedObjectVector<T, T_Args...>::iterator 
+  SortedObjectVector<T, T_Args...>::
   insert( value_arg_t target ) 
   {
     return end() ;
@@ -200,8 +235,8 @@ namespace detail {
 
   //--------------------------------------------------------------------------
   template<typename T, typename... T_Args>
-  typename SortedVector<T, T_Args...>::iterator 
-  SortedVector<T, T_Args...>::
+  typename SortedObjectVector<T, T_Args...>::iterator 
+  SortedObjectVector<T, T_Args...>::
   erase( value_arg_t target ) 
   {
     return end() ;
@@ -209,8 +244,8 @@ namespace detail {
 
   //--------------------------------------------------------------------------
   template<typename T, typename... T_Args>
-  typename SortedVector<T, T_Args...>::iterator 
-  SortedVector<T, T_Args...>::
+  typename SortedObjectVector<T, T_Args...>::iterator 
+  SortedObjectVector<T, T_Args...>::
   erase( iterator itr ) 
   {
     return end() ;
@@ -219,7 +254,7 @@ namespace detail {
   //--------------------------------------------------------------------------
   template<typename T, typename... T_Args>
   bool
-  SortedVector<T, T_Args...>::
+  SortedObjectVector<T, T_Args...>::
   reserve( uint32_t min_free_slots ) 
   {
     if( free_slots() >= min_free_slots ) 
@@ -246,35 +281,11 @@ namespace detail {
     { data_ = old_data ;
       return false ;
     }
-    
-    if( Is_Integral ) 
-    {  
-      // TODO : In addition to copying the old data into the new buffer,
-      //        consider default-initializing any remaining 
-      //        uninitialized slots.
-      if( size_ > 0 ) 
-        std::memcpy( data_, old_data, sizeof( T ) * size_ ) ;
-    }
-    else
-    {
-      // For each member in the new array, initialize it by either 
-      // copy constructing it from the corresponding slot in the old 
-      // array, or default constructing it if no such slot exists.
-      for( uint32_t idx = 0 ; idx < new_cap ; ++idx ) 
-      {
-        T * cur_member = &( data_[ idx ] ) ;
-        if( idx < size_ )   
-        { 
-          copy_construct  ()( cur_member, &(old_data[ idx ]) ) ;
-          default_destruct()( &(old_data[ idx ] ) ) ;
-        }
-        else 
-          default_construct()( cur_member ) ;
-      }
-    }
 
+    copy_range( data_, old_data, 0, 0, size_ ) ;
     capacity_ = new_cap ;
     delete [] old_data ;
+
     return true ;
   }
 

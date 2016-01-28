@@ -110,19 +110,19 @@ namespace detail
   } ;
 
   //--------------------------------------------------------------------------------------
-  // The following "Copy" class is used to copy container members.  
+  // The following "Assign" class is used to copy container members.  
   // User defined types are copy constructed via placement new. 
   // Primitive types are directly assigned via the "=" operator.
   //--------------------------------------------------------------------------------------
   template<typename T, typename T_Enable=void>
-  struct Copy 
+  struct Assign 
   {  
     inline void operator()( T * arg, const T & src ) { new ( arg ) T( src ) ; }
   } ;
 
   //--------------------------------------------------------------------------------------
   template<typename T>
-  struct Copy<T, typename std::enable_if< std::is_integral<T>::value >::type>
+  struct Assign<T, typename std::enable_if< std::is_integral<T>::value >::type>
   {  
     inline void operator()( T * arg, T src ) { *arg = src ; }
   } ;

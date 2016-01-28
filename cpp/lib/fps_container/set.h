@@ -3,8 +3,7 @@
 
 #include "fps_util/macros.h"
 #include "fps_container/comparators.h"
-#include "fps_container/detail/sorted_vector.h"
-#include "fps_container/detail/sorted_integral_vector.h"
+#include "fps_container/detail/make_sorted_vector.h"
 #include "fps_system/fps_system.h"
 
 #include <cstdint>
@@ -25,17 +24,11 @@ namespace container {
     static const uint32_t Default_Capacity   = 32 ;
     static const bool     Is_Integral        = std::is_integral<T>::value ;
     static const bool     Is_Trivial         = std::is_trivial<T>::value ;
-    // static const bool     Is_Trivial_To_Copy = std::is_trivially_copyable<T>::value ;
 
     //--------------------------------------------------------------------------------------
     typedef T         value_t ;
     typedef T_Compare compare_t ;
     typedef typename std::conditional<Is_Integral, T, const T &>::type value_arg_t ;
-
-    //--------------------------------------------------------------------------------------
-    typedef detail::Construct<T> default_construct ;
-    typedef detail::Copy<T>      copy_construct    ;
-    typedef detail::Destruct <T> default_destruct  ;
 
   private :
     //------------------------------------------------------------------------

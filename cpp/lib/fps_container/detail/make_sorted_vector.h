@@ -2,7 +2,7 @@
 #define FPS__CONTAINER__DETAIL__MAKE_SORTED_VECTOR__H
 
 #include "fps_container/detail/sorted_integral_vector.h"
-#include "fps_container/detail/sorted_vector.h"
+#include "fps_container/detail/sorted_object_vector.h"
 #include "fps_container/options.h" 
 #include "fps_ntp/fps_ntp.h"
 #include <type_traits>
@@ -47,7 +47,7 @@ namespace detail {
                                                , SortedIntegralVector<T, T_Args...>
                                                , SortedIntegralVector<T, T_Args...> 
                                                >::type 
-                    , SortedVector<T, T_Args...>
+                    , SortedObjectVector<T, T_Args...>
                     >::type 
     type ;
 
