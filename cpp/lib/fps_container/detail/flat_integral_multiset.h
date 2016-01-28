@@ -40,9 +40,10 @@ namespace detail
   {
   public :
     //--------------------------------------------------------------------------------------
-    // Determine the type of the counter associated with each distinct value in the set.
+    // Expose type information for member counter and member value
     //--------------------------------------------------------------------------------------
-    using counter_t = ntp::get_type<uint32_t, T_Args...>::value ;
+    typedef typename ntp::get_type<uint32_t, T_Args...>::value counter_t ;
+    typedef T                                                  value_t ;
 
     //--------------------------------------------------------------------------------------
     static_assert( std::is_integral<T>::value 
@@ -80,21 +81,70 @@ namespace detail
     compare_t ;
 
     //--------------------------------------------------------------------------------------
+    template<typename U_Value, typename U_Counter>
     struct Member 
     {
-      T        value_ ;
-      uint_t 
+    public :
+      //------------------------------------------------------------------------------------
+      typedef U_Value   value_t ;
+      typedef U_Counter counter_t ;
+
+    private :
+      value_t   value_ ;
+      counter_t count_ ;
+
+    public :
+      //------------------------------------------------------------------------------------
+      inline value_t   value() const { return value_ ; }
+      inline counter_t count() const { return count_ ; }
+
+      //------------------------------------------------------------------------------------
+      inline uint32_t operator++( int ) { return ++count_ ; }
+      inline uint32_t operator++()      { return count_++ ; }
+      inline uint32_t operator--(int )  { return --count_ ; }
+      inline uint32_t operator--()      { return count_-- ; }
+      inline uint32_t operator-=( uint32_t rhs ) 
+      { return (count_ > rhs) ? (count_ -= rhs) : (count_ = 0) ; 
+      }
+
+      //------------------------------------------------------------------------------------
+      inline bool operator< ( value_t rhs ) const { return value_ < rhs ; }
+      inline bool operator> ( value_t rhs ) const { return value_ > rhs ; }
+      inline bool operator==( value_t rhs ) const { return value_ == rhs ; }
+      inline bool operator!=( value_t rhs ) const { return value_ != rhs ; }
+
+      //------------------------------------------------------------------------------------
+      inline 
+      void 
+      operator=( value_t rhs ) 
+      { 
+        if( rhs != value_ ) 
+        { count_ = 1 ;
+          value_ = value ;
+        }
+        else 
+          ++count_ ;
+      }
+
+      //------------------------------------------------------------------------------------
+      inline 
+      void
+      operator=( const Member & rhs ) 
+      { value_ = rhs.value_ ;
+        count_ = rhs.count_ ;
+      }
     } ;
     
-
-    typedef T value_t ;
-    typedef flat_set_iterator<value_t> iterator ;
+    //------------------------------------------------------------------------
+    typedef Member<value_t, counter_t>       member_t ;
+    typedef flat_multiset_iterator<member_t> iterator_t ;
+    typedef iterator_t iterator ;
 
   private :
     //------------------------------------------------------------------------
-    uint32_t  capacity_ alignas( system::cpu::Cache_Line_Size ) ; 
-    uint32_t  size_     alignas( system::cpu::Cache_Line_Size ) ;
-    value_t * data_ ;
+    uint32_t   capacity_ alignas( system::cpu::Cache_Line_Size ) ; 
+    uint32_t   size_     alignas( system::cpu::Cache_Line_Size ) ;
+    member_t * data_ ;
 
     //------------------------------------------------------------------------
     inline int32_t find_member_index( T target ) const ;
@@ -172,9 +222,12 @@ namespace detail
   FlatIntegralMultiSet<T, T_Args...>::
   find_member_index( T target ) const 
   {
+    /*
     typedef typename std::remove_reference<decltype( *this ) >::type    this_t ;
     typedef typename container::algos::BinarySearch<this_t, compare_t>  search_t ;
     return search_t::find_existing( target, *this, size_ ) ;
+    */
+    return -1 ;
   }
 
   //----------------------------------------------------------------------------------------------------
@@ -183,9 +236,12 @@ namespace detail
   FlatIntegralMultiSet <T, T_Args...>::
   find_insert_index( T target ) const 
   {
+    /*
     typedef typename std::remove_reference<decltype( *this ) >::type   this_t ;
     typedef typename container::algos::BinarySearch<this_t, compare_t> search_t ;
     return search_t::find_position( target, *this, size_ ) ;
+    */
+    return -1 ;
   }
 
   //----------------------------------------------------------------------------------------------------
@@ -234,6 +290,7 @@ namespace detail
   FlatIntegralMultiSet <T, T_Args...>::
   insert( T value ) 
   {
+    /*
     if( empty() ) 
     { data_[ size_++ ] = value ; 
       return begin() ;
@@ -262,6 +319,8 @@ namespace detail
     }
 
     return iterator( &data_[ idx ] ) ;
+    */
+    return end() ;
   }
 
   //----------------------------------------------------------------------------------------------------
@@ -270,6 +329,7 @@ namespace detail
   FlatIntegralMultiSet <T, T_Args...>::
   erase( T value ) 
   {
+    /*
     int32_t idx = find_member_index( value ) ;
     if( idx < 0 ) 
       return end() ;
@@ -280,6 +340,8 @@ namespace detail
     --size_ ;
 
     return iterator( &data_[ idx ] ) ;
+    */
+    return end() ;
   }
 
   //----------------------------------------------------------------------------------------------------
@@ -288,6 +350,7 @@ namespace detail
   FlatIntegralMultiSet <T, T_Args...>::
   erase( iterator itr ) 
   {
+    /*
     // TODO: This should probably trigger a fatal exception since it indicates improper 
     //       usage of the container.
     if( empty() || !itr.bounds_test( begin(), end() ) ) 
@@ -299,6 +362,8 @@ namespace detail
     --size_ ;
 
     return iterator( &data_[ idx ] ) ;
+    */
+    return end() ;
   }
 
   //----------------------------------------------------------------------------------------------------
@@ -333,7 +398,7 @@ namespace detail
 
     // Allocate new array with increased capacity, and include an extra 
     // slot to make the end() iterator's implementation less complex.
-    data_ = new T [ new_cap + 1 ] ;
+    data_ = new member_t[ new_cap + 1 ] ;
     if( fps_unlikely( data_ == NULL ) )
     { data_ = old_data ;
       return false ;

@@ -14,7 +14,8 @@ namespace container {
 namespace detail 
 {
   //--------------------------------------------------------------------------------------
-  // Shared iterator definition for 
+  // Shared iterator definition for FlatIntegralSet, FlatObjectSet.
+  //--------------------------------------------------------------------------------------
   template<typename T>
   struct flat_set_iterator 
     : public boost::iterator_facade< flat_set_iterator<T>
@@ -87,6 +88,86 @@ namespace detail
     int64_t
     distance_from( const T * other ) const 
     { return static_cast<int64_t>( ptr_ - other ) ; 
+    }
+  } ;
+
+  //--------------------------------------------------------------------------------------
+  // Shared iterator definition for FlatIntegralSet, FlatObjectSet.
+  //--------------------------------------------------------------------------------------
+  template<typename T>
+  struct flat_multiset_iterator 
+    : public boost::iterator_facade< flat_multiset_iterator<T>
+                                   , T
+                                   , boost::forward_traversal_tag
+                                   , typename 
+                                     std::conditional
+                                     < std::is_integral<T>::value
+                                     , T
+                                     , const T &
+                                     >::type
+                                   >
+  {
+  public :
+    typedef typename T::value_t   value_t ;
+    typedef typename T::counter_t counter_t ;
+
+  private :
+    friend class boost::iterator_core_access ;
+    const T * ptr_ ;
+
+  public :
+    //-----------------------------------------------------------------
+    typedef 
+    typename 
+    std::conditional< std::is_integral<value_t>::value
+                    , value_t
+                    , const value_t &
+                    >::type 
+    value_ref_t ;
+
+    //-----------------------------------------------------------------
+    inline 
+    flat_multiset_iterator() 
+      : ptr_( NULL ) 
+    {}
+
+    //-----------------------------------------------------------------
+    inline 
+    explicit 
+    flat_multiset_iterator( const T * ptr ) 
+      : ptr_( ptr ) 
+    {}
+
+    //-----------------------------------------------------------------
+    inline value_ref_t value() const { return ptr_->value() ; }
+    inline counter_t   count() const { return ptr_->count() ; }
+
+    //-----------------------------------------------------------------
+    inline 
+    bool 
+    bounds_test( const T * begin, const T * end ) const
+    { return (ptr_ < end && ptr_ >= begin) ;
+    }
+
+    //-----------------------------------------------------------------
+    inline 
+    int64_t
+    distance_from( const T * other ) const 
+    { return static_cast<int64_t>( ptr_ - other ) ; 
+    }
+
+  private :
+    //------------------------------------------------------------------------------
+    inline void increment() { ++ptr_; } 
+
+    //------------------------------------------------------------------------------
+    inline T dereference() const { return *ptr_ ; }
+
+    //------------------------------------------------------------------------------
+    inline 
+    bool 
+    equal( const flat_multiset_iterator & rhs ) const 
+    { return (ptr_ == rhs.ptr_) ; 
     }
   } ;
 

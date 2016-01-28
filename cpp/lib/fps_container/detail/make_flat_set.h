@@ -2,6 +2,7 @@
 #define FPS__CONTAINER__DETAIL__MAKE_FLAT_SET__H
 
 #include "fps_container/detail/flat_integral_set.h"
+#include "fps_container/detail/flat_integral_multiset.h"
 #include "fps_container/detail/flat_object_set.h"
 #include "fps_container/options.h" 
 #include "fps_ntp/fps_ntp.h"
