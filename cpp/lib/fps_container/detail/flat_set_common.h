@@ -1,5 +1,5 @@
-#ifndef FPS__CONTAINER__DETAIL__SORTED_VECTOR_COMMON__H
-#define FPS__CONTAINER__DETAIL__SORTED_VECTOR_COMMON__H
+#ifndef FPS__CONTAINER__DETAIL__FLAT_SET_COMMON__H
+#define FPS__CONTAINER__DETAIL__FLAT_SET_COMMON__H
 
 #include "fps_container/comparators.h"
 #include "fps_util/macros.h"
@@ -16,8 +16,8 @@ namespace detail
   //--------------------------------------------------------------------------------------
   // Shared iterator definition for 
   template<typename T>
-  struct distinct_sorted_vector_iterator 
-    : public boost::iterator_facade< distinct_sorted_vector_iterator<T>
+  struct flat_set_iterator 
+    : public boost::iterator_facade< flat_set_iterator<T>
                                    , T
                                    , boost::forward_traversal_tag
                                    , typename 
@@ -41,7 +41,7 @@ namespace detail
     //------------------------------------------------------------------------------
     inline 
     bool 
-    equal( const distinct_sorted_vector_iterator & rhs ) const 
+    equal( const flat_set_iterator & rhs ) const 
     { return (ptr_ == rhs.ptr_) ; 
     }
 
@@ -60,14 +60,14 @@ namespace detail
 
     //-----------------------------------------------------------------
     inline 
-    distinct_sorted_vector_iterator() 
+    flat_set_iterator() 
       : ptr_( NULL ) 
     {}
 
     //-----------------------------------------------------------------
     inline 
     explicit 
-    distinct_sorted_vector_iterator( const T * ptr ) 
+    flat_set_iterator( const T * ptr ) 
       : ptr_( ptr ) 
     {}
 

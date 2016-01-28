@@ -1,9 +1,9 @@
-#ifndef FPS__CONTAINER__SET__H
-#define FPS__CONTAINER__SET__H
+#ifndef FPS__CONTAINER__FLAT_SET__H
+#define FPS__CONTAINER__FLAT_SET__H
 
 #include "fps_util/macros.h"
 #include "fps_container/comparators.h"
-#include "fps_container/detail/make_sorted_vector.h"
+#include "fps_container/detail/make_flat_set.h"
 #include "fps_system/fps_system.h"
 
 #include <cstdint>

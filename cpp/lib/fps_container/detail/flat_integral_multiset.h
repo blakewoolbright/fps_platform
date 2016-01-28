@@ -1,12 +1,12 @@
-#ifndef FPS__CONTAINER__DETAIL__SORTED_INTEGRAL_VECTOR__H
-#define FPS__CONTAINER__DETAIL__SORTED_INTEGRAL_VECTOR__H
+#ifndef FPS__CONTAINER__DETAIL__FLAT_INTEGRAL_MULTI_SET__H
+#define FPS__CONTAINER__DETAIL__FLAT_INTEGRAL_MULTI_SET__H
 
 #include "fps_container/comparators.h"
 #include "fps_util/macros.h"
 #include "fps_container/algorithms.h"
 #include "fps_util/intrinsics.h"
 #include "fps_ntp/fps_ntp.h"
-#include "fps_container/detail/sorted_vector_common.h"
+#include "fps_container/detail/flat_set_common.h"
 #include "fps_system/fps_system.h"
 #include "fps_container/options.h"
 
@@ -20,7 +20,10 @@ namespace detail
 {
 
   //----------------------------------------------------------------------------------------
-  // Resizable sorted array intended for use with primitive types.
+  // FlatIntegralMultiSet
+  //
+  // Resizable sorted array of integral values that may be inserted multiple times.  
+  //
   // T :
   //   This template argument should be a primitive type (char, int16_t, uint32_t, etc.).
   //   If the type of "T" is anything else, a static assertion will fail. 
@@ -29,20 +32,28 @@ namespace detail
   //   This template parameter pack should be composed of one or more named 
   //   option structures. See: fps_container/options.h for a listing of valid options.
   //
-  // Example Usage :
-  //   using namespace fps ;
-  //   container::detail::SortedIntegralVector< uint64_t
-  //                                          , container::opt::Capacity< 
+  // Note: This implementation does ALLOWS duplicate values to be inserted.
   //
   //----------------------------------------------------------------------------------------
   template<typename T, typename... T_Args> 
-  struct SortedIntegralVector
+  struct FlatIntegralMultiSet
   {
   public :
     //--------------------------------------------------------------------------------------
+    // Determine the type of the counter associated with each distinct value in the set.
+    //--------------------------------------------------------------------------------------
+    using counter_t = ntp::get_type<uint32_t, T_Args...>::value ;
+
+    //--------------------------------------------------------------------------------------
     static_assert( std::is_integral<T>::value 
-                 , "SortedIntegralVector<> templated on non-integral type (use SortedVector)"
+                 , "FlatIntegralMultiSet<> templated on non-integral type (use FlatObjectMultiSet)"
                  ) ;
+
+    //--------------------------------------------------------------------------------------
+    static_assert( std::is_integral<counter_t>::value 
+                 , "FlatIntegralMultiSet<> configured w/ non-integral counter type"
+                 ) ;
+
 
     //--------------------------------------------------------------------------------------
     static 
@@ -69,8 +80,15 @@ namespace detail
     compare_t ;
 
     //--------------------------------------------------------------------------------------
+    struct Member 
+    {
+      T        value_ ;
+      uint_t 
+    } ;
+    
+
     typedef T value_t ;
-    typedef distinct_sorted_vector_iterator<value_t> iterator ;
+    typedef flat_set_iterator<value_t> iterator ;
 
   private :
     //------------------------------------------------------------------------
@@ -84,9 +102,9 @@ namespace detail
 
   public :
     //------------------------------------------------------------------------
-    inline SortedIntegralVector()  ;
-    inline SortedIntegralVector( uint32_t capacity )  ;
-    inline ~SortedIntegralVector() ;
+    inline FlatIntegralMultiSet()  ;
+    inline FlatIntegralMultiSet( uint32_t capacity )  ;
+    inline ~FlatIntegralMultiSet() ;
 
     //------------------------------------------------------------------------
     inline iterator begin()      const { return iterator( &data_[ 0 ] ) ; }
@@ -115,8 +133,8 @@ namespace detail
 
   //----------------------------------------------------------------------------------------------------
   template<typename T, typename... T_Args>
-  SortedIntegralVector<T, T_Args...>::
-  SortedIntegralVector() 
+  FlatIntegralMultiSet<T, T_Args...>::
+  FlatIntegralMultiSet() 
     : capacity_( 0 ) 
     , size_    ( 0 )
     , data_    ( NULL ) 
@@ -126,8 +144,8 @@ namespace detail
 
   //----------------------------------------------------------------------------------------------------
   template<typename T, typename... T_Args>
-  SortedIntegralVector<T, T_Args...>::
-  SortedIntegralVector( uint32_t capacity ) 
+  FlatIntegralMultiSet<T, T_Args...>::
+  FlatIntegralMultiSet( uint32_t capacity ) 
     : capacity_( 0 ) 
     , size_    ( 0 )
     , data_    ( NULL ) 
@@ -137,8 +155,8 @@ namespace detail
 
   //----------------------------------------------------------------------------------------------------
   template<typename T, typename... T_Args>
-  SortedIntegralVector<T, T_Args...>::
-  ~SortedIntegralVector() 
+  FlatIntegralMultiSet<T, T_Args...>::
+  ~FlatIntegralMultiSet() 
   {
     if( data_ ) 
     { delete [] data_ ; 
@@ -151,7 +169,7 @@ namespace detail
   //----------------------------------------------------------------------------------------------------
   template<typename T, typename... T_Args>
   int32_t
-  SortedIntegralVector<T, T_Args...>::
+  FlatIntegralMultiSet<T, T_Args...>::
   find_member_index( T target ) const 
   {
     typedef typename std::remove_reference<decltype( *this ) >::type    this_t ;
@@ -162,7 +180,7 @@ namespace detail
   //----------------------------------------------------------------------------------------------------
   template<typename T, typename... T_Args>
   int32_t
-  SortedIntegralVector<T, T_Args...>::
+  FlatIntegralMultiSet <T, T_Args...>::
   find_insert_index( T target ) const 
   {
     typedef typename std::remove_reference<decltype( *this ) >::type   this_t ;
@@ -173,7 +191,7 @@ namespace detail
   //----------------------------------------------------------------------------------------------------
   template<typename T, typename... T_Args>
   void 
-  SortedIntegralVector<T, T_Args...>::
+  FlatIntegralMultiSet <T, T_Args...>::
   clear() 
   { 
     size_ = 0 ;
@@ -181,8 +199,8 @@ namespace detail
 
   //----------------------------------------------------------------------------------------------------
   template<typename T, typename... T_Args>
-  typename SortedIntegralVector<T, T_Args...>::iterator 
-  SortedIntegralVector<T, T_Args...>::
+  typename FlatIntegralMultiSet <T, T_Args...>::iterator 
+  FlatIntegralMultiSet <T, T_Args...>::
   find( T target ) const 
   {
     int32_t mbr_idx = find_member_index( target ) ;
@@ -195,7 +213,7 @@ namespace detail
   //----------------------------------------------------------------------------------------------------
   template<typename T, typename... T_Args>
   const T &
-  SortedIntegralVector<T, T_Args...>::
+  FlatIntegralMultiSet <T, T_Args...>::
   operator[]( uint32_t idx ) const 
   {
     return data_[ idx ] ;
@@ -204,7 +222,7 @@ namespace detail
   //----------------------------------------------------------------------------------------------------
   template<typename T, typename... T_Args>
   T &
-  SortedIntegralVector<T, T_Args...>::
+  FlatIntegralMultiSet <T, T_Args...>::
   operator[]( uint32_t idx ) 
   {
     return data_[ idx ] ;
@@ -212,8 +230,8 @@ namespace detail
 
   //----------------------------------------------------------------------------------------------------
   template<typename T, typename... T_Args>
-  typename SortedIntegralVector<T, T_Args...>::iterator 
-  SortedIntegralVector<T, T_Args...>::
+  typename FlatIntegralMultiSet <T, T_Args...>::iterator 
+  FlatIntegralMultiSet <T, T_Args...>::
   insert( T value ) 
   {
     if( empty() ) 
@@ -248,8 +266,8 @@ namespace detail
 
   //----------------------------------------------------------------------------------------------------
   template<typename T, typename... T_Args>
-  typename SortedIntegralVector<T, T_Args...>::iterator 
-  SortedIntegralVector<T, T_Args...>::
+  typename FlatIntegralMultiSet <T, T_Args...>::iterator 
+  FlatIntegralMultiSet <T, T_Args...>::
   erase( T value ) 
   {
     int32_t idx = find_member_index( value ) ;
@@ -266,8 +284,8 @@ namespace detail
 
   //----------------------------------------------------------------------------------------------------
   template<typename T, typename... T_Args>
-  typename SortedIntegralVector<T, T_Args...>::iterator 
-  SortedIntegralVector<T, T_Args...>::
+  typename FlatIntegralMultiSet <T, T_Args...>::iterator 
+  FlatIntegralMultiSet <T, T_Args...>::
   erase( iterator itr ) 
   {
     // TODO: This should probably trigger a fatal exception since it indicates improper 
@@ -286,7 +304,7 @@ namespace detail
   //----------------------------------------------------------------------------------------------------
   template<typename T, typename... T_Args>
   bool
-  SortedIntegralVector<T, T_Args...>::
+  FlatIntegralMultiSet <T, T_Args...>::
   reserve( uint32_t min_free_slots ) 
   {
     if( free_slots() >= min_free_slots ) 

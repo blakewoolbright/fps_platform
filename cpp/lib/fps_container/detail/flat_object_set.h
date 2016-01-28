@@ -1,12 +1,12 @@
-#ifndef FPS__CONTAINER__DETAIL__SORTED_VECTOR__H
-#define FPS__CONTAINER__DETAIL__SORTED_VECTOR__H
+#ifndef FPS__CONTAINER__DETAIL__FLAT_OBJECT_SET__H
+#define FPS__CONTAINER__DETAIL__FLAT_OBJECT_SET__H
 
 #include "fps_container/comparators.h"
 #include "fps_util/macros.h"
 #include "fps_system/fps_system.h"
 #include "fps_ntp/fps_ntp.h"
 #include "fps_container/algorithms.h"
-#include "fps_container/detail/sorted_vector_common.h"
+#include "fps_container/detail/flat_set_common.h"
 #include "fps_container/options.h"
 
 #include <cstdint>
@@ -21,7 +21,7 @@ namespace detail {
   // Resizable sorted array intended for use with small structs or primitive types.
   //----------------------------------------------------------------------------------------
   template<typename T, typename... T_Args>
-  struct SortedObjectVector
+  struct FlatObjectSet
   {
   public :
 
@@ -34,7 +34,7 @@ namespace detail {
 
     //--------------------------------------------------------------------------------------
     static_assert( !Is_Integral
-                 , "SortedObjectVector<> templated on integral type (use SortedIntegralVector)"
+                 , "FlatObjectSet<> templated on integral type (use FlatIntegralSet)"
                  ) ;
 
     //--------------------------------------------------------------------------------------
@@ -53,7 +53,7 @@ namespace detail {
 
       //------------------------------------------------------------------------------------
       // Default_Capacity
-      // This is the default capacity of vectors that are default constructed.
+      // This is the default capacity of members that are default constructed.
       //------------------------------------------------------------------------------------
       static 
       const 
@@ -83,7 +83,7 @@ namespace detail {
     typedef const T & value_arg_t ;
 
     //--------------------------------------------------------------------------------------
-    typedef distinct_sorted_vector_iterator<value_t> iterator ;
+    typedef flat_set_iterator<value_t> iterator ;
 
     //--------------------------------------------------------------------------------------
     typedef fps::container::detail::Construct<T> construct_impl_t ;
@@ -118,9 +118,9 @@ namespace detail {
 
   public :
     //------------------------------------------------------------------------
-    inline SortedObjectVector()  ;
-    inline SortedObjectVector( uint32_t capacity )  ;
-    inline ~SortedObjectVector() ;
+    inline FlatObjectSet()  ;
+    inline FlatObjectSet( uint32_t capacity )  ;
+    inline ~FlatObjectSet() ;
 
     //------------------------------------------------------------------------
     inline iterator begin()      const { return iterator( &data_[ 0 ] ) ; }
@@ -145,8 +145,8 @@ namespace detail {
 
   //--------------------------------------------------------------------------
   template<typename T, typename... T_Args>
-  SortedObjectVector<T, T_Args...>::
-  SortedObjectVector() 
+  FlatObjectSet<T, T_Args...>::
+  FlatObjectSet() 
     : capacity_( 0 ) 
     , size_    ( 0 )
     , data_    ( NULL ) 
@@ -156,8 +156,8 @@ namespace detail {
   
   //--------------------------------------------------------------------------
   template<typename T, typename... T_Args>
-  SortedObjectVector<T, T_Args...>::
-  SortedObjectVector( uint32_t capacity ) 
+  FlatObjectSet<T, T_Args...>::
+  FlatObjectSet( uint32_t capacity ) 
     : capacity_( 0 ) 
     , size_    ( 0 )
     , data_    ( NULL ) 
@@ -167,8 +167,8 @@ namespace detail {
 
   //--------------------------------------------------------------------------
   template<typename T, typename... T_Args>
-  SortedObjectVector<T, T_Args...>::
-  ~SortedObjectVector() 
+  FlatObjectSet<T, T_Args...>::
+  ~FlatObjectSet() 
   {
     if( data_ ) 
     { delete [] data_ ; 
@@ -181,7 +181,7 @@ namespace detail {
   //--------------------------------------------------------------------------
   template<typename T, typename... T_Args>
   int32_t
-  SortedObjectVector<T, T_Args...>::
+  FlatObjectSet<T, T_Args...>::
   find_member_index( value_arg_t target ) const 
   {
     typedef typename std::remove_pointer< decltype( this ) >::type this_t ;
@@ -192,7 +192,7 @@ namespace detail {
   //--------------------------------------------------------------------------
   template<typename T, typename... T_Args>
   int32_t
-  SortedObjectVector<T, T_Args...>::
+  FlatObjectSet<T, T_Args...>::
   find_insert_index( value_arg_t target ) const 
   {
     typedef typename std::remove_pointer< decltype( this ) >::type this_t ;
@@ -203,7 +203,7 @@ namespace detail {
   //--------------------------------------------------------------------------
   template<typename T, typename... T_Args>
   void 
-  SortedObjectVector<T, T_Args...>::
+  FlatObjectSet<T, T_Args...>::
   clear() 
   { 
     size_ = 0 ;
@@ -213,8 +213,8 @@ namespace detail {
 
   //--------------------------------------------------------------------------
   template<typename T, typename... T_Args>
-  typename SortedObjectVector<T, T_Args...>::iterator 
-  SortedObjectVector<T, T_Args...>::
+  typename FlatObjectSet<T, T_Args...>::iterator 
+  FlatObjectSet<T, T_Args...>::
   find( value_arg_t target ) const 
   {
     int32_t mbr_idx = find_member_index( target ) ;
@@ -226,8 +226,8 @@ namespace detail {
 
   //--------------------------------------------------------------------------
   template<typename T, typename... T_Args>
-  typename SortedObjectVector<T, T_Args...>::iterator 
-  SortedObjectVector<T, T_Args...>::
+  typename FlatObjectSet<T, T_Args...>::iterator 
+  FlatObjectSet<T, T_Args...>::
   insert( value_arg_t target ) 
   {
     return end() ;
@@ -235,8 +235,8 @@ namespace detail {
 
   //--------------------------------------------------------------------------
   template<typename T, typename... T_Args>
-  typename SortedObjectVector<T, T_Args...>::iterator 
-  SortedObjectVector<T, T_Args...>::
+  typename FlatObjectSet<T, T_Args...>::iterator 
+  FlatObjectSet<T, T_Args...>::
   erase( value_arg_t target ) 
   {
     return end() ;
@@ -244,8 +244,8 @@ namespace detail {
 
   //--------------------------------------------------------------------------
   template<typename T, typename... T_Args>
-  typename SortedObjectVector<T, T_Args...>::iterator 
-  SortedObjectVector<T, T_Args...>::
+  typename FlatObjectSet<T, T_Args...>::iterator 
+  FlatObjectSet<T, T_Args...>::
   erase( iterator itr ) 
   {
     return end() ;
@@ -254,7 +254,7 @@ namespace detail {
   //--------------------------------------------------------------------------
   template<typename T, typename... T_Args>
   bool
-  SortedObjectVector<T, T_Args...>::
+  FlatObjectSet<T, T_Args...>::
   reserve( uint32_t min_free_slots ) 
   {
     if( free_slots() >= min_free_slots ) 

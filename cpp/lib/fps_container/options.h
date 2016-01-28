@@ -15,6 +15,7 @@ namespace opt {
   FPS_Declare_NTP_Value( Default_Capacity, uint32_t ) ;
   FPS_Declare_NTP_Value( Reverse,          bool ) ;
   FPS_Declare_NTP_Value( Distinct,         bool ) ;
+  FPS_Declare_NTP_Type ( CounterType ) ;
 
   FPS_Declare_NTP_Value( Construct,        bool ) ;
   FPS_Declare_NTP_Value( Destruct,         bool ) ;

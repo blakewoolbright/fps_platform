@@ -1,9 +1,7 @@
 #define BOOST_TEST_MODULE fps__container
 
 #include "fps_container/byte_queue.h"
-#include "fps_container/detail/sorted_object_vector.h"
-#include "fps_container/detail/sorted_integral_vector.h"
-#include "fps_container/detail/make_sorted_vector.h"
+#include "fps_container/detail/make_flat_set.h"
 #include "fps_string/fps_string.h"
 
 #include <boost/test/unit_test.hpp>
@@ -103,15 +101,15 @@ to_stdout( const T & container, const std::string & label )
 }
 
 //---------------------------------------------------------------------------------------------------
-template<typename T_Vector>
+template<typename T_Set>
 void
-basic_vector_test( T_Vector & vec, const std::string & label, bool is_reversed )
+basic_flat_set_test( T_Set & vec, const std::string & label, bool is_reversed )
 {
   std::cout << "[ " << label << " ]" << std::endl ;
 
   BOOST_CHECK_MESSAGE
-  ( is_reversed == T_Vector::Reverse 
-  , string::sprintf( "\n\tConfiguration mismatch - T_Vector::Reverse should be '%s'"
+  ( is_reversed == T_Set::Reverse 
+  , string::sprintf( "\n\tConfiguration mismatch - T_Set::Reverse should be '%s'"
                    , (is_reversed?"true":"false")
                    ) 
   ) ;
@@ -119,17 +117,17 @@ basic_vector_test( T_Vector & vec, const std::string & label, bool is_reversed )
 
   BOOST_CHECK_MESSAGE
   ( vec.empty() 
-  , "\n\tSortedIntegralVector::empty() should return true after default construction" 
+  , "\n\tFlatIntegralSet::empty() should return true after default construction" 
   ) ;
 
   BOOST_CHECK_MESSAGE
   ( vec.size() == 0 
-  , "\n\tSortedIntegralVector::size() should return 0 after default construction" 
+  , "\n\tFlatIntegralSet::size() should return 0 after default construction" 
   ) ;
 
   BOOST_CHECK_MESSAGE
   ( vec.capacity() > 0 
-  , "\n\tSortedIntegralVector::capacity() should return non-zero after default construction" 
+  , "\n\tFlatIntegralSet::capacity() should return non-zero after default construction" 
   ) ;
 
   //----------------------------------------------
@@ -251,17 +249,17 @@ struct Object1
  
 
 //---------------------------------------------------------------------------------------------------
-BOOST_AUTO_TEST_CASE( fps_container__sorted_integral_vector )
+BOOST_AUTO_TEST_CASE( fps_container__flat_sets )
 {
-  // typedef container::detail::SortedIntegralVector<uint64_t> vec_t ;
+  // typedef container::detail::FlatIntegralSet<uint64_t> vec_t ;
 
-  typedef container::detail::MakeSortedVector
+  typedef container::detail::make_flat_set
           < uint64_t
           , container::opt::Reverse<false> 
           , container::opt::Default_Capacity<1023>
           >::type i_vec_t ;
 
-  typedef container::detail::MakeSortedVector
+  typedef container::detail::make_flat_set
           < uint64_t
           , container::opt::Reverse<true> 
           , container::opt::Default_Capacity<1024>
@@ -270,8 +268,8 @@ BOOST_AUTO_TEST_CASE( fps_container__sorted_integral_vector )
   i_vec_t         i_vec_1 ;
   reverse_i_vec_t i_vec_2 ;
 
-  basic_vector_test( i_vec_1, "SortedIntegralVector (Ascending)", false ) ; 
-  basic_vector_test( i_vec_2, "SortedIntegralVector (Descending)", true ) ; 
+  basic_flat_set_test( i_vec_1, "FlatIntegralSet (Ascending)", false ) ; 
+  basic_flat_set_test( i_vec_2, "FlatIntegralSet (Descending)", true ) ; 
 }
 
 
