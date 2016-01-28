@@ -3,11 +3,10 @@
 
 #include "fps_container/comparators.h"
 #include "fps_container/algorithms.h"
-#include "fps_container/set.h"
+#include "fps_container/flat_set.h"
 
 namespace fps  {
 namespace container {
-
 }}
 
 #endif

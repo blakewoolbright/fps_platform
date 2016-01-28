@@ -17,27 +17,6 @@ namespace container {
   struct FlatSet 
     : public detail::make_flat_set<T, T_Args...>::type 
   {
-    /*
-    //------------------------------------------------------------------------
-    inline iterator begin()      const { return iterator( &data_[ 0 ] ) ; }
-    inline iterator end  ()      const { return iterator( &data_[ size_ ] ) ; }
-    inline uint32_t capacity()   const { return capacity_ ; }
-    inline uint32_t size()       const { return size_ ; }
-    inline uint32_t free_slots() const { return ( capacity_ - size_ ) ; }
-    inline bool     empty()      const { return size_ == 0 ; }
-
-    //------------------------------------------------------------------------
-    inline bool reserve( uint32_t min_free_slots ) ;
-
-    //------------------------------------------------------------------------
-    inline void clear() ;
-
-    //------------------------------------------------------------------------
-    inline iterator find  ( value_arg_t target ) const ;
-    inline iterator insert( value_arg_t target ) ;
-    inline iterator erase ( value_arg_t target ) ;
-    inline iterator erase ( iterator itr ) ;
-    */
   } ;
 
 }}
