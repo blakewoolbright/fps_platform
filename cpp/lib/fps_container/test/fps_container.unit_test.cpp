@@ -2,6 +2,7 @@
 
 #include "fps_container/byte_queue.h"
 #include "fps_container/detail/make_flat_set.h"
+#include "fps_container/flat_set.h"
 #include "fps_string/fps_string.h"
 
 #include <boost/test/unit_test.hpp>
@@ -251,25 +252,25 @@ struct Object1
 //---------------------------------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE( fps_container__flat_sets )
 {
-  // typedef container::detail::FlatIntegralSet<uint64_t> vec_t ;
+  typedef 
+  container::FlatSet< uint64_t
+                    , container::opt::Reverse<false> 
+                    , container::opt::Default_Capacity<1023>
+                    > 
+  flat_i_set_ascending_t ;
 
-  typedef container::detail::make_flat_set
-          < uint64_t
-          , container::opt::Reverse<false> 
-          , container::opt::Default_Capacity<1023>
-          >::type i_vec_t ;
-
-  typedef container::detail::make_flat_set
-          < uint64_t
-          , container::opt::Reverse<true> 
-          , container::opt::Default_Capacity<1024>
-          >::type reverse_i_vec_t ;
+  typedef 
+  container::FlatSet< uint32_t
+                    , container::opt::Reverse<true> 
+                    , container::opt::Default_Capacity<1024>
+                    > 
+  flat_i_set_descending_t ;
   
-  i_vec_t         i_vec_1 ;
-  reverse_i_vec_t i_vec_2 ;
+  flat_i_set_ascending_t  i_set_1 ;
+  flat_i_set_descending_t i_set_2 ;
 
-  basic_flat_set_test( i_vec_1, "FlatIntegralSet (Ascending)", false ) ; 
-  basic_flat_set_test( i_vec_2, "FlatIntegralSet (Descending)", true ) ; 
+  basic_flat_set_test( i_set_1, "FlatSet<uint64_t> (Ascending)", false ) ;
+  basic_flat_set_test( i_set_2, "FlatSet<uint32_t> (Descending)", true ) ;
 }
 
 

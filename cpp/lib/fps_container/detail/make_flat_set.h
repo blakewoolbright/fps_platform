@@ -14,7 +14,7 @@ namespace detail {
   template< typename T, typename... T_Args>
   struct make_flat_set
   {
-  private :
+  public :
     static 
     const bool 
     Is_Integral = std::is_integral<T>::value ;
