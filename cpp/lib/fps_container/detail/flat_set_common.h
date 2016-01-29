@@ -21,7 +21,7 @@ namespace detail
     : public boost::iterator_facade< flat_set_iterator<T>
                                    , T
                                    , boost::forward_traversal_tag
-                                   , const T &
+                                   , T 
                                    >
   {
   private :
@@ -46,15 +46,6 @@ namespace detail
 
   public :
     //-----------------------------------------------------------------
-    typedef 
-    typename 
-    std::conditional< std::is_integral<T>::value
-                    , T
-                    , const T &
-                    >::type 
-    value_ref_t ;
-
-    //-----------------------------------------------------------------
     inline 
     flat_set_iterator() 
       : ptr_( NULL ) 
@@ -68,7 +59,7 @@ namespace detail
     {}
 
     //-----------------------------------------------------------------
-    inline const T & value() const { return *ptr_ ; }
+    inline T         value() const { return *ptr_ ; }
     inline uint32_t  count() const { return 1 ; }
 
     //-----------------------------------------------------------------

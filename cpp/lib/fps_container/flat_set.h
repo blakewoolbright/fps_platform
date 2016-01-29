@@ -19,6 +19,12 @@ namespace container {
   {
   } ;
 
+  //----------------------------------------------------------------------------------------
+  template<typename T, typename... T_Args>
+  struct FlatMultiSet 
+    : public detail::make_flat_multiset<T, T_Args...>::type 
+  {
+  } ;
 }}
 
 #endif

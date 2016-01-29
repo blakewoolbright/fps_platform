@@ -82,7 +82,7 @@ BOOST_AUTO_TEST_CASE( fps_container__byte_queue )
 //---------------------------------------------------------------------------------------------------
 template<typename T>
 void
-to_stdout( const T & container, const std::string & label ) 
+flat_set_to_stdout( const T & container, const std::string & label ) 
 {
   std::cout << "|" << std::endl 
             << "|--[ " << label << " ]" << std::endl 
@@ -94,15 +94,10 @@ to_stdout( const T & container, const std::string & label )
   if( !container.empty() ) 
   { 
     auto itr = container.begin() ; 
-
-    if( T::Distinct )  
-      string::append( values, "%lu", static_cast<uint64_t>( *itr ) ) ;
+    string::append( values, "%lu", static_cast<uint64_t>( *itr ) ) ;
 
     while( ++itr != container.end() ) 
-    {
-      if( T::Distinct ) 
-        string::append( values, ", %lu", static_cast<uint64_t>( *itr ) ) ;
-    }
+      string::append( values, ", %lu", static_cast<uint64_t>( *itr ) ) ;
   }
   std::cout << "|  |--[ " << values << " ]" << std::endl ;
 }
@@ -153,7 +148,7 @@ basic_flat_set_test( T_Set & vec, const std::string & label, bool is_reversed )
   for( auto in_itr = input_vec.begin() ; in_itr != input_vec.end() ; ++in_itr )
   {
     auto itr = vec.insert( in_itr->first ) ;
-    to_stdout( vec, string::sprintf( "insert( %lu ) -> size( %lu )", in_itr->first, in_itr->second ) ) ;
+    flat_set_to_stdout( vec, string::sprintf( "insert( %lu ) -> size( %lu )", in_itr->first, in_itr->second ) ) ;
 
     BOOST_CHECK_MESSAGE
     ( itr != vec.end()
@@ -184,7 +179,7 @@ basic_flat_set_test( T_Set & vec, const std::string & label, bool is_reversed )
     uint32_t last_sz   = vec.size() ;
     uint64_t erase_val = 5 ;
     vec.erase( erase_val ) ;
-    to_stdout( vec, string::sprintf( "erase( %lu ) -> size( %lu )", erase_val, vec.size() ) ) ;
+    flat_set_to_stdout( vec, string::sprintf( "erase( %lu ) -> size( %lu )", erase_val, vec.size() ) ) ;
     BOOST_CHECK_MESSAGE
     ( vec.size() == (last_sz-1)
     , string::sprintf( "\n\terase( %lu ) :: Result size != expected size ( %u != %u )"
@@ -195,7 +190,7 @@ basic_flat_set_test( T_Set & vec, const std::string & label, bool is_reversed )
     erase_val = 0 ;
     last_sz = vec.size() ;
     vec.erase( erase_val ) ;
-    to_stdout( vec, string::sprintf( "erase( %lu ) -> size( %lu )", erase_val, vec.size() ) ) ;
+    flat_set_to_stdout( vec, string::sprintf( "erase( %lu ) -> size( %lu )", erase_val, vec.size() ) ) ;
     BOOST_CHECK_MESSAGE
     ( vec.size() == (last_sz-1)
     , string::sprintf( "\n\terase( %lu ) :: Result size != expected size ( %u != %u )"
@@ -206,7 +201,7 @@ basic_flat_set_test( T_Set & vec, const std::string & label, bool is_reversed )
     erase_val = 2 ;
     last_sz = vec.size() ;
     vec.erase( erase_val ) ;
-    to_stdout( vec, string::sprintf( "erase( %lu ) -> size( %lu )", erase_val, vec.size() ) ) ;
+    flat_set_to_stdout( vec, string::sprintf( "erase( %lu ) -> size( %lu )", erase_val, vec.size() ) ) ;
     BOOST_CHECK_MESSAGE
     ( vec.size() == (last_sz-1)
     , string::sprintf( "\n\terase( %lu ) :: Result size != expected size ( %u != %u )"
@@ -220,7 +215,7 @@ basic_flat_set_test( T_Set & vec, const std::string & label, bool is_reversed )
   // Clear
   //----------------------------------------------
   vec.clear() ;
-  to_stdout( vec, "vec.clear()" ) ;
+  flat_set_to_stdout( vec, "vec.clear()" ) ;
 
   BOOST_CHECK_MESSAGE
   ( vec.empty() 
@@ -253,7 +248,81 @@ struct Object1
   uint64_t sequence () const { return seq_ ; }
   uint64_t timestamp() const { return ts_  ; }
 } ;
+
+//---------------------------------------------------------------------------------------------------
+template<typename T>
+void
+flat_multiset_to_stdout( const T & container, const std::string & label ) 
+{
+  std::cout << "|" << std::endl 
+            << "|--[ " << label << " ]" << std::endl 
+            << "|  |--[ Capacity : " << container.capacity() << " ]" << std::endl 
+            << "|  |--[ Size     : " << container.size() << " ]" << std::endl 
+            << "|  |--[ M Size   : " << container.m_size() << " ]" << std::endl 
+            << "|  |--[ Empty    : " << (container.empty() ? "true" : "false") << " ]" << std::endl ;
+
+  std::string values ;
+  if( !container.empty() ) 
+  { 
+    auto itr = container.begin() ; 
+
+    string::append( values, "%ld x %u", itr.value(), itr.count() ) ;
+
+    while( ++itr != container.end() ) 
+    {
+      string::append( values, ", %ld x %u", itr.value(), itr.count() ) ;
+    }
+  }
+  std::cout << "|  |--[ " << values << " ]" << std::endl ;
+}
  
+//---------------------------------------------------------------------------------------------------
+template<typename T_Set>
+void
+basic_flat_multiset_test( T_Set & vec, const std::string & label, bool is_reversed )
+{
+  std::cout << "[ " << label << " ]" << std::endl ;
+  BOOST_CHECK_MESSAGE
+  ( is_reversed == T_Set::Reverse 
+  , string::sprintf( "\n\tConfiguration mismatch - T_Set::Reverse should be '%s'"
+                   , (is_reversed?"true":"false")
+                   ) 
+  ) ;
+
+  BOOST_CHECK_MESSAGE
+  ( vec.empty() 
+  , "\n\tFlatIntegralSet::empty() should return true after default construction" 
+  ) ;
+
+  BOOST_CHECK_MESSAGE
+  ( vec.size() == 0 
+  , "\n\tFlatIntegralSet::size() should return 0 after default construction" 
+  ) ;
+
+  BOOST_CHECK_MESSAGE
+  ( vec.capacity() > 0 
+  , "\n\tFlatIntegralSet::capacity() should return non-zero after default construction" 
+  ) ;
+
+  //----------------------------------------------
+  // Input values & expected post install size 
+  //----------------------------------------------
+  std::vector<std::pair<typename T_Set::value_t, typename T_Set::value_t>> 
+  input_vec = 
+  { { 5, 1 }, { 5, 2 }, { 3, 2 }, { 3, 3 }
+  , { 8, 4 }, { 5, 5 }, { 2, 6 }, { 1, 7 }
+  , { 10, 8 }, { 0, 9 }
+  } ;
+
+  //----------------------------------------------
+  // Populate container
+  //----------------------------------------------
+  for( auto in_itr = input_vec.begin() ; in_itr != input_vec.end() ; ++in_itr )
+  {
+    auto itr = vec.insert( in_itr->first ) ;
+    flat_multiset_to_stdout( vec, string::sprintf( "insert( %ld )", in_itr->first ) ) ;
+  }
+}
 
 //---------------------------------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE( fps_container__flat_sets )
@@ -273,9 +342,9 @@ BOOST_AUTO_TEST_CASE( fps_container__flat_sets )
   flat_i_set_desc_t ;
 
   flat_i_set_asc_t  i_set_1 ;
-  flat_i_set_desc_t i_set_2 ;
-
   basic_flat_set_test( i_set_1, "FlatSet<uint64_t> (Asc)", false ) ;
+
+  flat_i_set_desc_t i_set_2 ;
   basic_flat_set_test( i_set_2, "FlatSet<uint32_t> (Desc)", true ) ;
 
   typedef container::detail::FlatIntegralMultiSet
@@ -284,9 +353,11 @@ BOOST_AUTO_TEST_CASE( fps_container__flat_sets )
           , container::opt::Counter_Type<uint32_t>
           > 
   flat_i_multiset_asc_t ;
+  /*
 
   flat_i_multiset_asc_t i_multiset_1 ;
-  basic_flat_set_test( i_multiset_1, "FlatMultiset<int64_t> (Asc)", false ) ;
+  basic_flat_multiset_test( i_multiset_1, "FlatMultiset<int64_t> (Asc)", false ) ;  
+  */
 }
 
 

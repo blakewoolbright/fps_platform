@@ -78,7 +78,7 @@ namespace detail
 
     //--------------------------------------------------------------------------------------
     typedef T value_t ;
-    typedef flat_set_iterator<value_t> iterator ;
+    typedef flat_set_iterator<T> iterator ;
 
   private :
     //------------------------------------------------------------------------
@@ -97,8 +97,8 @@ namespace detail
     inline ~FlatIntegralSet() ;
 
     //------------------------------------------------------------------------
-    inline iterator begin()      const { return iterator( &data_[ 0 ] ) ; }
-    inline iterator end  ()      const { return iterator( &data_[ size_ ] ) ; }
+    inline iterator begin()      const { return iterator( data_ ) ; }
+    inline iterator end  ()      const { return iterator( data_ + size_ ) ; }
     inline uint32_t capacity()   const { return capacity_ ; }
     inline uint32_t size()       const { return size_ ; }
     inline uint32_t free_slots() const { return ( capacity_ - size_ ) ; }
@@ -225,7 +225,10 @@ namespace detail
   insert( T value ) 
   {
     if( empty() ) 
-    { data_[ size_++ ] = value ; 
+    { 
+      data_[ 0 ] = value ; 
+      ++size_ ;
+
       return begin() ;
     }
 

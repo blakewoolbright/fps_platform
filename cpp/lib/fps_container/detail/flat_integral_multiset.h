@@ -156,8 +156,9 @@ namespace detail
 
   private :
     //------------------------------------------------------------------------
-    uint32_t   capacity_ alignas( system::cpu::Cache_Line_Size ) ; 
-    uint32_t   size_     alignas( system::cpu::Cache_Line_Size ) ;
+    uint32_t   capacity_  alignas( system::cpu::Cache_Line_Size ) ; 
+    uint32_t   size_      alignas( system::cpu::Cache_Line_Size ) ;
+    uint32_t   m_size_    alignas( system::cpu::Cache_Line_Size ) ;
     member_t * data_ ;
 
     //------------------------------------------------------------------------
@@ -171,10 +172,25 @@ namespace detail
     inline ~FlatIntegralMultiSet() ;
 
     //------------------------------------------------------------------------
-    inline iterator begin()      const { return iterator( &data_[ 0 ] ) ; }
-    inline iterator end  ()      const { return iterator( &data_[ size_ ] ) ; }
-    inline uint32_t capacity()   const { return capacity_ ; }
-    inline uint32_t size()       const { return size_ ; }
+    // Note: The begin() and end() iterators iterate over DISTINCT values
+    //       only.
+    // 
+    // TODO: Add iteration over all values.
+    //------------------------------------------------------------------------
+    inline iterator begin() const { return iterator( &data_[ 0 ] ) ; }
+    inline iterator end  () const { return iterator( &data_[ size_ ] ) ; }
+
+    //------------------------------------------------------------------------
+    // size() vs m_size() 
+    // The size() function returns the number of distinct values in the set.
+    // The m_size() function returns the number of values inserted in the set
+    // (including duplicates)
+    //------------------------------------------------------------------------
+    inline uint32_t size()       const { return size_ ; }     
+    inline uint32_t m_size()     const { return m_size_ ; }
+
+    //------------------------------------------------------------------------
+    inline uint32_t capacity()   const { return capacity_ ; } 
     inline uint32_t free_slots() const { return ( capacity_ - size_ ) ; }
     inline bool     empty()      const { return size_ == 0 ; }
 
@@ -204,6 +220,7 @@ namespace detail
   FlatIntegralMultiSet() 
     : capacity_( 0 ) 
     , size_    ( 0 )
+    , m_size_  ( 0 )
     , data_    ( NULL ) 
   { 
     reserve( Default_Capacity ) ;
@@ -215,6 +232,7 @@ namespace detail
   FlatIntegralMultiSet( uint32_t capacity ) 
     : capacity_( 0 ) 
     , size_    ( 0 )
+    , m_size_  ( 0 )
     , data_    ( NULL ) 
   { 
     reserve( capacity ) ;
@@ -231,6 +249,7 @@ namespace detail
     }
     capacity_ = 0 ;
     size_     = 0 ;
+    m_size_   = 0 ;
   }
 
   //----------------------------------------------------------------------------------------------------
@@ -261,7 +280,8 @@ namespace detail
   FlatIntegralMultiSet <T, T_Args...>::
   clear() 
   { 
-    size_ = 0 ;
+    size_   = 0 ;
+    m_size_ = 0 ;
   }
 
   //----------------------------------------------------------------------------------------------------
@@ -301,7 +321,11 @@ namespace detail
     if( idx < size_ )
     {
       if( data_[ idx ] == value ) 
+      { 
+        ++data_[ idx ] ; // Increment counter if already present
+        ++m_size_ ;
         return iterator( &data_[ idx ] ) ;
+      }
   
       if( compare_t::lt( data_[ idx ].value(), value ) ) 
         ++idx ;
@@ -317,6 +341,7 @@ namespace detail
       
       data_[ idx ] = value ;
       ++size_ ;
+      ++m_size_ ;
     }
 
     return iterator( &data_[ idx ] ) ;
@@ -332,10 +357,15 @@ namespace detail
     if( idx < 0 ) 
       return end() ;
     
-    if( idx < ( size_ - 1 ) ) 
-      util::intrinsic::memmove( &data_[ idx ], &data_[ idx + 1 ], sizeof( T ) * (size_ - idx) ) ;
+    --data_[ idx ] ;
+    --m_size_ ;
+    if( data_[ idx ].count() == 0 ) 
+    {
+      if( idx < ( size_ - 1 ) ) 
+        util::intrinsic::memmove( &data_[ idx ], &data_[ idx + 1 ], sizeof( T ) * (size_ - idx) ) ;
 
-    --size_ ;
+      --size_ ;
+    }
 
     return iterator( &data_[ idx ] ) ;
   }
@@ -352,10 +382,14 @@ namespace detail
       return end() ;
 
     int64_t idx = itr.distance_from( begin() ) ;
-    if( idx < (size_ - 1) )
-    { util::intrinsic::memmove( &data_[ idx ], &data_[ idx + 1 ], sizeof( T ) * (size_ - idx) ) ;
+    --data_[ idx ] ;
+    --m_size_ ;
+    if( data_[ idx ].count() == 0 ) 
+    {
+      if( idx < (size_ - 1) )
+        util::intrinsic::memmove( &data_[ idx ], &data_[ idx + 1 ], sizeof( T ) * (size_ - idx) ) ;
+      --size_ ;
     }
-    --size_ ;
 
     return iterator( &data_[ idx ] ) ;
   }

@@ -12,49 +12,42 @@ namespace fps {
 namespace container {
 namespace detail {
 
+  //----------------------------------------------------------------------------------------
   template< typename T, typename... T_Args>
   struct make_flat_set
   {
-  private :
-    static 
-    const bool 
-    Is_Integral = std::is_integral<T>::value ;
-
-    static 
-    const bool 
-    Is_Distinct = ntp::get_value< container::opt::Distinct<false>, T_Args...>::value ;
-    
   public :
+    //----------------------------------------------------------------------------------------
     /*
     typedef 
     typename 
-    std::conditional< Is_Integral
-                    , typename std::conditional
-                               < Is_Distinct
-                               , FlatIntegralSet<T, T_Args...>
-                               , FlatIntegralSet<T, T_Args...>
-                               >::type
-                    , typename std::conditional
-                               < Is_Distinct
-                               , SortedVector<T>
-                               , SortedVector<T>
-                               >::type 
-                    > type ;
-    */
-    typedef 
-    typename 
-    std::conditional< Is_Integral 
-                    , typename std::conditional< Is_Distinct
-                                               , FlatIntegralSet<T, T_Args...>
-                                               , FlatIntegralSet<T, T_Args...> 
-                                               >::type 
-                    , FlatObjectSet<T, T_Args...>
+    std::conditional< std::is_integral<T>::value || std::is_trivial<T>::value 
+                    , FlatIntegralSet<T, T_Args...>
+                    , FlatObjectSet  <T, T_Args...>
                     >::type 
     type ;
-
+    */
+    typedef FlatIntegralSet<T, T_Args...> type ;
+    typedef type type_t ;
   } ;
 
-
+  //----------------------------------------------------------------------------------------
+  template< typename T, typename... T_Args>
+  struct make_flat_multiset
+  {
+    //----------------------------------------------------------------------------------------
+    /*
+    typedef 
+    typename 
+    std::conditional< std::is_integral<T>::value || std::is_trivial<T>::value 
+                    , FlatIntegralMultiSet<T, T_Args...>
+                    , FlatObjectSet      <T, T_Args...>
+                    >::type 
+    type ;
+    */
+    typedef FlatIntegralMultiSet<T, T_Args...> type ;
+    typedef type type_t ;
+  } ;
 }}}
 
 #endif
