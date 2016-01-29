@@ -68,6 +68,9 @@ namespace detail
     Reverse = ntp::get_value< opt::Reverse<false>, T_Args...>::value ;
 
     //--------------------------------------------------------------------------------------
+    static const bool Distinct = true ;
+
+    //--------------------------------------------------------------------------------------
     typedef 
     typename 
     std::conditional< Reverse, compare::Descending<T>, compare::Ascending<T> >::type 

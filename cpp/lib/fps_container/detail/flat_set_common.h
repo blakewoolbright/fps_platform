@@ -21,12 +21,7 @@ namespace detail
     : public boost::iterator_facade< flat_set_iterator<T>
                                    , T
                                    , boost::forward_traversal_tag
-                                   , typename 
-                                     std::conditional
-                                     < std::is_integral<T>::value
-                                     , T
-                                     , const T &
-                                     >::type
+                                   , const T &
                                    >
   {
   private :
@@ -73,8 +68,8 @@ namespace detail
     {}
 
     //-----------------------------------------------------------------
-    inline value_ref_t value() const { return *ptr_ ; }
-    inline uint32_t    count() const { return 1 ; }
+    inline const T & value() const { return *ptr_ ; }
+    inline uint32_t  count() const { return 1 ; }
 
     //-----------------------------------------------------------------
     inline 
@@ -97,14 +92,9 @@ namespace detail
   template<typename T>
   struct flat_multiset_iterator 
     : public boost::iterator_facade< flat_multiset_iterator<T>
-                                   , T
+                                   , typename T::value_t
                                    , boost::forward_traversal_tag
-                                   , typename 
-                                     std::conditional
-                                     < std::is_integral<T>::value
-                                     , T
-                                     , const T &
-                                     >::type
+                                   , const typename T::value_t & 
                                    >
   {
   public :
@@ -116,15 +106,6 @@ namespace detail
     const T * ptr_ ;
 
   public :
-    //-----------------------------------------------------------------
-    typedef 
-    typename 
-    std::conditional< std::is_integral<value_t>::value
-                    , value_t
-                    , const value_t &
-                    >::type 
-    value_ref_t ;
-
     //-----------------------------------------------------------------
     inline 
     flat_multiset_iterator() 
@@ -139,8 +120,8 @@ namespace detail
     {}
 
     //-----------------------------------------------------------------
-    inline value_ref_t value() const { return ptr_->value() ; }
-    inline counter_t   count() const { return ptr_->count() ; }
+    inline const value_t & value() const { return ptr_->value() ; }
+    inline counter_t       count() const { return ptr_->count() ; }
 
     //-----------------------------------------------------------------
     inline 
@@ -161,13 +142,18 @@ namespace detail
     inline void increment() { ++ptr_; } 
 
     //------------------------------------------------------------------------------
-    inline T dereference() const { return *ptr_ ; }
+    inline 
+    const value_t &
+    dereference() const 
+    { return ptr_->value() ; 
+    }
 
     //------------------------------------------------------------------------------
     inline 
     bool 
     equal( const flat_multiset_iterator & rhs ) const 
-    { return (ptr_ == rhs.ptr_) ; 
+    { 
+      return (ptr_ == rhs.ptr_) ; 
     }
   } ;
 

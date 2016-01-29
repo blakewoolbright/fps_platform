@@ -28,7 +28,6 @@ namespace detail {
     //--------------------------------------------------------------------------------------
     static const bool Is_Integral = std::is_integral<T>::value ;
     static const bool Is_Trivial  = std::is_trivial<T>::value ;
-    static const bool Is_Distinct = false ;
 
     // static const bool Is_Trivial_To_Construct = std::is_trivially_constructable<T>::value ;
 
@@ -41,33 +40,36 @@ namespace detail {
     // Import compile time configuration via fps::ntp (named template parameter) library.
     //--------------------------------------------------------------------------------------
 
-      //------------------------------------------------------------------------------------
-      // Max_Capacity
-      // Limit capacity to this number of elements.  The reserve() function will 
-      // return false if it detects an attempt to reserve more than 'Max_Capacity' elements.
-      //------------------------------------------------------------------------------------
-      static 
-      const 
-      uint32_t 
-      Max_Capacity = ntp::get_value< opt::Max_Capacity<0>, T_Args...>::value ;
+    //------------------------------------------------------------------------------------
+    // Max_Capacity
+    // Limit capacity to this number of elements.  The reserve() function will 
+    // return false if it detects an attempt to reserve more than 'Max_Capacity' elements.
+    //------------------------------------------------------------------------------------
+    static 
+    const 
+    uint32_t 
+    Max_Capacity = ntp::get_value< opt::Max_Capacity<0>, T_Args...>::value ;
 
-      //------------------------------------------------------------------------------------
-      // Default_Capacity
-      // This is the default capacity of members that are default constructed.
-      //------------------------------------------------------------------------------------
-      static 
-      const 
-      uint32_t 
-      Default_Capacity = ntp::get_value< opt::Default_Capacity<64>, T_Args...>::value ;
+    //------------------------------------------------------------------------------------
+    // Default_Capacity
+    // This is the default capacity of members that are default constructed.
+    //------------------------------------------------------------------------------------
+    static 
+    const 
+    uint32_t 
+    Default_Capacity = ntp::get_value< opt::Default_Capacity<64>, T_Args...>::value ;
 
-      //------------------------------------------------------------------------------------
-      // Reverse
-      // Sort in descending order ( default is ascending ).
-      //------------------------------------------------------------------------------------
-      static 
-      const
-      bool 
-      Reverse = ntp::get_value< opt::Reverse<false>, T_Args...>::value ;
+    //------------------------------------------------------------------------------------
+    // Reverse
+    // Sort in descending order ( default is ascending ).
+    //------------------------------------------------------------------------------------
+    static 
+    const
+    bool 
+    Reverse = ntp::get_value< opt::Reverse<false>, T_Args...>::value ;
+
+    //--------------------------------------------------------------------------------------
+    static const bool Distinct = true ;
 
     //--------------------------------------------------------------------------------------
     // compare_t 

@@ -42,8 +42,12 @@ namespace detail
     //--------------------------------------------------------------------------------------
     // Expose type information for member counter and member value
     //--------------------------------------------------------------------------------------
-    typedef typename ntp::get_type<uint32_t, T_Args...>::value counter_t ;
-    typedef T                                                  value_t ;
+    typedef T value_t ;
+
+    typedef 
+    typename 
+    ntp::get_type<opt::Counter_Type<uint32_t>, T_Args...>::value 
+    counter_t ;
 
     //--------------------------------------------------------------------------------------
     static_assert( std::is_integral<T>::value 
@@ -54,7 +58,6 @@ namespace detail
     static_assert( std::is_integral<counter_t>::value 
                  , "FlatIntegralMultiSet<> configured w/ non-integral counter type"
                  ) ;
-
 
     //--------------------------------------------------------------------------------------
     static 
@@ -73,6 +76,9 @@ namespace detail
     const
     bool 
     Reverse = ntp::get_value< opt::Reverse<false>, T_Args...>::value ;
+
+    //--------------------------------------------------------------------------------------
+    static const bool Distinct = false ;
 
     //--------------------------------------------------------------------------------------
     typedef 
@@ -95,16 +101,24 @@ namespace detail
 
     public :
       //------------------------------------------------------------------------------------
-      inline value_t   value() const { return value_ ; }
-      inline counter_t count() const { return count_ ; }
+      inline const value_t & value() const { return value_ ; }
+      inline counter_t       count() const { return count_ ; }
 
       //------------------------------------------------------------------------------------
-      inline uint32_t operator++( int ) { return ++count_ ; }
-      inline uint32_t operator++()      { return count_++ ; }
-      inline uint32_t operator--(int )  { return --count_ ; }
-      inline uint32_t operator--()      { return count_-- ; }
-      inline uint32_t operator-=( uint32_t rhs ) 
-      { return (count_ > rhs) ? (count_ -= rhs) : (count_ = 0) ; 
+      inline counter_t operator++( int ) { return ++count_ ; }
+      inline counter_t operator++()      { return count_++ ; }
+      inline counter_t operator--(int )  { return --count_ ; }
+      inline counter_t operator--()      { return count_-- ; }
+
+      //------------------------------------------------------------------------------------
+      inline 
+      counter_t 
+      operator-=( counter_t rhs ) 
+      { 
+        return ( count_ > rhs ) 
+               ? (count_ -= rhs) 
+               : (count_ = 0) 
+               ; 
       }
 
       //------------------------------------------------------------------------------------
@@ -120,7 +134,7 @@ namespace detail
       { 
         if( rhs != value_ ) 
         { count_ = 1 ;
-          value_ = value ;
+          value_ = rhs ;
         }
         else 
           ++count_ ;
@@ -171,8 +185,11 @@ namespace detail
     inline void clear() ;
 
     //------------------------------------------------------------------------
-    inline const value_t & operator[]( uint32_t idx ) const ;
-    inline value_t       & operator[]( uint32_t idx ) ;
+    // Note: The operator[] members are used by the selected comparison
+    //       functor to during sorting operations.  Don't create a non-const 
+    //       version or it risks breaking the sort.
+    //------------------------------------------------------------------------
+    inline const T & operator[]( uint32_t idx ) const ;
 
     //------------------------------------------------------------------------
     inline iterator find  ( T target ) const ;
@@ -222,12 +239,9 @@ namespace detail
   FlatIntegralMultiSet<T, T_Args...>::
   find_member_index( T target ) const 
   {
-    /*
     typedef typename std::remove_reference<decltype( *this ) >::type    this_t ;
     typedef typename container::algos::BinarySearch<this_t, compare_t>  search_t ;
     return search_t::find_existing( target, *this, size_ ) ;
-    */
-    return -1 ;
   }
 
   //----------------------------------------------------------------------------------------------------
@@ -236,12 +250,9 @@ namespace detail
   FlatIntegralMultiSet <T, T_Args...>::
   find_insert_index( T target ) const 
   {
-    /*
     typedef typename std::remove_reference<decltype( *this ) >::type   this_t ;
     typedef typename container::algos::BinarySearch<this_t, compare_t> search_t ;
     return search_t::find_position( target, *this, size_ ) ;
-    */
-    return -1 ;
   }
 
   //----------------------------------------------------------------------------------------------------
@@ -268,20 +279,11 @@ namespace detail
 
   //----------------------------------------------------------------------------------------------------
   template<typename T, typename... T_Args>
-  const T &
+  const T & 
   FlatIntegralMultiSet <T, T_Args...>::
   operator[]( uint32_t idx ) const 
   {
-    return data_[ idx ] ;
-  }
-
-  //----------------------------------------------------------------------------------------------------
-  template<typename T, typename... T_Args>
-  T &
-  FlatIntegralMultiSet <T, T_Args...>::
-  operator[]( uint32_t idx ) 
-  {
-    return data_[ idx ] ;
+    return data_[ idx ].value() ;
   }
 
   //----------------------------------------------------------------------------------------------------
@@ -290,7 +292,6 @@ namespace detail
   FlatIntegralMultiSet <T, T_Args...>::
   insert( T value ) 
   {
-    /*
     if( empty() ) 
     { data_[ size_++ ] = value ; 
       return begin() ;
@@ -302,7 +303,7 @@ namespace detail
       if( data_[ idx ] == value ) 
         return iterator( &data_[ idx ] ) ;
   
-      if( compare_t::lt( data_[ idx ], value ) ) 
+      if( compare_t::lt( data_[ idx ].value(), value ) ) 
         ++idx ;
 
       util::intrinsic::memmove( &data_[ idx+1 ], &data_[ idx ], sizeof( T ) * (size_ - idx) ) ;
@@ -319,8 +320,6 @@ namespace detail
     }
 
     return iterator( &data_[ idx ] ) ;
-    */
-    return end() ;
   }
 
   //----------------------------------------------------------------------------------------------------
@@ -329,7 +328,6 @@ namespace detail
   FlatIntegralMultiSet <T, T_Args...>::
   erase( T value ) 
   {
-    /*
     int32_t idx = find_member_index( value ) ;
     if( idx < 0 ) 
       return end() ;
@@ -340,8 +338,6 @@ namespace detail
     --size_ ;
 
     return iterator( &data_[ idx ] ) ;
-    */
-    return end() ;
   }
 
   //----------------------------------------------------------------------------------------------------
@@ -350,7 +346,6 @@ namespace detail
   FlatIntegralMultiSet <T, T_Args...>::
   erase( iterator itr ) 
   {
-    /*
     // TODO: This should probably trigger a fatal exception since it indicates improper 
     //       usage of the container.
     if( empty() || !itr.bounds_test( begin(), end() ) ) 
@@ -358,12 +353,11 @@ namespace detail
 
     int64_t idx = itr.distance_from( begin() ) ;
     if( idx < (size_ - 1) )
-      util::intrinsic::memmove( &data_[ idx ], &data_[ idx + 1 ], sizeof( T ) * (size_ - idx) ) ;
+    { util::intrinsic::memmove( &data_[ idx ], &data_[ idx + 1 ], sizeof( T ) * (size_ - idx) ) ;
+    }
     --size_ ;
 
     return iterator( &data_[ idx ] ) ;
-    */
-    return end() ;
   }
 
   //----------------------------------------------------------------------------------------------------
@@ -394,7 +388,7 @@ namespace detail
     }
 
     // Save current array content
-    T * old_data = data_ ;
+    member_t * old_data = data_ ;
 
     // Allocate new array with increased capacity, and include an extra 
     // slot to make the end() iterator's implementation less complex.

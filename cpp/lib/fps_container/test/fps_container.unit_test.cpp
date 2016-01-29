@@ -92,11 +92,17 @@ to_stdout( const T & container, const std::string & label )
 
   std::string values ;
   if( !container.empty() ) 
-  { auto itr = container.begin() ; 
-    string::append( values, "%lu", static_cast<uint64_t>( *itr ) ) ;
+  { 
+    auto itr = container.begin() ; 
+
+    if( T::Distinct )  
+      string::append( values, "%lu", static_cast<uint64_t>( *itr ) ) ;
 
     while( ++itr != container.end() ) 
-      string::append( values, ", %lu", static_cast<uint64_t>( *itr ) ) ;
+    {
+      if( T::Distinct ) 
+        string::append( values, ", %lu", static_cast<uint64_t>( *itr ) ) ;
+    }
   }
   std::cout << "|  |--[ " << values << " ]" << std::endl ;
 }
@@ -182,7 +188,7 @@ basic_flat_set_test( T_Set & vec, const std::string & label, bool is_reversed )
     BOOST_CHECK_MESSAGE
     ( vec.size() == (last_sz-1)
     , string::sprintf( "\n\terase( %lu ) :: Result size != expected size ( %u != %u )"
-                     , erase_val, vec.size(), last_sz 
+                     , erase_val, vec.size(), (last_sz-1)
                      )
     ) ;
     
@@ -193,7 +199,7 @@ basic_flat_set_test( T_Set & vec, const std::string & label, bool is_reversed )
     BOOST_CHECK_MESSAGE
     ( vec.size() == (last_sz-1)
     , string::sprintf( "\n\terase( %lu ) :: Result size != expected size ( %u != %u )"
-                     , erase_val, vec.size(), last_sz 
+                     , erase_val, vec.size(), (last_sz - 1)
                      )
     ) ;
 
@@ -204,7 +210,7 @@ basic_flat_set_test( T_Set & vec, const std::string & label, bool is_reversed )
     BOOST_CHECK_MESSAGE
     ( vec.size() == (last_sz-1)
     , string::sprintf( "\n\terase( %lu ) :: Result size != expected size ( %u != %u )"
-                     , erase_val, vec.size(), last_sz 
+                     , erase_val, vec.size(), (last_sz - 1)
                      )
     ) ;
     --last_sz ; 
@@ -257,20 +263,30 @@ BOOST_AUTO_TEST_CASE( fps_container__flat_sets )
                     , container::opt::Reverse<false> 
                     , container::opt::Default_Capacity<1023>
                     > 
-  flat_i_set_ascending_t ;
+  flat_i_set_asc_t ;
 
   typedef 
   container::FlatSet< uint32_t
                     , container::opt::Reverse<true> 
                     , container::opt::Default_Capacity<1024>
                     > 
-  flat_i_set_descending_t ;
-  
-  flat_i_set_ascending_t  i_set_1 ;
-  flat_i_set_descending_t i_set_2 ;
+  flat_i_set_desc_t ;
 
-  basic_flat_set_test( i_set_1, "FlatSet<uint64_t> (Ascending)", false ) ;
-  basic_flat_set_test( i_set_2, "FlatSet<uint32_t> (Descending)", true ) ;
+  flat_i_set_asc_t  i_set_1 ;
+  flat_i_set_desc_t i_set_2 ;
+
+  basic_flat_set_test( i_set_1, "FlatSet<uint64_t> (Asc)", false ) ;
+  basic_flat_set_test( i_set_2, "FlatSet<uint32_t> (Desc)", true ) ;
+
+  typedef container::detail::FlatIntegralMultiSet
+          < int64_t
+          , container::opt::Default_Capacity<65>
+          , container::opt::Counter_Type<uint32_t>
+          > 
+  flat_i_multiset_asc_t ;
+
+  flat_i_multiset_asc_t i_multiset_1 ;
+  basic_flat_set_test( i_multiset_1, "FlatMultiset<int64_t> (Asc)", false ) ;
 }
 
 
