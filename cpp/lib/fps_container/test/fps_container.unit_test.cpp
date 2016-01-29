@@ -309,9 +309,9 @@ basic_flat_multiset_test( T_Set & vec, const std::string & label, bool is_revers
   //----------------------------------------------
   std::vector<std::pair<typename T_Set::value_t, typename T_Set::value_t>> 
   input_vec = 
-  { { 5, 1 }, { 5, 2 }, { 3, 2 }, { 3, 3 }
-  , { 8, 4 }, { 5, 5 }, { 2, 6 }, { 1, 7 }
-  , { 10, 8 }, { 0, 9 }
+  { { 5, 1 }, { 5, 2 }, { 3, 3 }, { 3, 4 }
+  , { 8, 5 }, { 5, 6 }, { 2, 7 }, { 1, 8 }
+  , { 10, 9 }, { 0, 10 }
   } ;
 
   //----------------------------------------------
@@ -321,7 +321,37 @@ basic_flat_multiset_test( T_Set & vec, const std::string & label, bool is_revers
   {
     auto itr = vec.insert( in_itr->first ) ;
     flat_multiset_to_stdout( vec, string::sprintf( "insert( %ld )", in_itr->first ) ) ;
+    
+    BOOST_CHECK_MESSAGE
+    ( itr != vec.end()
+    , string::sprintf( "\n\tinsert( %lu ) unexpectedly returned end()", in_itr->first ) 
+    ) ; 
+
+    BOOST_CHECK_MESSAGE
+    ( *itr == in_itr->first
+    , string::sprintf( "\n\tinsert( %lu ) :: result value != expected value (%lu != %lu)"
+                     , in_itr->first 
+                     , *itr 
+                     , in_itr->second
+                     ) 
+    ) ; 
+
+    BOOST_CHECK_MESSAGE
+    ( vec.m_size() == in_itr->second
+    , string::sprintf( "\n\tinsert( %lu ) :: Result size != expected size (%u != %u)" 
+                     , in_itr->first, vec.size(), static_cast<uint32_t>( in_itr->second )
+                     ) 
+    ) ; 
+
+    BOOST_CHECK_MESSAGE
+    ( vec.m_size() >= vec.size() 
+    , string::sprintf( "\n\tinsert( %lu ) :: Sanity check failure :: m_size < size (%u < %u)"
+                     , in_itr->first, vec.m_size(), vec.size() 
+                     ) 
+    ) ;
   }
+
+
 }
 
 //---------------------------------------------------------------------------------------------------
@@ -353,11 +383,9 @@ BOOST_AUTO_TEST_CASE( fps_container__flat_sets )
           , container::opt::Counter_Type<uint32_t>
           > 
   flat_i_multiset_asc_t ;
-  /*
 
   flat_i_multiset_asc_t i_multiset_1 ;
   basic_flat_multiset_test( i_multiset_1, "FlatMultiset<int64_t> (Asc)", false ) ;  
-  */
 }
 
 

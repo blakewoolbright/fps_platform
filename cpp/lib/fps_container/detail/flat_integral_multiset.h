@@ -101,8 +101,8 @@ namespace detail
 
     public :
       //------------------------------------------------------------------------------------
-      inline const value_t & value() const { return value_ ; }
-      inline counter_t       count() const { return count_ ; }
+      inline value_t   value() const { return value_ ; }
+      inline counter_t count() const { return count_ ; }
 
       //------------------------------------------------------------------------------------
       inline counter_t operator++( int ) { return ++count_ ; }
@@ -205,7 +205,7 @@ namespace detail
     //       functor to during sorting operations.  Don't create a non-const 
     //       version or it risks breaking the sort.
     //------------------------------------------------------------------------
-    inline const T & operator[]( uint32_t idx ) const ;
+    inline T operator[]( uint32_t idx ) const ;
 
     //------------------------------------------------------------------------
     inline iterator find  ( T target ) const ;
@@ -299,7 +299,7 @@ namespace detail
 
   //----------------------------------------------------------------------------------------------------
   template<typename T, typename... T_Args>
-  const T & 
+  T 
   FlatIntegralMultiSet <T, T_Args...>::
   operator[]( uint32_t idx ) const 
   {
@@ -313,11 +313,19 @@ namespace detail
   insert( T value ) 
   {
     if( empty() ) 
-    { data_[ size_++ ] = value ; 
+    { 
+      data_[ 0 ] = value ; 
+      ++size_ ;
+      ++m_size_ ;
       return begin() ;
     }
 
     int32_t idx = find_insert_index( value ) ;
+
+    //
+    // The following conditional block is entered when the insert index 
+    // targets a currently occupied location.
+    // 
     if( idx < size_ )
     {
       if( data_[ idx ] == value ) 
@@ -330,14 +338,24 @@ namespace detail
       if( compare_t::lt( data_[ idx ].value(), value ) ) 
         ++idx ;
 
-      util::intrinsic::memmove( &data_[ idx+1 ], &data_[ idx ], sizeof( T ) * (size_ - idx) ) ;
+      util::intrinsic::memmove( &data_[ idx+1 ], &data_[ idx ], sizeof( member_t ) * (size_ - idx) ) ;
       data_[ idx ] = value ;
       ++size_ ;
+      ++m_size_ ;
     }
+    //
+    // If we enter this block, the insert index specifies an index that's 
+    // potentially outside of our current allocation.  
+    // 
     else 
     {
+      // Make sure we have room for the new 
       if( idx >= capacity_ )
-        reserve( capacity_ ) ;
+      { 
+        // If we fail to reserve more space, return end() 
+        if( !reserve( capacity_ ) ) 
+          return end() ;
+      }
       
       data_[ idx ] = value ;
       ++size_ ;
@@ -362,7 +380,7 @@ namespace detail
     if( data_[ idx ].count() == 0 ) 
     {
       if( idx < ( size_ - 1 ) ) 
-        util::intrinsic::memmove( &data_[ idx ], &data_[ idx + 1 ], sizeof( T ) * (size_ - idx) ) ;
+        util::intrinsic::memmove( &data_[ idx ], &data_[ idx + 1 ], sizeof( member_t ) * (size_ - idx) ) ;
 
       --size_ ;
     }
@@ -387,7 +405,7 @@ namespace detail
     if( data_[ idx ].count() == 0 ) 
     {
       if( idx < (size_ - 1) )
-        util::intrinsic::memmove( &data_[ idx ], &data_[ idx + 1 ], sizeof( T ) * (size_ - idx) ) ;
+        util::intrinsic::memmove( &data_[ idx ], &data_[ idx + 1 ], sizeof( member_t ) * (size_ - idx) ) ;
       --size_ ;
     }
 
@@ -433,7 +451,7 @@ namespace detail
     }
     
     if( size_ > 0 ) 
-      std::memcpy( data_, old_data, sizeof( T ) * size_ ) ;
+      util::intrinsic::memcpy( data_, old_data, sizeof( member_t  ) * size_ ) ;
 
     capacity_ = new_cap ;
     delete [] old_data ;

@@ -83,9 +83,9 @@ namespace detail
   template<typename T>
   struct flat_multiset_iterator 
     : public boost::iterator_facade< flat_multiset_iterator<T>
-                                   , typename T::value_t
+                                   , T
                                    , boost::forward_traversal_tag
-                                   , const typename T::value_t & 
+                                   , const T & 
                                    >
   {
   public :
@@ -111,8 +111,8 @@ namespace detail
     {}
 
     //-----------------------------------------------------------------
-    inline const value_t & value() const { return ptr_->value() ; }
-    inline counter_t       count() const { return ptr_->count() ; }
+    inline value_t   value() const { return ptr_->value() ; }
+    inline counter_t count() const { return ptr_->count() ; }
 
     //-----------------------------------------------------------------
     inline 
@@ -134,9 +134,9 @@ namespace detail
 
     //------------------------------------------------------------------------------
     inline 
-    const value_t &
+    const T & 
     dereference() const 
-    { return ptr_->value() ; 
+    { return *ptr_ ;
     }
 
     //------------------------------------------------------------------------------
