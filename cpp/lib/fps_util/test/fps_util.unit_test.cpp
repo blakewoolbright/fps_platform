@@ -11,4 +11,7 @@
 
 using namespace fps ;
 
-
+BOOST_AUTO_TEST_CASE( fps__util__send_email ) 
+{
+  // TODO: Need some email addresses that are suitable for testing
+}
