@@ -3,6 +3,7 @@
 #include "fps_ntp/fps_ntp.h"
 #include "fps_string/fps_string.h"
 #include <boost/test/unit_test.hpp>
+#include <iostream>
 
 using namespace fps ;
 

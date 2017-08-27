@@ -2,11 +2,11 @@
 
 import os, sys 
 
-from fps import cppgen 
+from fps import py2cpp  
 
 def main() :
   
-  main = cppgen.Function( 'int', 'main', [ 'int argc', 'char * argv[]' ] )
+  main = py2cpp .Function( 'int', 'main', [ 'int argc', 'char * argv[]' ] )
   print str(main)
  
   return 0 

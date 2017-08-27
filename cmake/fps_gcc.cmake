@@ -69,57 +69,24 @@ list( GET version_numbers 0 FPS_GCC_MAJOR_VERSION )
 list( GET version_numbers 1 FPS_GCC_MINOR_VERSION ) 
 list( GET version_numbers 2 FPS_GCC_MINOR_REVISION )
 
-if( FPS_GCC_MAJOR_VERSION EQUAL 4 )
+if( FPS_GCC_MAJOR_VERSION EQUAL 5 )
 
-  #
-  # GCC 4.8.x
-  #
-  if( FPS_GCC_MINOR_VERSION EQUAL 8 )
-    list( APPEND FPS_COMMON_COMPILER_FLAGS 
-          -std=c++11
-          -Wno-unused-but-set-variable 
-          -Wno-delete-non-virtual-dtor
-          -Wno-narrowing
-          -Wno-maybe-uninitialized
-          -Wno-unused-local-typedefs
-        )
-        #  -flto
-        #  -fwhole-program
-        # )
-        # list( APPEND FPS_COMMON_LINKER_FLAGS -flto )
-
-  #
-  # GCC 4.9.x
-  #
-  elseif( FPS_GCC_MINOR_VERSION EQUAL 9 )
-    list( APPEND FPS_COMMON_COMPILER_FLAGS 
-          -std=c++11
-          -Wno-unused-but-set-variable 
-          -Wno-delete-non-virtual-dtor
-          -Wno-narrowing
-          -Wno-maybe-uninitialized
-          -Wno-unused-local-typedefs
-        )
+  list( APPEND FPS_COMMON_COMPILER_FLAGS 
+    -std=c++11
+    -Wno-unused-but-set-variable 
+    -Wno-delete-non-virtual-dtor
+    -Wno-narrowing
+    -Wno-maybe-uninitialized
+    -Wno-unused-local-typedefs
+  )
   
-        if( ${FPS_BUILD_TYPE} STREQUAL "optimized" )
-          list( APPEND FPS_COMMON_COMPILER_FLAGS
-                -flto
-                -fwhole-program
-                -fdevirtualize
-              )
-          list( APPEND FPS_COMMON_LINKER_FLAGS -flto )
-        endif()
-      
-
-  else()
-    set( error_msg 
-         "  "
-         " [ fps_gcc ]"
-         "   Error :: Unsupported GCC compiler version '${FPS_COMPILER_VERSION}'"
-         " "
-       )
-    join( "${error_msg}" "\n" error_msg ) 
-    message( FATAL_ERROR "${error_msg}" )
+  if( ${FPS_BUILD_TYPE} STREQUAL "optimized" )
+    list( APPEND FPS_COMMON_COMPILER_FLAGS
+          -flto
+          -fwhole-program
+          -fdevirtualize
+        )
+    list( APPEND FPS_COMMON_LINKER_FLAGS -flto )
   endif()
 
 else() 
@@ -127,6 +94,9 @@ else()
        "  "
        " [ fps_gcc ]"
        "   Error :: Unsupported GCC compiler version '${FPS_COMPILER_VERSION}'"
+       "   Major :: ${FPS_GCC_MAJOR_VERSION}"
+       "   Minor :: ${FPS_GCC_MINOR_VERSION}"
+       "   Rev   :: ${FPS_GCC_MINOR_REVISION}"
        " "
   )
   join( "${error_msg}" "\n" error_msg ) 

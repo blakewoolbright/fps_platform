@@ -2,7 +2,7 @@
 
 import os, sys 
 
-from fps import cppgen 
+from fps import py2cpp  
 
 def main() :
   decl_list = [ ('int32_t var ;', 'int32_t')
@@ -24,7 +24,7 @@ def main() :
     print "-----------------------------------------------------"
     var_decl      = entry[0] 
     expected_root = entry[1]
-    test_type     = cppgen.Type( var_decl, verbose=True ) 
+    test_type     = py2cpp .Type( var_decl, verbose=True ) 
     if test_type.typeroot() != expected_root :
       raise Exception( "Expected typeroot of '%s' for '%s'"%( expected_root, var_decl ) )
  

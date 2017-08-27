@@ -222,6 +222,8 @@ function fps__init_environment()
   eval export FPS_C_COMPILER=$(fps__get_c_compiler "${FPS_COMPILER_DIR}" "${FPS_COMPILER_VENDOR}")
   eval export FPS_CXX_COMPILER=$(fps__get_cxx_compiler "${FPS_COMPILER_DIR}" "${FPS_COMPILER_VENDOR}")
   eval export FPS_COMPILER_VERSION=$(fps__get_compiler_version ${FPS_CXX_COMPILER})
+
+  fps__path_prepend PYTHONPATH ${FPS_ROOT_DIR}/python 
 }
 
 #

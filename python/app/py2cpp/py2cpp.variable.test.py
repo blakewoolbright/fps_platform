@@ -2,7 +2,7 @@
 
 import os, sys 
 
-from fps import cppgen 
+from fps import py2cpp  
 
 def main() :
   
@@ -15,8 +15,8 @@ def main() :
          ]
          
   for var in vars :
-    print "[ var = cppgen.Variable( '%s' ) ]"%(var)
-    var = cppgen.Variable( var )
+    print "[ var = py2cpp .Variable( '%s' ) ]"%(var)
+    var = py2cpp .Variable( var )
     print '  var.serialize()     : ' + var.serialize()
     var.type().describe()
     print ''
