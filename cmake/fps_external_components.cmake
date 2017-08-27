@@ -301,36 +301,37 @@ foreach( entry ${script_list} )
   include( ${entry} )
 endforeach()
 
+
+#-------------------------------------------------------------------------------------------------------------------
+# Add boost components
+#-------------------------------------------------------------------------------------------------------------------
+fps_add_external_component( 
+    LABEL                "boost"
+    DESCRIPTION          "Boost C++ Libraries (system default)"
+    SYSTEM_INCLUDE_DIRS  "/usr/include/"
+    REQUIRES             "libpthread.so"
+    PROVIDES             "boost_system boost_program_options boost_filesystem boost_regex boost_thread boost_date_time boost_serialization"
+)
+
+
 #-------------------------------------------------------------------------------------------------------------------
 # Finally, make sure we know where to find the boost unit test framework. 
 #-------------------------------------------------------------------------------------------------------------------
-if( DEFINED FPS_BOOST_INCLUDE_DIRS )
-  if( "${FPS_BOOST_LINKAGE}" STREQUAL "SHARED" ) 
-    set( boost_testing_flags -DBOOST_TEST_DYN_LINK )
-  else()
-    set( boost_testing_flags )
-  endif()
-
-  fps_add_external_component( 
-    LABEL                 boost_testing
-    DESCRIPTION           "Boost Unit Test Framework"
-    SYSTEM_INCLUDE_DIRS   ${FPS_BOOST_INCLUDE_DIRS}
-    LIBRARY_DIRS          ${FPS_BOOST_LIBRARY_DIRS}
-    COMPILER_FLAGS        ${boost_testing_flags}
-    PROVIDES              boost_unit_test_framework
-    ${FPS_BOOST_LINKAGE}
-  )
+if( "${FPS_BOOST_LINKAGE}" STREQUAL "SHARED" ) 
+  set( boost_testing_flags -DBOOST_TEST_DYN_LINK )
 else()
-    
-  fps_add_external_component( 
-      LABEL                "boost"
-      DESCRIPTION          "Boost C++ Libraries (system default)"
-      SYSTEM_INCLUDE_DIRS  "/usr/include/"
-      REQUIRES             "libpthread.so"
-      PROVIDES             "boost_system boost_program_options boost_filesystem boost_regex boost_thread boost_date_time boost_serialization"
-  )
-
+  set( boost_testing_flags )
 endif()
+
+fps_add_external_component( 
+  LABEL                 boost_testing
+  DESCRIPTION           "Boost Unit Test Framework"
+  SYSTEM_INCLUDE_DIRS   ${FPS_BOOST_INCLUDE_DIRS}
+  LIBRARY_DIRS          ${FPS_BOOST_LIBRARY_DIRS}
+  COMPILER_FLAGS        ${boost_testing_flags}
+  PROVIDES              boost_unit_test_framework
+  ${FPS_BOOST_LINKAGE}
+)
   
 
 
