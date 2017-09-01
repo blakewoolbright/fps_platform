@@ -12,6 +12,9 @@ fps_add_application(
   FILES           boost_compilation.test.cpp
 )
 
+add_subdirectory( fps_net ) 
+add_subdirectory( cubist.fib ) 
+
 if( False ) 
     fps_add_application( 
       NAME            devirtualization_test.off.case_00
