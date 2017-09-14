@@ -1,3 +1,4 @@
+import Options
 from Type import Type, Conversion
 from Variable import Variable
 
@@ -8,20 +9,27 @@ class Function :
       raise Exception( "Function: Constructed with empty/null return type" ) 
     
     if not isinstance( name, str ) or len(name) == 0 :
-      raise Exception( "Function: Construction with empty/null name" ) 
+      raise Exception( "Function: Constructed with empty/null 'name' argument" ) 
     
+    # If return type is a string, convert to Type instance
     if isinstance( return_type, str ) :
       return_type = Type( return_type ) 
 
+    # Set defaults 
     self.clear() 
+    
+    # Set function basics
     self._name      = name 
     self._rt        = return_type 
+
+    # Set function attributes
     self._is_static = True if 'static' in attributes else False 
     self._is_inline = True if 'inline' in attributes else False
     self._is_const  = True if (not self._is_static and 'const' in attributes) else False 
     self._is_proto  = True if body is None or body is '' else False
 
-    self._args      = []
+    # Set function arguments
+    self._args = []
     for arg in args :
       if isinstance( arg, str ) :
         arg = Variable( arg ) 
@@ -29,10 +37,12 @@ class Function :
         raise Exception( "Malformed argument to Function constructor '%s'", str(arg) )
       self._args.append( arg )  
     
+    # Set function body
     if body :
-      self._body = body.split( '\n' ) 
-    else :
-      self._body = [] 
+      self.set_body( body ) 
+    
+    # Sanity check instance
+    self.sanity_check() 
 
   def clear( self ) :
     self._return = None 
@@ -40,15 +50,30 @@ class Function :
     self._body   = []
     self._args   = []
 
+  def sanity_check( self ) :
+    if self.is_static() and self.is_const() :
+      raise Exception( "Function.sanity_check() : Invalid attributes (static and const)" )
+    
+    if self.name() is None or self.name() == "" :
+      raise Exception( "Function.sanity_check() : No name assigned to instance" )
+    
+    if not isinstance( self.return_type(), Type ) :
+      raise Exception( "Function.sanity_check() : Malformed return type (not Type instance)" )
+
   def set_body( self, body=None ) : 
     if not body :
+      self._body = None 
+      self._is_proto = True
       return self
 
-    if not isinstance( body, list ) :
-      self._body = [ body ] 
+    if isinstance( body, str ) :
+      self._body = body.split( '\n' )
+    elif isinstance( body, list ) :
+      self._body = body 
     else :
-      self._body = body
+      raise Exception( "Function.set_body() : Unsupported argument type (Must be string or list)" )
     
+    self._is_proto = False
     return self
 
   def return_type ( self ) : return self._rt 

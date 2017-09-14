@@ -1,3 +1,4 @@
+import Options
 from Type import Type
 
 class Typedef :
@@ -28,7 +29,7 @@ class Typedef :
     return [ 'typedef %s %s ;'%( self.aliased_typename(), self.typename() ) ]
   
   def to_string( self, indent=0 ) :
-    indent=indent * ' '
+    indent=indent * Options.Indent_Char
     return "%sTypedef : { name: '%s', aliased_type='%s' }" \
            %( indent, self.typename(), self.aliased_typename() )
   

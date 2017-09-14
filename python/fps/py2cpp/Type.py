@@ -1,4 +1,4 @@
-import Parse
+import Parse, Options
 
 #
 # The Metrics class stores name and size information for basic c++ types
@@ -422,7 +422,7 @@ class Type :
     
   def serialize( self, indent=0 ) :
     '''Serialize to c++ code (note: decl_suffix not appended here)'''
-    return (indent * ' ') + self._decl_prefix
+    return (Options.Indent_Char * indent) + self._decl_prefix
   
   def describe( self ) :
 
@@ -478,7 +478,6 @@ class Conversion :
       self._dst = Type( dst_type )
     else :
       self._dst = dst_type 
-
 
   def src_type( self ) : 
     '''Returns input/source type as Type'''

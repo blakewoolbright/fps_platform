@@ -1,5 +1,6 @@
-from Type import Type, Metrics, Conversion
+from Type import Type, Metrics 
 from Variable import Variable
+import Options
 
 class Cast :
 
@@ -36,6 +37,10 @@ class Cast :
     self.__compose() 
 
     # print str(self._cast)
+
+  def __explicit_cast( self ) :
+    '''Explicit cast'''
+    self._cast = '(%s)%s'%( self._dst.typename(), self._var.name() )
 
   def __static_cast( self ) :
     '''Static cast'''
@@ -90,9 +95,7 @@ class Cast :
     '''Compose cast operation base on src/dst types'''
 
     # 1) Handle casts between pointer/reference types via reinterpret_cast
-    if( self._var.type().is_alias() and 
-       (self._dst.is_alias() or self._dst.is_primitive())
-      ) :
+    if( self._var.type().is_alias() and (self._dst.is_alias() or self._dst.is_primitive()) ) :
       self.__alias_cast() 
     # 2) Handle casts of arrays to pointers 
     elif( self._var.type().is_array() and self._dst.is_pointer() ):
@@ -100,9 +103,13 @@ class Cast :
     # 3) Handle static casts
     elif not (self._var.type().is_alias() and self._dst.is_alias()) :
       self.__static_cast()
+    # 4) Default to explicit cast
+    else :
+      self.__explicit_cast()
+    return self
 
   def to_string( self, indent=0 ) :
-    return (indent * ' ') \
+    return (indent * Options.Indent_Char) \
            + "Cast : { src: '%s', dst: '%s' } -> '%s'" \
              %( self._var.serialize(), self._dst.typename(), self._cast )
   

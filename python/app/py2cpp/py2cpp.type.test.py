@@ -28,8 +28,7 @@ def main() :
     if test_type.typeroot() != expected_root :
       raise Exception( "Expected typeroot of '%s' for '%s'"%( expected_root, var_decl ) )
     
-    print var_decl 
-    print test_type.serialize() 
+    print "'%s' => '%s'"%( var_decl, test_type.serialize() )
     print ""
  
   return 0 
