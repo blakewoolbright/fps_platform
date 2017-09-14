@@ -5,14 +5,16 @@ import os, sys
 from fps import py2cpp  
 
 def main() :
-  
-  main = py2cpp .Function( 'int', 'main', [ 'int argc', 'char * argv[]' ] )
-  print str(main)
-  print '\n'.join( main.serialize() )
+
+  funcs = [ py2cpp.Function( 'int', 'main', [ 'int argc', 'char * argv[]' ] )
+          , py2cpp.Function( 'int', 'main', [ 'int argc', 'char * argv[]' ] )
+          ]
+  funcs[0].set_body( 'return EXIT_SUCCESS ;' )
     
-  main.set_body( 'return EXIT_SUCCESS ;' )
-  print str(main)
-  print '\n'.join( main.serialize() )
+  for func in funcs :
+    print str(func)
+    print '\n'.join( func.serialize() )
+    print ""
  
   return 0 
 

@@ -48,6 +48,8 @@ class Function :
       self._body = [ body ] 
     else :
       self._body = body
+    
+    return self
 
   def return_type ( self ) : return self._rt 
   def name        ( self ) : return self._name 
