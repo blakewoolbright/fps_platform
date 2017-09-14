@@ -20,13 +20,17 @@ def main() :
               ] 
   
   
+  print "-----------------------------------------------------"
   for entry in decl_list :
-    print "-----------------------------------------------------"
     var_decl      = entry[0] 
     expected_root = entry[1]
-    test_type     = py2cpp .Type( var_decl, verbose=True ) 
+    test_type     = py2cpp .Type( var_decl ) 
     if test_type.typeroot() != expected_root :
       raise Exception( "Expected typeroot of '%s' for '%s'"%( expected_root, var_decl ) )
+    
+    print var_decl 
+    print test_type.serialize() 
+    print ""
  
   return 0 
 
