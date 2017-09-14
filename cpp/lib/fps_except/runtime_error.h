@@ -16,7 +16,7 @@ namespace except {
     RuntimeError( const char * fmt, ... ) ;
 
     //------------------------------------------------------------
-    virtual ~RuntimeError() throw() ;
+    virtual ~RuntimeError() ;
   } ;
 
 }}

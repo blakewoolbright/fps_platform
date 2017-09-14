@@ -29,7 +29,7 @@ namespace except {
 
     //------------------------------------------------------------------------
     Exception( const char * fmt, ... ) ;
-    virtual ~Exception() throw() ;
+    virtual ~Exception() ;
 
     //------------------------------------------------------------------------
     inline virtual const char * what() const throw() { return msg_.c_str() ; }

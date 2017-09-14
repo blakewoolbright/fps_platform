@@ -197,7 +197,7 @@ namespace ntp {
   //---------------------------------------------------------------------------------------------- 
   #define FPS_Declare_NTP_Value(NAME, TYPE) \
     struct NAME##_NTP_ID; \
-    template< uint32_t T_Default > \
+    template< int64_t T_Default > \
     struct NAME \
       : ntp::Value<NAME##_NTP_ID, TYPE, T_Default> \
     {} ; 

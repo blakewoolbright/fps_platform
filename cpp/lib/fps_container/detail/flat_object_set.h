@@ -273,14 +273,15 @@ namespace detail {
                      ;
 
     // Save current array & capacity 
-    uint32_t   old_cap  = capacity_ ;
-    T        * old_data = data_ ;
+    // uint32_t   old_cap  = capacity_ ;
+    T * old_data = data_ ;
 
     // Allocate new array with increased capacity, and include an extra 
     // slot to make the end() iterator's implementation less complex.
     data_ = new T [ new_cap + 1 ] ;
     if( fps_unlikely( data_ == NULL ) )
-    { data_ = old_data ;
+    { 
+      data_ = old_data ;
       return false ;
     }
 

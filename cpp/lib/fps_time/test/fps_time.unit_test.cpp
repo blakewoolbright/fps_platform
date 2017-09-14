@@ -29,7 +29,7 @@ BOOST_AUTO_TEST_CASE( fps_time__clock )
                      , "\n\ttime::Clock | Clock not incrementing"
                      ) ;
 
-  BOOST_CHECK_MESSAGE( ::abs(sleep_usecs - delta_usecs) < 1000
+  BOOST_CHECK_MESSAGE( std::abs(sleep_usecs - delta_usecs) < 1000
                      , "\n\ttime::Clock | Clock not accurate"
                      ) ;
 

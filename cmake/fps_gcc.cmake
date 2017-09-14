@@ -6,9 +6,9 @@ set( FPS_COMMON_COMPILER_FLAGS
      -march=native
      -mtune=generic
      -fdiagnostics-show-option
-     -frecord-gcc-switches
      -fno-strict-aliasing
      -Wall
+     -Wextra
      -Wunused-variable
      -Wno-unused-function
      -Wno-unused-parameter
@@ -20,9 +20,8 @@ set( FPS_COMMON_COMPILER_FLAGS
      -Wtype-limits
      -Wformat
      -Wfatal-errors
-     -Wextra
      -Wno-empty-body
-)
+   )
 
 if( FPS_BUILD_INFO_FILE ) 
   list( APPEND FPS_COMMON_COMPILER_FLAGS "-DFPS__ENABLE_BUILD_INFO" )
@@ -45,7 +44,7 @@ endif()
 if( "${FPS_BUILD_TYPE}" STREQUAL "optimized" )
   list( APPEND FPS_COMMON_COMPILER_FLAGS -O3 -g1 )
 elseif( "${FPS_BUILD_TYPE}" STREQUAL "debug" )
-  list( APPEND FPS_COMMON_COMPILER_FLAGS -O -g3 )
+  list( APPEND FPS_COMMON_COMPILER_FLAGS -g3 )
 else()
   set( error_msg 
        " " 
@@ -69,39 +68,46 @@ list( GET version_numbers 0 FPS_GCC_MAJOR_VERSION )
 list( GET version_numbers 1 FPS_GCC_MINOR_VERSION ) 
 list( GET version_numbers 2 FPS_GCC_MINOR_REVISION )
 
-if( FPS_GCC_MAJOR_VERSION EQUAL 5 )
-
+# if( FPS_GCC_MAJOR_VERSION EQUAL 5 )
+if( ${FPS_COMPILER_VENDOR} STREQUAL "gcc" )
   list( APPEND FPS_COMMON_COMPILER_FLAGS 
-    -std=c++11
-    -Wno-unused-but-set-variable 
-    -Wno-delete-non-virtual-dtor
-    -Wno-narrowing
-    -Wno-maybe-uninitialized
-    -Wno-unused-local-typedefs
-  )
-  
-  if( ${FPS_BUILD_TYPE} STREQUAL "optimized" )
+        -std=c++17
+        -frecord-gcc-switches 
+        -Wno-delete-non-virtual-dtor
+        -Wno-narrowing
+        -Wno-maybe-uninitialized
+        -Wno-unused-local-typedefs
+      )
+else()
+  list( APPEND FPS_COMMON_COMPILER_FLAGS 
+        -std=c++11
+      )
+endif()
+
+if( ${FPS_BUILD_TYPE} STREQUAL "optimized" )
+  if( ${FPS_COMPILER_VENDOR} STREQUAL "gcc" )
     list( APPEND FPS_COMMON_COMPILER_FLAGS
           -flto
           -fwhole-program
           -fdevirtualize
         )
     list( APPEND FPS_COMMON_LINKER_FLAGS -flto )
-  endif()
-
-else() 
-  set( error_msg 
-       "  "
-       " [ fps_gcc ]"
-       "   Error :: Unsupported GCC compiler version '${FPS_COMPILER_VERSION}'"
-       "   Major :: ${FPS_GCC_MAJOR_VERSION}"
-       "   Minor :: ${FPS_GCC_MINOR_VERSION}"
-       "   Rev   :: ${FPS_GCC_MINOR_REVISION}"
-       " "
-  )
-  join( "${error_msg}" "\n" error_msg ) 
-  message( FATAL_ERROR "${error_msg}" )
+  endif() 
 endif()
+
+#else() 
+#  set( error_msg 
+#       "  "
+#       " [ fps_gcc ]"
+#       "   Error :: Unsupported GCC compiler version '${FPS_COMPILER_VERSION}'"
+#       "   Major :: ${FPS_GCC_MAJOR_VERSION}"
+#       "   Minor :: ${FPS_GCC_MINOR_VERSION}"
+#       "   Rev   :: ${FPS_GCC_MINOR_REVISION}"
+#       " "
+#  )
+#  join( "${error_msg}" "\n" error_msg ) 
+#  message( FATAL_ERROR "${error_msg}" )
+#endif()
 
 #-----------------------------------------------------------------------------------------------------------------
 # Convert list of default library search paths to list of linker appropriate -L directives.

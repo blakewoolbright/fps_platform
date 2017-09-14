@@ -88,13 +88,13 @@ BOOST_AUTO_TEST_CASE( fps_ntp__core )
 {
   std::cout << "[ fps::ntp unit tests ]" << std::endl ;
     
-  typedef uint16_t      Type_0 ;
-  typedef uint64_t      Type_1 ;
-  static const uint32_t Capacity_1 = 666 ;
-  static const uint32_t Capacity_2 = 12345 ;
-  static const int16_t  Weight_2   = -12345 ;
-  static const bool     Reverse_2  = true ;
-  typedef int32_t       Type_2 ;
+  typedef uint16_t Type_0 ;
+  typedef uint64_t Type_1 ;
+  const   uint32_t Capacity_1 = 666 ;
+  const   uint32_t Capacity_2 = 12345 ;
+  const   int32_t  Weight_2   = -12345 ;
+  const   bool     Reverse_2  = true ;
+  typedef int32_t  Type_2 ;
 
   typedef Example< Type_0 >                            ex_0_t ;
   typedef Example< Type_1, opt::Capacity<Capacity_1> > ex_1_t ;

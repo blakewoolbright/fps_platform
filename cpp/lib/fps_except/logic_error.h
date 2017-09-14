@@ -15,7 +15,7 @@ namespace except {
 
     //-----------------------------------------
     LogicError( const char * fmt, ... ) ;
-    virtual ~LogicError() throw() ;
+    virtual ~LogicError() ;
   } ;
 
 }}
