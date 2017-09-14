@@ -4,6 +4,9 @@ from Variable import Variable
 
 class Constructor :
 
+  Attribute_Tags = [ 'inline', 'explicit', 'virtual', 'pure' ]
+  """Valid attribute tag definitions"""
+
   def __init__( self, name, args=[], attrs=[], initializers=[], body=None ) :
     
     if not isinstance( name, str ) or len(name) == 0 :
@@ -16,6 +19,12 @@ class Constructor :
     # Initialize w/ defaults
     self.clear() 
     self._attrs = [ x.lower().strip() for x in attrs ]
+
+    # Init attributes
+    self._is_explicit = True if 'explicit' in self._attrs else False 
+    self._is_virtual  = True if 'virtual'  in self._attrs else False
+    self._is_inline   = True if 'inline'   in self._attrs else False
+    self._is_pure     = True if 'pure'     in self._attrs else False
     
     # Set function arguments
     self._args = []
