@@ -6,15 +6,28 @@ from fps import py2cpp
 
 def main() :
 
-  funcs = [ py2cpp.Function( 'int', 'main', [ 'int argc', 'char * argv[]' ] )
-          , py2cpp.Function( 'int', 'main', [ 'int argc', 'char * argv[]' ] )
-          ]
-  funcs[0].set_body( 'return EXIT_SUCCESS ;' )
+  func = py2cpp.Function( 'int', 'main'
+                        , [ 'int argc', 'char * argv[]' ]
+                        , body='return EXIT_SUCCESS ;' 
+                        )
     
-  for func in funcs :
-    print str(func)
-    print '\n'.join( func.serialize() )
-    print ""
+  print "[ Default Indention ]" 
+  lines = [ py2cpp.Options.Indent_Width * ' ' + x for x in func.serialize() ]
+  print '\n'.join( lines )
+  print ""
+
+  print "[ 2x Default Indention ]" 
+  lines  = func.serialize( py2cpp.Options.Indent_Width * 2 ) 
+  lines  = [ (py2cpp.Options.Indent_Width * ' ') + x for x in lines ] 
+  print '\n'.join( lines )
+  print ""
+
+  print "[ Tabbed Indention ]" 
+  py2cpp.Options.Indent_Width = 1
+  py2cpp.Options.Indent_Char  = '\t'
+  lines  = [ (py2cpp.Options.Indent_Width * '\t') + x for x in func.serialize() ] 
+  print '\n'.join( lines )
+  print ""
  
   return 0 
 
