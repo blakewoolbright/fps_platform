@@ -28,6 +28,19 @@ def main() :
   lines  = [ (py2cpp.Options.Indent_Width * '\t') + x for x in func.serialize() ] 
   print '\n'.join( lines )
   print ""
+  py2cpp.Options.Indent_Width = 2 
+  py2cpp.Options.Indent_Char  = ' '
+
+  print "[ Constructor for 'TestClass' ]"
+  ctor = py2cpp.Constructor( 'TestClass', attrs=[ 'inline' ] )
+  lines  = [ (py2cpp.Options.Indent_Width * ' ') + x for x in ctor.serialize() ] 
+  print '\n'.join( lines )
+  print ""
+    
+  ctor.set_body( "std::cout << \"TestClass\" << std::endl ;" ) 
+  lines  = [ (py2cpp.Options.Indent_Width * ' ') + x for x in ctor.serialize() ] 
+  print '\n'.join( lines )
+  print ""
  
   return 0 
 

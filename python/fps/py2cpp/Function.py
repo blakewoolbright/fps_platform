@@ -126,9 +126,8 @@ class Function :
     serialized (if possible).  If 'proto' is True, then only 
     a function prototype will be serialized.
     """
-    indent = Options.Indent_Width if indent == 0 else indent
+    indent    = Options.Indent_Width if indent == 0 else indent
     f_name    = self.name() 
-
     f_prefix  = ''
     f_prefix += 'inline ' if self.is_inline() else '' 
     f_prefix += 'static ' if self.is_static() else ''
@@ -142,7 +141,11 @@ class Function :
     # Handle declaration/prototype serialization
     out = ''
     if proto or not self.body() :
-      out  = f_prefix + self.return_type().typename() + ' ' + f_name + '( ' + f_args + ' )' 
+      out = f_prefix + self.return_type().typename() + ' ' + f_name + '(' 
+      if len( f_args ) :
+        out += ' ' + f_args + ' ' 
+      out += ')'
+        
       if self.is_const() :
         out += ' const' 
       out += ' ;'
@@ -151,7 +154,11 @@ class Function :
     # Handle full definition serialization
     else :
       f_indent  = Options.Indent_Char * indent 
-      out += f_prefix + self.return_type().typename() + ' ' + f_name + '( ' +  f_args + ' )'
+      # out += f_prefix + self.return_type().typename() + ' ' + f_name + '( ' +  f_args + ' )'
+      out += f_prefix + self.return_type().typename() + ' ' + f_name + '('
+      if len( f_args ) :
+        out += ' ' + f_args + ' '
+      out += ')'
       
       if self.is_const() :
         out += ' const' 
