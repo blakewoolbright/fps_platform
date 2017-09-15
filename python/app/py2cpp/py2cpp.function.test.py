@@ -40,12 +40,25 @@ def main() :
   py2cpp.Options.Indent_Char  = ' '
 
   print "[ Constructor for 'TestClass' ]"
-  ctor = py2cpp.Constructor( 'TestClass', attrs=[ 'inline' ] )
+  ctor = py2cpp.Constructor( 'TestClass', attrs=[ 'inline', 'explicit' ] )
   ctor.set_body( "std::cout << \"TestClass\" << std::endl ;" ) 
   lines  = [ (py2cpp.Options.Indent_Width * ' ') + x for x in ctor.serialize( proto=True ) ] 
   print '\n'.join( lines )
   lines  = [ (py2cpp.Options.Indent_Width * ' ') + x for x in ctor.serialize() ] 
   print '\n'.join( lines )
+  print ""
+  ctor.describe()
+  print ""
+
+  print "[ Copy Constructor for 'TestClass' ]"
+  ctor = py2cpp.Constructor( 'TestClass', attrs=[ 'inline', 'explicit' ], args=[ 'const TestClass & rhs' ] )
+  ctor.set_body( "std::cout << \"TestClass\" << std::endl ;" ) 
+  lines  = [ (py2cpp.Options.Indent_Width * ' ') + x for x in ctor.serialize( proto=True ) ] 
+  print '\n'.join( lines )
+  lines  = [ (py2cpp.Options.Indent_Width * ' ') + x for x in ctor.serialize() ] 
+  print '\n'.join( lines )
+  print ""
+  ctor.describe()
   print ""
  
   return 0 

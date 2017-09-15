@@ -34,13 +34,18 @@ class Constructor :
       if not isinstance( arg, Variable ) :
         raise Exception( "Malformed argument to Function constructor '%s'", str(arg) )
       self._args.append( arg )  
+
+    # Check for copy constructor
+    if (len( self._args ) == 1) and (self._args[0].type().typeroot() == self.name()) :
+      self._is_copy_ctor = True 
+    else :
+      self._is_copy_ctor = False
     
     # Sanity check before returning
     self.sanity_check() 
 
   def clear( self ) :
     """Reset to defaults"""
-    self._return      = None 
     self._name        = None
     self._body        = []
     self._args        = []
@@ -49,6 +54,15 @@ class Constructor :
     self._is_virtual  = False
     self._is_inline   = False
     self._is_abstract = False
+
+  def describe( self ) :
+    print "  Function.name         : '%s'"%(str(self.name()))
+    print "  Function.is_ctor      : %s'"%(str(self.is_ctor()))
+    print "  Function.is_copy_ctor : %s'"%(str(self.is_copy_ctor()))
+    print "  Function.is_explicit  : %s'"%(str(self.is_explicit()))
+    print "  Function.is_inline    : %s'"%(str(self.is_inline()))
+    print "  Function.is_virtual   : %s'"%(str(self.is_virtual()))
+    print "  Function.is_abstract  : %s'"%(str(self.is_abstract()))
 
   def sanity_check( self ) :
     """Sanity check instance"""
@@ -82,12 +96,13 @@ class Constructor :
   def args        ( self ) : return self._args 
   def body        ( self ) : return self._body
   def is_inline   ( self ) : return self._is_inline 
-  def is_const    ( self ) : return self._is_const
   def is_virtual  ( self ) : return self._is_virtual
   def is_abstract ( self ) : return self._is_abstract
+  def is_explicit ( self ) : return self._is_explicit
   def is_prototype( self ) : return self._is_proto
-  def is_ctor     ( self ) : return False 
   def is_function ( self ) : return True  
+  def is_ctor     ( self ) : return True
+  def is_copy_ctor( self ) : return self._is_copy_ctor 
 
   def serialize( self, indent=0, proto=False ) :
     """
@@ -101,6 +116,7 @@ class Constructor :
     f_prefix  = ''
     f_prefix += 'inline ' if self.is_inline() else '' 
     f_prefix += 'virtual ' if self.is_virtual() else ''
+    f_prefix += 'explicit ' if self.is_explicit() else ''
 
     f_args = []
     for arg in self.args() :
