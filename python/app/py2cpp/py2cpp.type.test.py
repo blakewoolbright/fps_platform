@@ -11,7 +11,7 @@ def main() :
               , ('\tconst char * const var ;', 'char')
               , ('const\tchar ** var ;', 'char')
               , ('int64_t & var ;\n', 'int64_t')
-#              , ('UserStruct && var', 'UserStruct')
+              , ('UserStruct && var', 'UserStruct')
               , ('uint8_t var[16] ;', 'uint8_t')
               , ('std::vector<std::string>', 'std::vector<std::string>')
               , ('std::vector< std::string,\tabcd  >', 'std::vector<std::string, abcd>') 
@@ -29,7 +29,8 @@ def main() :
     if test_type.typeroot() != expected_root :
       raise Exception( "Expected typeroot of '%s' for '%s'"%( expected_root, var_decl ) )
     
-    print "'%s' => '%s'"%( var_decl, test_type.serialize() )
+    print "'%s' => '%s'"%( var_decl.rstrip(), test_type.serialize() )
+    test_type.describe()
     print ""
  
   return 0 

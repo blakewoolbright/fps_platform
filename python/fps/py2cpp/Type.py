@@ -103,7 +103,8 @@ class Type :
     self._sizeof         = None
     self._is_primitive   = False
     self._is_pointer     = False
-    self._is_reference   = False
+    self._is_ref         = False
+    self._is_rvalue_ref  = False
     self._is_enum        = False
     self._is_struct      = False
     self._is_template    = False # For template types
@@ -170,7 +171,11 @@ class Type :
 
   def is_reference( self ) :
     '''Returns True for reference (&) types.'''
-    return self._is_reference
+    return self._is_ref
+
+  def is_rvalue_reference( self ) :
+    '''Returns True for reference (&) types.'''
+    return self._is_ref and self._is_rvalue_ref 
   
   def indirections( self ) :
     '''Returns the number of pointer/reference indirections'''
@@ -198,7 +203,7 @@ class Type :
 
   def is_alias( self ) :
     '''Returns True for pointer and reference types and False for arrays/etc.'''
-    return self._is_pointer or self._is_reference
+    return self._is_pointer or self._is_ref
 
   def is_const_alias( self ) :
     '''Returns True for const pointer and reference types that refer to non-const data.'''
@@ -251,13 +256,13 @@ class Type :
       elif word == 'const'     : 
         # If the 'const' comes after we've already seen a '*' or '&' then
         # this is a constant alias (can't refer to anything else)
-        if self._is_pointer or self._is_reference :
+        if self._is_pointer or self._is_ref :
           self._is_const_alias = True 
         else :
           self._is_const = True 
 
       elif word == '*' : 
-        if self._is_reference :
+        if self._is_ref :
           raise Exception( 'Type.__compose_typeroot: Reference-to-pointer is unsupported (%s)'%(cpp_decl) )
 
         self._is_pointer    = True 
@@ -266,11 +271,11 @@ class Type :
         if self._is_pointer :
           raise Exception( 'Type.__compose_typeroot: Pointer-to-reference is unsupported (%s)'%(cpp_decl) )
 
-        self._is_reference  = True 
+        self._is_ref = True 
         self._indirections += 1
 
-        if self._indirections > 1 :
-          raise Exception( "Type.__compose_typeroot: RValue references are unsupported (%s)"%(cpp_decl) )
+        if self._indirections > 2 :
+          raise Exception( "Type.__compose_typeroot: Malformed reference declaration (%s)"%(cpp_decl) )
 
       elif word == 'enum' : 
         self._is_enum      = True
@@ -426,28 +431,29 @@ class Type :
   
   def describe( self ) :
 
-    print "  Type.sizeof         : %s"%(str(self._sizeof)) 
-    print "  Type.is_primitive   : %s"%(str(self.is_primitive()))
-    print "  Type.is_struct      : %s"%(str(self.is_struct()))
-    print "  Type.is_template    : %s"%(str(self.is_template()))
-    print "  Type.is_pointer     : %s"%(str(self.is_pointer()))
-    print "  Type.is_reference   : %s"%(str(self.is_reference()))
-    print "  Type.indirections   : %s"%(str(self.indirections()))
-    print "  Type.is_alias       : %s"%(str(self.is_alias()))
-    print "  Type.is_array       : %s (%s)"%(str(self.is_array()), str(self.array_size()))
-    print "  Type.is_const       : %s"%(str(self.is_const())) 
-    print "  Type.is_const_alias : %s"%(str(self.is_const_alias()))
-    print "  Type.is_const_expr  : %s"%(str(self.is_const_expr()))
-    print "  Type.is_mutable     : %s"%( str(not self.is_const()) ) 
-    print "  Type.is_static      : %s"%(str(self.is_const_alias()))
-    print "  Type.is_volatile    : %s"%(str(self.is_const_expr()))
-    print "  Type.namespaces     : %s"%(str(self._namespaces))
-    print "  Type.typeroot       : %s"%(self.typeroot())
-    print "  Type.decl_prefix    : %s"%(self.decl_prefix()) 
+    print "  sizeof         : %s"%(str(self._sizeof)) 
+    print "  is_primitive   : %s"%(str(self.is_primitive()))
+    print "  is_struct      : %s"%(str(self.is_struct()))
+    print "  is_template    : %s"%(str(self.is_template()))
+    print "  is_pointer     : %s"%(str(self.is_pointer()))
+    print "  is_reference   : %s"%(str(self.is_reference()))
+    print "  is_rvalue_ref  : %s"%(str(self.is_rvalue_reference()))
+    print "  indirections   : %s"%(str(self.indirections()))
+    print "  is_alias       : %s"%(str(self.is_alias()))
+    print "  is_array       : %s (%s)"%(str(self.is_array()), str(self.array_size()))
+    print "  is_const       : %s"%(str(self.is_const())) 
+    print "  is_const_alias : %s"%(str(self.is_const_alias()))
+    print "  is_const_expr  : %s"%(str(self.is_const_expr()))
+    print "  is_mutable     : %s"%( str(not self.is_const()) ) 
+    print "  is_static      : %s"%(str(self.is_const_alias()))
+    print "  is_volatile    : %s"%(str(self.is_const_expr()))
+    print "  namespaces     : %s"%(str(self._namespaces))
+    print "  typeroot       : %s"%(self.typeroot())
+    print "  decl_prefix    : %s"%(self.decl_prefix()) 
     if self.decl_suffix() : 
-      print "  Type.decl_suffix    : %s"%(self.decl_suffix()) 
-    print "  Type.typename       : %s"%(self.typename())
-    print "  Type.declare( var ) : %s"%(self.declare( 'var' ))
+      print "  decl_suffix    : %s"%(self.decl_suffix()) 
+    print "  typename       : %s"%(self.typename())
+    print "  declare( var ) : %s"%(self.declare( 'var' ))
     
   
   def __str__( self ) :
