@@ -11,6 +11,7 @@ def main() :
               , ('\tconst char * const var ;', 'char')
               , ('const\tchar ** var ;', 'char')
               , ('int64_t & var ;\n', 'int64_t')
+#              , ('UserStruct && var', 'UserStruct')
               , ('uint8_t var[16] ;', 'uint8_t')
               , ('std::vector<std::string>', 'std::vector<std::string>')
               , ('std::vector< std::string,\tabcd  >', 'std::vector<std::string, abcd>') 
