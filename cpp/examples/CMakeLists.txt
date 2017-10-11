@@ -7,3 +7,4 @@ fps_add_application(
 
 add_subdirectory( ipc )
 add_subdirectory( asm )
+add_subdirectory( python )

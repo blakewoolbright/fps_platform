@@ -308,11 +308,18 @@ endforeach()
 fps_add_external_component( 
     LABEL                "boost"
     DESCRIPTION          "Boost C++ Libraries (system default)"
-    SYSTEM_INCLUDE_DIRS  "/usr/include/"
-    REQUIRES             "libpthread.so"
+    SYSTEM_INCLUDE_DIRS  /usr/include
+    REQUIRES             libpthread.so
     PROVIDES             "boost_system boost_program_options boost_filesystem boost_regex boost_thread boost_date_time boost_serialization"
 )
 
+fps_add_external_component( 
+    LABEL                "boost-python"
+    DESCRIPTION          "Boost C++ / Python Interop Library"
+    SYSTEM_INCLUDE_DIRS  /usr/include/python2.7
+    REQUIRES             pthread python2.7
+    PROVIDES             boost_python
+)
 
 #-------------------------------------------------------------------------------------------------------------------
 # Finally, make sure we know where to find the boost unit test framework. 
