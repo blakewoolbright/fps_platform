@@ -84,15 +84,18 @@ else()
       )
 endif()
 
-if( ${FPS_BUILD_TYPE} STREQUAL "optimized" )
-  if( ${FPS_COMPILER_VENDOR} STREQUAL "gcc" )
-    list( APPEND FPS_COMMON_COMPILER_FLAGS
-          -flto
-          -fwhole-program
-          -fdevirtualize
-        )
-    list( APPEND FPS_COMMON_LINKER_FLAGS -flto )
-  endif() 
+# Skip extended optimization flags for now
+if( False ) 
+  if( ${FPS_BUILD_TYPE} STREQUAL "optimized" )
+    if( ${FPS_COMPILER_VENDOR} STREQUAL "gcc" )
+      list( APPEND FPS_COMMON_COMPILER_FLAGS
+            -flto
+            -fwhole-program
+            -fdevirtualize
+          )
+      list( APPEND FPS_COMMON_LINKER_FLAGS -flto )
+    endif() 
+  endif()
 endif()
 
 #else() 

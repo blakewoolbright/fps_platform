@@ -289,7 +289,10 @@ endif()
 # Now configure compilation settings based on the current compilation toolset.
 #
 #-----------------------------------------------------------------------------------------------------------------
-if( ( "${FPS_COMPILER_VENDOR}" STREQUAL "gcc" ) OR ( "${FPS_COMPILER_VENDOR}" STREQUAL "clang" ) )
+if( "${FPS_COMPILER_VENDOR}" STREQUAL "gcc" )
+  include( fps_gcc )
+elseif( "${FPS_COMPILER_VENDOR}" STREQUAL "clang" )
+  # TODO: Add clang bindings
   include( fps_gcc )
 else()
   set( error_msg 
