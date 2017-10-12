@@ -3,6 +3,7 @@ fps_add_library(
   DEPENDS       fps_build_info
                 fps_util
   REQUIRES      boost boost-python
+  PYMODULE 
   FILES         example.python_module.cpp
 )
 

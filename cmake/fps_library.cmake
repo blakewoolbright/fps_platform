@@ -31,8 +31,8 @@ function( fps_add_library )
   
   fps_parse_argument_list( 
     ARG
-    "NAME;EXCLUDE_FROM;REQUIRES;DEPENDS;COMPILER_FLAGS;PROPERTIES;INCLUDES;FILES;OBJECTS;DESTINATION"
-    "SHARED;STATIC;PSEUDO;STRIPPED"
+    "NAME;EXCLUDE_FROM;REQUIRES;DEPENDS;COMPILER_FLAGS;PROPERTIES;INCLUDES;FILES"
+    "SHARED;STATIC;STRIPPED;PYMODULE"
     ${ARGN}
   )
 
@@ -47,7 +47,7 @@ function( fps_add_library )
     join( "${error_msg}" "\n" error_msg )
     message( FATAL_ERROR "${error_msg}" )
   endif()
-
+    
   if( ARG_EXCLUDE_FROM ) 
     fps_is_library_excluded( ${ARG_NAME} ARG_EXCLUDE_FROM is_excluded_from_plan ) 
     if( is_excluded_from_plan ) 
@@ -69,12 +69,27 @@ function( fps_add_library )
     )
     join( "${error_msg}" "\n" error_msg )
     message( FATAL_ERROR "${error_msg}" )
+  elseif( ARG_PYMODULE AND ARG_STATIC ) 
+    message( "Skipping build of python module ${ARG_NAME} (static linkage)" )
+    return() 
   elseif( ARG_STATIC )
     set( lib__linkage STATIC )
   elseif( ARG_SHARED ) 
     set( lib__linkage SHARED ) 
+  elseif( FPS_LINK_TYPE ) 
+    string( TOUPPER ${FPS_LINK_TYPE} lib__linkage )
+  else()
+    set( error_msg  
+         "   "
+         "  [ fps_add_library ]"
+         "    Name  : '${ARG_NAME}'"
+         "    File  : '${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt'"
+         "    Error : Neither STATIC nor SHARED linkage specified"
+         "   " 
+    )
+    join( "${error_msg}" "\n" error_msg )
+    message( FATAL_ERROR "${error_msg}" )
   endif() 
-  string( TOUPPER ${FPS_LINK_TYPE} lib__linkage )
 
   #
   # Merge arguments with associated defaults
@@ -162,14 +177,6 @@ function( fps_add_library )
   
   if( lib__include_dirs ) 
     list( REMOVE_DUPLICATES lib__include_dirs )
-  endif() 
-
-  if( ARG_OBJECTS ) 
-    if( NOT ARG_FILES ) 
-      set( ARG_FILES ${ARG_OBJECTS} ) 
-    else() 
-      list( APPEND ARG_FILES ${ARG_OBJECTS} )
-    endif()
   endif() 
 
   if( FPS_VERBOSE )
