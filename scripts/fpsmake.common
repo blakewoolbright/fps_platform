@@ -246,7 +246,8 @@ function fps__print_environment()
     FPS_TOOLCHAIN_DIR    :: ${FPS_TOOLCHAIN_DIR}
     FPS_COMPILER_DIR     :: ${FPS_COMPILER_DIR}
     FPS_COMPILER_VERSION :: ${FPS_COMPILER_VERSION}
-    FPS_COMPILER_VENDOR  :: ${FPS_COMPILER_VENDOR}"
+    FPS_COMPILER_VENDOR  :: ${FPS_COMPILER_VENDOR}
+    PYTHONPATH           :: ${PYTHONPATH}"
 }
 
 #
@@ -297,6 +298,8 @@ function fps__path_prepend()
       *            ) var_value="${arg}:${var_value}" ;;
     esac
   done
+  
+  var_value=${var_value%:*}
   eval export ${var_name}="${var_value}"
 }
 

@@ -91,7 +91,7 @@ function( fps_add_unit_test )
   #
   # Make sure people don't confuse the REQUIRES tag with the DEPENDS tag.
   #
-  get_property( all_library_targets GLOBAL PROPERTY ${FPS_PROPERTY_NAME__LIBRARY_TARGETS} )
+  get_property( all_library_targets GLOBAL PROPERTY ${FPS_PROP__LIB_TARGETS} )
   foreach( req ${test__requirements} )
     fps_list_contains( all_library_targets "${req}" is_compiled_library )
     if( is_compiled_library ) 

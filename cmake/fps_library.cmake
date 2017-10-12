@@ -12,10 +12,10 @@
 #   FILES          : optional : List of c++ source files that comprise this library.  
 #                               If no FILES are specified, a header-only library is created.
 #
-# ATTRIBUTES 
+# PROPERTIES 
 #   SHARED         : optional : Always build this library as a shared library.
 #   STATIC         : optional : Always build this library as a static library. 
-#   PSEUDO         : optional : Internal flag that indicates potential witchcraft.  (See: fps_add_object_files)
+#   PYMODULE       : optional : Creates a loadable python module (shared only)
 #
 # EXAMPLE
 #   fps_add_library( 
@@ -32,7 +32,7 @@ function( fps_add_library )
   fps_parse_argument_list( 
     ARG
     "NAME;EXCLUDE_FROM;REQUIRES;DEPENDS;COMPILER_FLAGS;PROPERTIES;INCLUDES;FILES"
-    "SHARED;STATIC;STRIPPED;PYMODULE"
+    "SHARED;STATIC;PYMODULE"
     ${ARGN}
   )
 
@@ -69,27 +69,50 @@ function( fps_add_library )
     )
     join( "${error_msg}" "\n" error_msg )
     message( FATAL_ERROR "${error_msg}" )
-  elseif( ARG_PYMODULE AND ARG_STATIC ) 
-    message( "Skipping build of python module ${ARG_NAME} (static linkage)" )
-    return() 
+  # Use static linkage
   elseif( ARG_STATIC )
     set( lib__linkage STATIC )
+  # Use shared linkage
   elseif( ARG_SHARED ) 
     set( lib__linkage SHARED ) 
-  elseif( FPS_LINK_TYPE ) 
+  # Otherwise use default linkage
+  elseif( FPS_LINK_TYPE )
     string( TOUPPER ${FPS_LINK_TYPE} lib__linkage )
+    if( ${lib__linkage} STREQUAL STATIC ) 
+      set( ARG_STATIC True )
+    else()
+      set( ARG_SHARED True ) 
+    endif() 
   else()
     set( error_msg  
          "   "
          "  [ fps_add_library ]"
          "    Name  : '${ARG_NAME}'"
          "    File  : '${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt'"
-         "    Error : Neither STATIC nor SHARED linkage specified"
+         "    Error : Neither STATIC nor SHARED linkage specified and no default is present (FPS_LINK_TYPE)"
          "   " 
     )
     join( "${error_msg}" "\n" error_msg )
     message( FATAL_ERROR "${error_msg}" )
   endif() 
+
+  # Handle python module creation
+  if( ARG_PYMODULE ) 
+    # If this is a python module, only build it when shared linkage is selected
+    if( ARG_STATIC )
+      set( out_msg  
+           "   "
+           "  [ fps_add_library ]"
+           "    Name  : '${ARG_NAME}'"
+           "    File  : '${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt'"
+           "    Info  : Skipping python module creation for static build"
+           "   " 
+      )
+      join( "${out_msg}" "\n" out_msg )
+      fps_log( ${out_msg} )
+      return() 
+    endif() 
+  endif()
 
   #
   # Merge arguments with associated defaults
@@ -106,7 +129,7 @@ function( fps_add_library )
   #
   # Make sure people don't confuse the REQUIRES tag with the DEPENDS tag.
   #
-  get_property( all_library_targets GLOBAL PROPERTY ${FPS_PROPERTY_NAME__LIBRARY_TARGETS} )
+  get_property( all_library_targets GLOBAL PROPERTY ${FPS_PROP__LIB_TARGETS} )
   if( lib__requirements ) 
     set( is_compiled_library )
     foreach( req ${lib__requirements} )
@@ -250,9 +273,14 @@ function( fps_add_library )
     #
     # Add library to global list of library targets.
     # 
-    if( NOT ARG_PSEUDO ) 
-      set_property( GLOBAL APPEND PROPERTY ${FPS_PROPERTY_NAME__LIBRARY_TARGETS} ${ARG_NAME} )
-    endif()
+    # if( NOT ARG_PSEUDO ) 
+    set_property( GLOBAL APPEND PROPERTY ${FPS_PROP__LIB_TARGETS} ${ARG_NAME} )
+    # endif()
+    
+    # Disable automatic "lib" prefix for python modules 
+    if( ARG_PYMODULE ) 
+      set_target_properties( ${ARG_NAME} PROPERTIES PREFIX "" ) 
+    endif() 
 
   else() 
     # 
@@ -267,7 +295,7 @@ function( fps_add_library )
     #
     # And add it to our global list of utility targets.
     # 
-    set_property( GLOBAL APPEND PROPERTY ${FPS_PROPERTY_NAME__UTILITY_TARGETS} ${ARG_NAME} )
+    set_property( GLOBAL APPEND PROPERTY ${FPS_PROP__UTIL_TARGETS} ${ARG_NAME} )
   endif()
 
   #
@@ -283,7 +311,7 @@ function( fps_add_library )
   if( ARG_PROPERTIES ) 
     foreach( property_label ${ARG_PROPERTIES} ) 
       if( "${property_label}" STREQUAL "${FPS_PROPERTY_LABEL__LINK_WHOLE_ARCHIVE}" )
-        set_property( GLOBAL APPEND PROPERTY "${FPS_PROPERTY_GROUP__LINK_WHOLE_ARCHIVE}" ${ARG_NAME} )
+        set_property( GLOBAL APPEND PROPERTY "${FPS_PROP__LINK_WHOLE_ARCHIVE}" ${ARG_NAME} )
       endif()
     endforeach()
   endif()

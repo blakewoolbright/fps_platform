@@ -203,21 +203,21 @@ set( FPS_COMMON_DEPENDENCIES )
 # Build targets that are valid dependencies/requirements are sorted into various global lists depending on type.
 #
 #-----------------------------------------------------------------------------------------------------------------
-set( FPS_PROPERTY_NAME__LIBRARY_TARGETS    "fps.library_targets" )
-set( FPS_PROPERTY_NAME__UTILITY_TARGETS    "fps.utility_targets" )
-set( FPS_PROPERTY_NAME__REQUIREMENT_LABELS "fps.requirement_labels" )
-set_property( GLOBAL PROPERTY ${FPS_PROPERTY_NAME__LIBRARY_TARGETS} )
-set_property( GLOBAL PROPERTY ${FPS_PROPERTY_NAME__UTILITY_TARGETS} )
-set_property( GLOBAL PROPERTY ${FPS_PROPERTY_NAME__REQUIREMENT_LABELS} ) 
+set( FPS_PROP__LIB_TARGETS    "fps.library_targets" )
+set( FPS_PROP__UTIL_TARGETS    "fps.utility_targets" )
+set( FPS_PROP__REQ_LABELS "fps.requirement_labels" )
+set_property( GLOBAL PROPERTY ${FPS_PROP__LIB_TARGETS} )
+set_property( GLOBAL PROPERTY ${FPS_PROP__UTIL_TARGETS} )
+set_property( GLOBAL PROPERTY ${FPS_PROP__REQ_LABELS} ) 
 
 #-----------------------------------------------------------------------------------------------------------------
 #
 # Define property labels/gorups for use with fps_add_library and fps_add_application.
 #
 #-----------------------------------------------------------------------------------------------------------------
-set( FPS_PROPERTY_GROUP__LINK_WHOLE_ARCHIVE "fps_property.link_whole_archive" )
+set( FPS_PROP__LINK_WHOLE_ARCHIVE "fps_property.link_whole_archive" )
 set( FPS_PROPERTY_LABEL__LINK_WHOLE_ARCHIVE "link_whole_archive" )
-set_property( GLOBAL PROPERTY "${FPS_PROPERTY_GROUP__LINK_WHOLE_ARCHIVE}" )
+set_property( GLOBAL PROPERTY "${FPS_PROP__LINK_WHOLE_ARCHIVE}" )
 
 #-----------------------------------------------------------------------------------------------------------------
 #

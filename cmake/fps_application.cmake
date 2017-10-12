@@ -86,8 +86,8 @@ function( fps_add_application )
   #
   # Fetch global list of all library targets.
   #
-  get_property( library_targets GLOBAL PROPERTY "${FPS_PROPERTY_NAME__LIBRARY_TARGETS}" )
-  get_property( utility_targets GLOBAL PROPERTY "${FPS_PROPERTY_NAME__UTILITY_TARGETS}" )
+  get_property( library_targets GLOBAL PROPERTY "${FPS_PROP__LIB_TARGETS}" )
+  get_property( utility_targets GLOBAL PROPERTY "${FPS_PROP__UTIL_TARGETS}" )
 
   #
   # Make sure people don't confuse the REQUIRES tag with the DEPENDS tag.

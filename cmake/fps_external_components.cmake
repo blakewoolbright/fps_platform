@@ -198,7 +198,7 @@ function( fps_add_external_component )
   set( FPS_${UC_LABEL}_COMPILER_FLAGS   "${component_compiler_flags}" PARENT_SCOPE )
   set( FPS_${UC_LABEL}_LINKAGE          "${component_linkage}"        PARENT_SCOPE )
 
-  set_property( GLOBAL APPEND PROPERTY ${FPS_PROPERTY_NAME__REQUIREMENT_LABELS} ${ARG_LABEL} )
+  set_property( GLOBAL APPEND PROPERTY ${FPS_PROP__REQ_LABELS} ${ARG_LABEL} )
 
   if( FPS_VERBOSE )
     set ( ml_delim "'\n                  + '" )

@@ -213,7 +213,7 @@ function( fps_link_requirements target_name )
     return()
   endif()
 
-  get_property( all__requirement_labels GLOBAL PROPERTY ${FPS_PROPERTY_NAME__REQUIREMENT_LABELS} )
+  get_property( all__requirement_labels GLOBAL PROPERTY ${FPS_PROP__REQ_LABELS} )
 
   set( required_lib_dirs ) 
   set( required_lib_names ) 
@@ -268,7 +268,7 @@ function( fps_get_required_library_names _RESULT )
   endif()
 
   set( results_list )
-  get_property( all__requirement_labels GLOBAL PROPERTY ${FPS_PROPERTY_NAME__REQUIREMENT_LABELS} )
+  get_property( all__requirement_labels GLOBAL PROPERTY ${FPS_PROP__REQ_LABELS} )
   foreach( label ${ARGN} )
     fps_list_contains( all__requirement_labels "${label}" is_requirement_label )
     if( is_requirement_label ) 
@@ -305,7 +305,7 @@ function( fps_get_required_library_files _RESULT )
   endif()
 
   set( results_list )
-  get_property( all__requirement_labels GLOBAL PROPERTY ${FPS_PROPERTY_NAME__REQUIREMENT_LABELS} )
+  get_property( all__requirement_labels GLOBAL PROPERTY ${FPS_PROP__REQ_LABELS} )
   foreach( label ${ARGN} )
     fps_list_contains( all__requirement_labels "${label}" is_requirement_label )
     if( is_requirement_label ) 
@@ -338,7 +338,7 @@ function( fps_get_required_library_dirs _RESULT )
   endif()
 
   set( results_list ${FPS_LIB_SEARCH_PATHS} )
-  get_property( all__requirement_labels GLOBAL PROPERTY ${FPS_PROPERTY_NAME__REQUIREMENT_LABELS} )
+  get_property( all__requirement_labels GLOBAL PROPERTY ${FPS_PROP__REQ_LABELS} )
   foreach( label ${ARGN} )
     fps_list_contains( all__requirement_labels "${label}" is_requirement_label )
     if( is_requirement_label ) 
@@ -379,8 +379,8 @@ function( fps_link_dependencies target_name )
   #
   # Fetch a list of all libraries where 'whole archive' linkage is required
   #
-  get_property( fps__library_targets    GLOBAL PROPERTY ${FPS_PROPERTY_NAME__LIBRARY_TARGETS} ) 
-  get_property( pg__link_whole_archive  GLOBAL PROPERTY ${FPS_PROPERTY_GROUP__LINK_WHOLE_ARCHIVE} )
+  get_property( fps__library_targets    GLOBAL PROPERTY ${FPS_PROP__LIB_TARGETS} ) 
+  get_property( pg__link_whole_archive  GLOBAL PROPERTY ${FPS_PROP__LINK_WHOLE_ARCHIVE} )
   foreach( dep ${ARGN} )
     #
     # Header only libraries are bound to custom targets of type UTILITY.

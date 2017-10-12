@@ -138,7 +138,7 @@ ARG_CLEAN=
 ARG_PLAN=
 ARG_JOBS=
 ARG_BUILD_TAG="$(whoami).$(hostname).$(date +%Y%m%d%H%M%S)"
-ARG_LINKAGE=static
+ARG_LINKAGE=shared
 ARG_REALLY_CLEAN=
 ARG_WITH_CTAGS=
 ARG_ENV=
@@ -246,8 +246,7 @@ fi
 
 if [[ ! -z ${ARG_PROFILE} ]] ; then export FPS_PROFILE="True" ; fi
 
-export FPS_LINK_TYPE=static
-
+# Check linkage settings
 if [[ ! -z ${ARG_LINKAGE} ]] ; then
   if [[ "${ARG_LINKAGE}" != "static" && "${ARG_LINKAGE}" != "shared" ]] ; then 
     echo "" 1>&2
@@ -255,9 +254,8 @@ if [[ ! -z ${ARG_LINKAGE} ]] ; then
     echo "" 1>&2
     exit 1
   fi
-
-  export FPS_LINK_TYPE=${ARG_LINKAGE}
 fi
+export FPS_LINK_TYPE=${ARG_LINKAGE}
 
 #
 # Generate the path to our out-of-tree build directory and binary/library output directories.
@@ -365,9 +363,18 @@ if [[ ! -z ${ARG_ENV} ]] ; then
   for var in `echo ${FPSMAKE_ENV_VARS}` ; do 
     var_value=${!var}
     if [[ ${var} == "PATH" ]] ; then 
-      var_value="${FPS_BIN_DIR}:${var_value}"
+      TMP=${var_value}
+      fps__path_prepend TMP ${FPS_BIN_DIR}
+      var_value=${TMP}
     elif [[ ${var} == "LD_LIBRARY_PATH" && ${FPS_COMPILER_DIR} != "/usr" ]] ; then 
-      var_value="${var_value}:${FPS_COMPILER_DIR}/lib64"
+      TMP=${var_value}
+      fps_path_append TMP "${FPS_COMPILER_DIR}/lib64"
+      var_value=${TMP}
+    elif [[ ${var} == "PYTHONPATH" ]] ; then 
+      TMP=${var_value}
+      fps__path_append TMP ${FPS_PYTHON_DIR}
+      fps__path_append TMP ${FPS_LIB_DIR}
+      var_value=${TMP}
     fi
     echo "export ${var}=${var_value}" 
     unset var_value
