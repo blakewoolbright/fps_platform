@@ -59,46 +59,15 @@ set( FPS_COMMON_LINKER_FLAGS )
 #
 #-----------------------------------------------------------------------------------------------------------------
 split( "${FPS_COMPILER_VERSION}" "." version_numbers )
-list( GET version_numbers 0 FPS_COMPILER_MAJOR_VERSION ) 
-list( GET version_numbers 1 FPS_COMPILER_MINOR_VERSION ) 
-list( GET version_numbers 2 FPS_COMPILER_MINOR_REVISION )
+list( GET version_numbers 0 MAJOR_VERSION ) 
+list( GET version_numbers 1 MINOR_VERSION ) 
+list( GET version_numbers 2 MINOR_REVISION )
 
 # Add extended/version specific compiler flags 
-list( APPEND FPS_COMMON_COMPILER_FLAGS 
-      -std=c++17
-      -frecord-gcc-switches 
-      -Wno-delete-non-virtual-dtor
-      -Wno-narrowing
-      -Wno-maybe-uninitialized
-      -Wno-unused-local-typedefs
-    )
+list( APPEND FPS_COMMON_COMPILER_FLAGS -std=c++11 )
 
-# Skip extended optimization flags for now
-if( False ) 
-  if( ${FPS_BUILD_TYPE} STREQUAL "optimized" )
-    list( APPEND FPS_COMMON_COMPILER_FLAGS
-          -flto
-          -fwhole-program
-          -fdevirtualize
-        )
-    list( APPEND FPS_COMMON_LINKER_FLAGS -flto )
-  endif()
+if( ${FPS_BUILD_TYPE} STREQUAL "optimized" )
 endif()
-
-#else() 
-#  set( error_msg 
-#       "  "
-#       " [ fps_gcc ]"
-#       "   Error :: Unsupported GCC compiler version '${FPS_COMPILER_VERSION}'"
-#       "   Major :: ${FPS_COMPILER_MAJOR_VERSION}"
-#       "   Minor :: ${FPS_COMPILER_MINOR_VERSION}"
-#       "   Rev   :: ${FPS_COMPILER_MINOR_REVISION}"
-#       " "
-#  )
-#  join( "${error_msg}" "\n" error_msg ) 
-#  message( FATAL_ERROR "${error_msg}" )
-#endif()
-
 
 #-----------------------------------------------------------------------------------------------------------------
 # Convert list of default library search paths to list of linker appropriate -L directives.

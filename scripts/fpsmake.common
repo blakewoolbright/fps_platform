@@ -9,6 +9,18 @@ export FPS_DEFAULT_MPFR_VERSION="3.1.2"
 export FPS_DEFAULT_MPC_VERSION="1.0.3"
 export FPS_DEFAULT_GCC_VERSION=$( $(which g++) -dumpversion )
 export FPS_DEFAULT_GCC_DIR="/usr"
+export FPS_DEFAULT_CLANG_VERSION=$( $(which clang++) -dumpversion )
+export FPS_DEFAULT_CLANG_DIR="/usr"
+
+# Sanity check compiler name
+[[ -z ${FPS_COMPILER} ]] && export FPS_COMPILER=gcc
+[[ "${FPS_COMPILER}" == "g++" ]] && export FPS_COMPILER=gcc
+
+if [[ "${FPS_COMPILER}" != "gcc" && "${FPS_COMPILER}" != "clang" ]] ; then 
+  echo "" 1>&2 
+  echo "[ fpsmake.common ] :: ERROR :: Unsupported compiler '${FPS_COMPILER}'" 1>&2
+  echo "" 1>&2
+fi
 
 #
 # fps__get_os_vendor
@@ -83,14 +95,20 @@ function fps__get_root_dir()
 
 function fps__get_compiler_vendor()
 {
-  local compiler_dir=${1} 
-  [[ -z ${compiler_dir} ]] && return
+  echo ${FPS_COMPILER}
 
-  if   [[ -f ${compiler_dir}/bin/g++     ]] ; then 
-    echo "gcc" ;
-  elif [[ -f ${compiler_dir}/bin/clang++ ]] ; then
-    echo "clang"
-  fi
+  #local compiler_name=${1}
+  #local compiler_dir=${2} 
+  #[[ -z ${compiler_name} ]] && return
+  #[[ -z ${compiler_dir} ]] && return
+  
+  #local compiler_bin=$(which ${compiler_name}++)
+
+  #if   [[ -f ${compiler_dir}/bin/g++     ]] ; then 
+  #  echo "gcc" ;
+  #elif [[ -f ${compiler_dir}/bin/clang++ ]] ; then
+  #  echo "clang"
+  #fi
 }
 
 function fps__get_c_compiler()
@@ -187,67 +205,28 @@ function fps__check_environment()
 }
 
 #
-# fps__init_environment
-#
-function fps__init_environment()
-{
-  eval export FPS_ROOT_DIR=$(fps__get_root_dir)
-  eval export FPS_BUILD_DIR=$(fps__get_build_dir)
-  eval export FPS_CMAKE_DIR=$(fps__get_cmake_dir)
-  eval export FPS_EXTERNAL_DIR=$(fps__get_external_dir)
-  eval export FPS_SCRIPTS_DIR=$(fps__get_scripts_dir)
-  eval export FPS_EXTERNAL_CMAKE_DIR=${FPS_EXTERNAL_DIR}/cmake-modules
-  eval export FPS_CPP_DIR=${FPS_ROOT_DIR}/cpp
-  eval export FPS_SCRIPTS_DIR=${FPS_ROOT_DIR}/scripts
-  eval export FPS_PYTHON_DIR=${FPS_ROOT_DIR}/python
-  eval export FPS_BIN_DIR=${FPS_BUILD_DIR}/bin
-  eval export FPS_LIB_DIR=${FPS_BUILD_DIR}/lib
-  eval export FPS_OS_VENDOR=$(fps__get_os_vendor)
-  eval export FPS_OS_VERSION=$(fps__get_os_version)
-  
-  if [[ -z ${FPS_TOOLCHAIN_DIR}   ]] ; then 
-    eval export FPS_TOOLCHAIN_DIR=$(readlink -f ${FPS_ROOT_DIR}/../fps_toolchain 2> /dev/null)
-  fi
-
-  if [[ -z ${FPS_COMPILER_DIR} ]] ; then 
-    eval export FPS_COMPILER_DIR=${FPS_DEFAULT_GCC_DIR}
-  fi
-
-  unset FPS_COMPILER_VENDOR 
-  unset FPS_COMPILER_VERSION
-  unset FPS_C_COMPILER
-  unset FPS_CXX_COMPILER
-
-  eval export FPS_COMPILER_VENDOR=$(fps__get_compiler_vendor "${FPS_COMPILER_DIR}")
-  eval export FPS_C_COMPILER=$(fps__get_c_compiler "${FPS_COMPILER_DIR}" "${FPS_COMPILER_VENDOR}")
-  eval export FPS_CXX_COMPILER=$(fps__get_cxx_compiler "${FPS_COMPILER_DIR}" "${FPS_COMPILER_VENDOR}")
-  eval export FPS_COMPILER_VERSION=$(fps__get_compiler_version ${FPS_CXX_COMPILER})
-
-  fps__path_prepend PYTHONPATH ${FPS_ROOT_DIR}/python 
-}
-
-#
 # fps__print_environment
 #
 function fps__print_environment()
 {
   echo "\
   [ FPS Build Environment ] 
-    FPS_ROOT_DIR         :: ${FPS_ROOT_DIR}
-    FPS_BUILD_DIR        :: ${FPS_BUILD_DIR}
-    FPS_CMAKE_DIR        :: ${FPS_CMAKE_DIR}
-    FPS_EXTERNAL_DIR     :: ${FPS_EXTERNAL_DIR}
-    FPS_CPP_DIR          :: ${FPS_CPP_DIR}
-    FPS_SCRIPTS_DIR      :: ${FPS_SCRIPTS_DIR}
-    FPS_BIN_DIR          :: ${FPS_BIN_DIR}
-    FPS_LIB_DIR          :: ${FPS_LIB_DIR}
-    FPS_OS_VENDOR        :: ${FPS_OS_VENDOR}
-    FPS_OS_VERSION       :: ${FPS_OS_VERSION}
-    FPS_TOOLCHAIN_DIR    :: ${FPS_TOOLCHAIN_DIR}
-    FPS_COMPILER_DIR     :: ${FPS_COMPILER_DIR}
-    FPS_COMPILER_VERSION :: ${FPS_COMPILER_VERSION}
-    FPS_COMPILER_VENDOR  :: ${FPS_COMPILER_VENDOR}
-    PYTHONPATH           :: ${PYTHONPATH}"
+    FPS_ROOT_DIR             :: ${FPS_ROOT_DIR}
+    FPS_BUILD_DIR            :: ${FPS_BUILD_DIR}
+    FPS_CMAKE_DIR            :: ${FPS_CMAKE_DIR}
+    FPS_EXTERNAL_DIR         :: ${FPS_EXTERNAL_DIR}
+    FPS_CPP_DIR              :: ${FPS_CPP_DIR}
+    FPS_SCRIPTS_DIR          :: ${FPS_SCRIPTS_DIR}
+    FPS_BIN_DIR              :: ${FPS_BIN_DIR}
+    FPS_LIB_DIR              :: ${FPS_LIB_DIR}
+    FPS_OS_VENDOR            :: ${FPS_OS_VENDOR}
+    FPS_OS_VERSION           :: ${FPS_OS_VERSION}
+    FPS_TOOLCHAIN_DIR        :: ${FPS_TOOLCHAIN_DIR}
+    FPS_CXX_COMPILER         :: ${FPS_CXX_COMPILER}
+    FPS_COMPILER_DIR         :: ${FPS_COMPILER_DIR}
+    FPS_CXX_COMPILER_VERSION :: ${FPS_CXX_COMPILER_VERSION}
+    FPS_COMPILER_VENDOR      :: ${FPS_COMPILER_VENDOR}
+    PYTHONPATH               :: ${PYTHONPATH}"
 }
 
 #
@@ -303,3 +282,42 @@ function fps__path_prepend()
   eval export ${var_name}="${var_value}"
 }
 
+#
+# fps__init_environment
+#
+function fps__init_environment()
+{
+  eval export FPS_ROOT_DIR=$(fps__get_root_dir)
+  eval export FPS_BUILD_DIR=$(fps__get_build_dir)
+  eval export FPS_CMAKE_DIR=$(fps__get_cmake_dir)
+  eval export FPS_EXTERNAL_DIR=$(fps__get_external_dir)
+  eval export FPS_SCRIPTS_DIR=$(fps__get_scripts_dir)
+  eval export FPS_EXTERNAL_CMAKE_DIR=${FPS_EXTERNAL_DIR}/cmake-modules
+  eval export FPS_CPP_DIR=${FPS_ROOT_DIR}/cpp
+  eval export FPS_SCRIPTS_DIR=${FPS_ROOT_DIR}/scripts
+  eval export FPS_PYTHON_DIR=${FPS_ROOT_DIR}/python
+  eval export FPS_BIN_DIR=${FPS_BUILD_DIR}/bin
+  eval export FPS_LIB_DIR=${FPS_BUILD_DIR}/lib
+  eval export FPS_OS_VENDOR=$(fps__get_os_vendor)
+  eval export FPS_OS_VERSION=$(fps__get_os_version)
+  
+  if [[ -z ${FPS_TOOLCHAIN_DIR}   ]] ; then 
+    eval export FPS_TOOLCHAIN_DIR=$(readlink -f ${FPS_ROOT_DIR}/../fps_toolchain 2> /dev/null)
+  fi
+  
+  if [[ -z ${FPS_COMPILER_DIR} ]] ; then 
+    eval export FPS_COMPILER_DIR=${FPS_DEFAULT_GCC_DIR}
+  fi
+
+  unset FPS_COMPILER_VENDOR 
+  unset FPS_CXX_COMPILER_VERSION
+  unset FPS_C_COMPILER
+  unset FPS_CXX_COMPILER
+
+  eval export FPS_COMPILER_VENDOR=$(fps__get_compiler_vendor ${FPS_COMPILER} )
+  eval export FPS_C_COMPILER=$(fps__get_c_compiler ${FPS_COMPILER_DIR} ${FPS_COMPILER_VENDOR})
+  eval export FPS_CXX_COMPILER=$(fps__get_cxx_compiler ${FPS_COMPILER_DIR} ${FPS_COMPILER_VENDOR})
+  eval export FPS_CXX_COMPILER_VERSION=$(fps__get_compiler_version ${FPS_CXX_COMPILER})
+
+  fps__path_prepend PYTHONPATH ${FPS_ROOT_DIR}/python 
+}

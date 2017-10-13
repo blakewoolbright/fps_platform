@@ -289,21 +289,7 @@ endif()
 # Now configure compilation settings based on the current compilation toolset.
 #
 #-----------------------------------------------------------------------------------------------------------------
-if( "${FPS_COMPILER_VENDOR}" STREQUAL "gcc" )
-  include( fps_gcc )
-elseif( "${FPS_COMPILER_VENDOR}" STREQUAL "clang" )
-  # TODO: Add clang bindings
-  include( fps_gcc )
-else()
-  set( error_msg 
-       " " 
-       " [ fps_constants ]"
-       "   Error : Unsupported compiler ${FPS_COMPILER_VENDOR} (${FPS_COMPILER_LABEL})" 
-       " "
-     )
-  join( "${error_msg}" "\n" error_msg )
-  message( FATAL_ERROR "${error_msg}" )
-endif()
+include( fps_compiler ) 
 
 #-----------------------------------------------------------------------------------------------------------------
 # Enable unit testing via CTest 
