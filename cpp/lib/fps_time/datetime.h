@@ -67,8 +67,8 @@ namespace time {
 
     //--------------------------------------------------------------------------------------
     inline uint32_t nanosecond()  const { return nanos_ ; }
-    inline uint32_t microsecond() const { return nanos_ / 1000UL ; }
-    inline uint32_t millisecond() const { return nanos_ / 1000000UL ; }
+    inline uint32_t microsecond() const { return nanos_ / Nanos_Per_Micro ; }
+    inline uint32_t millisecond() const { return nanos_ / Nanos_Per_Milli ; }
     inline uint32_t second()      const { return raw_.tm_sec; }
     inline uint32_t minute()      const { return raw_.tm_min; }
     inline uint32_t hour()        const { return raw_.tm_hour; }
