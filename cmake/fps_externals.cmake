@@ -34,7 +34,7 @@ function( fps_add_external_component )
     if( NOT ARG_NAME ) 
       set( error_msg 
            " " 
-           " [ fps_add_required_component ]"
+           " [ fps_add_external_component ]"
            "   Missing required argument :: Please provide either 'LABEL' or 'NAME' to this function."
            "   Your arguments            :: ${ARGN}"
            " "
@@ -163,7 +163,7 @@ function( fps_add_external_component )
         join( "${component_library_dirs}" ", " msg_lib_dirs )
         set( error_msg 
              " " 
-             " [ fps_add_required_component ]"
+             " [ fps_add_external_component ]"
              "   Failed to find library :: '${lib_name}'" 
              "   Candidate filenames    :: '${msg_lib_names}'"
              "   Directories searched   :: '${msg_lib_dirs}'" 
