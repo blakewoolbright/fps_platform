@@ -34,6 +34,14 @@ set( FPS_OS_VERSION           "$ENV{FPS_OS_VERSION}" )
 set( FPS_PROFILE              "$ENV{FPS_PROFILE}" )
 set( FPS_BUILD_INFO_FILE      "${CMAKE_BINARY_DIR}/fps_build_info.o" )
 
+# Set very-verbose mode
+message("VERBOSE: ${FPS_VERBOSE}")
+if( NOT FPS_VERBOSE )
+  set( FPS_VERBOSE 0 )
+elseif( ${FPS_VERBOSE} GREATER 1 ) 
+  set( FPS_VERY_VERBOSE True )
+endif()
+
 if( NOT EXISTS ${FPS_BUILD_INFO_FILE} )
   set( FPS_BUILD_INFO_FILE ) 
 endif()
@@ -232,10 +240,10 @@ set( FPS_ML_DELIM "'\n${FPS_INDENT}'" ) # Multiline message delimited.
 # Import additional information about our compiler, git checkout, etc.
 #
 #-----------------------------------------------------------------------------------------------------------------
-if( NOT FPS_COMPILER_VENDOR OR NOT FPS_COMPILER_VERSION )
-  fps_identify_compiler( FPS_COMPILER_VENDOR FPS_COMPILER_VERSION FPS_COMPILER_LABEL )
+if( NOT FPS_COMPILER_VENDOR OR NOT FPS_CXX_COMPILER_VERSION )
+  fps_identify_compiler( FPS_COMPILER_VENDOR FPS_CXX_COMPILER_VERSION FPS_COMPILER_LABEL )
 else()
-  set( FPS_COMPILER_LABEL "${FPS_COMPILER_VENDOR}-${FPS_COMPILER_VERSION}" )
+  set( FPS_COMPILER_LABEL "${FPS_COMPILER_VENDOR}-${FPS_CXX_COMPILER_VERSION}" )
 endif()
 
 string( STRIP "${FPS_COMPILER_LABEL}" FPS_COMPILER_LABEL )
@@ -261,7 +269,7 @@ set( FPS_TEST_ENVIRONMENT
      "FPSMAKE_VERSION=${FPSMAKE_VERSION}"
      "FPS_COMPILER_DIR=${FPS_COMPILER_DIR}"
      "FPS_COMPILER_VENDOR=${FPS_COMPILER_VENDOR}"
-     "FPS_COMPILER_VERSION=${FPS_COMPILER_VERSION}"
+     "FPS_CXX_COMPILER_VERSION=${FPS_CXX_COMPILER_VERSION}"
      "FPS_OS_VENDOR=${FPS_OS_VENDOR}"
      "PATH=${FPS_ROOT_DIR}/scripts:${EXECUTABLE_OUTPUT_PATH}:${FPS_SCRIPTS_DIR}:/usr/bin:/bin"
      "PYTHONPATH=${FPS_PYTHON_DIR}"

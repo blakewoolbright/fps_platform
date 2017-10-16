@@ -69,16 +69,6 @@ function( fps_add_unit_test )
   #
   set   (        test__compiler_flags ${FPS_COMMON_COMPILER_FLAGS} )
   list  ( APPEND test__compiler_flags ${ARG_COMPILER_FLAGS} )
-
-  #
-  # HACK: Reduce optimization under gcc 4.7.3 because boost 1.51 unit tests don't build correctly under -03
-  #
-  if( ${FPS_COMPILER_VERSION} STREQUAL "4.7.3" )
-    list  ( REMOVE_DUPLICATES test__compiler_flags ) 
-    list  ( REMOVE_ITEM       test__compiler_flags "-O3" ) 
-    list  ( APPEND            test__compiler_flags "-O1" )
-  endif() 
-
   set   (        test__dependencies   ${FPS_COMMON_DEPENDENCIES} )
   list  ( APPEND test__dependencies   ${ARG_DEPENDS} )
   set   (        test__requirements   ${FPS_COMMON_REQUIREMENTS} ) 
@@ -174,12 +164,9 @@ function( fps_add_unit_test )
     endif()
   endif()
 
-  # if( test__library_deps ) 
-  #  list( APPEND test__dependencies ${test__library_deps} ) 
   if( test__dependencies )
     list( REMOVE_DUPLICATES test__dependencies )
   endif()
-
   if( test__library_deps ) 
     list( REMOVE_DUPLICATES test__library_deps )  
   endif()
@@ -247,7 +234,7 @@ function( fps_add_unit_test )
   #
   # Log application configuration in verbose mode
   #  
-  if( FPS_VERBOSE )
+  if( FPS_VERY_VERBOSE )
     set ( ml_delim "\n                      " ) 
     set( log_msg 
          " "

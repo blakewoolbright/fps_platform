@@ -40,7 +40,7 @@ if( FPS_VERBOSE )
   set ( ml_delim "'\n                   + '" ) 
   set ( log_msg 
         " "  
-        "[ GCC Configuration : v${FPS_COMPILER_VERSION} ]"
+        "[ GCC Configuration : v${FPS_CXX_COMPILER_VERSION} ]"
       )
   join( "${FPS_COMMON_COMPILER_FLAGS}" ${ml_delim} msg_txt ) 
   list( APPEND log_msg "  Compiler Flags : '${msg_txt}'" )

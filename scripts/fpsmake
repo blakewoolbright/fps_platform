@@ -347,8 +347,12 @@ FPSMAKE_ENV_VARS=\
  FPS_OS_VERSION \
  FPS_TOOLCHAIN_DIR \
  FPS_COMPILER_DIR \
- FPS_COMPILER_VENDOR \
- FPS_COMPILER_VERSION \
+ FPS_CXX_COMPILER \
+:qa
+exit
+exit
+visual
+ FPS_CXX_COMPILER_VERSION \
  PATH \
  PYTHONPATH \
  LD_LIBRARY_PATH \
@@ -437,7 +441,7 @@ ln -s ${FPS_BUILD_LIB_DIR} ${FPS_LIB_DIR}
 # !!!!
 if [[ ! -e ${FPS_BUILD_INFO_FILE} ]] ; then 
   ${SCRIPT_DIR}/fpsmake.update_build_info \
-    --compiler "${FPS_COMPILER_VENDOR}-${FPS_COMPILER_VERSION}" \
+    --compiler "${FPS_COMPILER_VENDOR}-${FPS_CXX_COMPILER_VERSION}" \
     --tag      ${ARG_BUILD_TAG} \
     --type     ${FPS_BUILD_TYPE} \
     --linkage  ${FPS_LINK_TYPE} \
@@ -559,14 +563,24 @@ if [[ ! -z ${ARG_CLEAN} ]] ; then
 
   pushd ${MAKE_DIR} &> /dev/null
 
+  # Clean profile guided optimization output
   PGO_RESULT_FILES=$(find . -name '*.gcda' 2> /dev/null) 
-  for target_file in `echo ${PGO_RESULT_FILES}` ; do 
-    # echo "Cleaning PGO File : ${target_file}"
-    rm ${target_file} 
-    if [[ ${?} -ne 0 ]] ; then 
-      echo "[ ${SCRIPT_NAME} ] :: ERROR :: Failed to clean PGO (profiling) data file '${target_file}'"
-    fi
-  done
+  if [[ ! -z ${PGO_RESULT_FILES} ]] ; then 
+    [[ ${ARG_VERBOSE} -gt 0 ]] && echo "[ ${SCRIPT_NAME} ] :: Removing PGO data (*.gcda)"
+    for target_file in `echo ${PGO_RESULT_FILES}` ; do 
+      # echo "Cleaning PGO File : ${target_file}"
+      rm ${target_file} 
+      if [[ ${?} -ne 0 ]] ; then 
+        echo "[ ${SCRIPT_NAME} ] :: ERROR :: Failed to clean PGO (profiling) data file '${target_file}'"
+      fi
+    done
+  fi
+  
+  # Clean build info file
+  if [[ -f ${FPS_BUILD_INFO_FILE} ]] ; then 
+    [[ ${ARG_VERBOSE} -gt 0 ]] && echo "[ ${SCRIPT_NAME} ] :: Removing build info file" 
+    rm -f /home/bwoolbright/dev/fps_platform/build/master.debug.shared/fps_build_info.o 1>&2 
+  fi
     
   ( ${MAKE_CMD} )
   RC=${?}

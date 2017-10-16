@@ -58,7 +58,7 @@ set( FPS_COMMON_LINKER_FLAGS )
 # Handle any version specific compiler configuration logic below.
 #
 #-----------------------------------------------------------------------------------------------------------------
-split( "${FPS_COMPILER_VERSION}" "." version_numbers )
+split( "${FPS_CXX_COMPILER_VERSION}" "." version_numbers )
 list( GET version_numbers 0 FPS_COMPILER_MAJOR_VERSION ) 
 list( GET version_numbers 1 FPS_COMPILER_MINOR_VERSION ) 
 list( GET version_numbers 2 FPS_COMPILER_MINOR_REVISION )
@@ -89,7 +89,7 @@ endif()
 #  set( error_msg 
 #       "  "
 #       " [ fps_gcc ]"
-#       "   Error :: Unsupported GCC compiler version '${FPS_COMPILER_VERSION}'"
+#       "   Error :: Unsupported GCC compiler version '${FPS_CXX_COMPILER_VERSION}'"
 #       "   Major :: ${FPS_COMPILER_MAJOR_VERSION}"
 #       "   Minor :: ${FPS_COMPILER_MINOR_VERSION}"
 #       "   Rev   :: ${FPS_COMPILER_MINOR_REVISION}"

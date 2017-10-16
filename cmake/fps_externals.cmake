@@ -200,7 +200,7 @@ function( fps_add_external_component )
 
   set_property( GLOBAL APPEND PROPERTY ${FPS_PROP__REQ_LABELS} ${ARG_LABEL} )
 
-  if( FPS_VERBOSE )
+  if( FPS_VERY_VERBOSE  )
     set ( ml_delim "'\n                  + '" )
     set( log_msg 
          "[ Registered Component :: '${ARG_LABEL}' ]" 

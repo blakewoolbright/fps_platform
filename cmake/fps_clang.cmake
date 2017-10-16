@@ -58,7 +58,7 @@ set( FPS_COMMON_LINKER_FLAGS )
 # Handle any version specific compiler configuration logic below.
 #
 #-----------------------------------------------------------------------------------------------------------------
-split( "${FPS_COMPILER_VERSION}" "." version_numbers )
+split( "${FPS_CXX_COMPILER_VERSION}" "." version_numbers )
 list( GET version_numbers 0 MAJOR_VERSION ) 
 list( GET version_numbers 1 MINOR_VERSION ) 
 list( GET version_numbers 2 MINOR_REVISION )

@@ -20,6 +20,7 @@ if [[ "${FPS_COMPILER}" != "gcc" && "${FPS_COMPILER}" != "clang" ]] ; then
   echo "" 1>&2 
   echo "[ fpsmake.common ] :: ERROR :: Unsupported compiler '${FPS_COMPILER}'" 1>&2
   echo "" 1>&2
+  exit -1
 fi
 
 #
