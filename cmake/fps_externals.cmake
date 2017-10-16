@@ -234,9 +234,9 @@ function( fps_add_external_component )
       list( APPEND log_msg "  Compiler Flags :: '${component_compiler_flags}'" )
     endif()
 
-    # file( APPEND "${FPS_BUILD_LOG}" "${FPS_INDENT}${log_msg}\n\n" )
-    # join( "${log_msg}" "\n" log_msg ) 
-    # fps_log( "${log_msg}\n" )
+    file( APPEND "${FPS_BUILD_LOG}" "${FPS_INDENT}${log_msg}\n\n" )
+    join( "${log_msg}" "\n" log_msg ) 
+    fps_log( "${log_msg}\n" )
   endif()
 endfunction()
 
@@ -245,16 +245,15 @@ endfunction()
 # Create requirement definitions for any system libraries that we don't directly maintain in our source tree.
 #
 #-------------------------------------------------------------------------------------------------------------------
-if( "${FPS_OS_VENDOR}" STREQUAL "ubuntu" )
-  set( PGSQL_VER "9.3" )
-  set( PGSQL_INC /usr/include/postgresql )
-  set( PGSQL_LIB /usr/lib /usr/lib/x86_64-linux-gnu )
-else()
-  set( PGSQL_VER "9.2" )
-  set( PGSQL_INC /usr/pgsql-${PGSQL_VER}/include )
-  set( PGSQL_LIB /usr/pgsql-${PGSQL_VER}/lib )
-endif()
-
+#if( "${FPS_OS_VENDOR}" STREQUAL "ubuntu" )
+#  set( PGSQL_VER "9.3" )
+#  set( PGSQL_INC /usr/include/postgresql )
+#  set( PGSQL_LIB /usr/lib /usr/lib/x86_64-linux-gnu )
+#else()
+#  set( PGSQL_VER "9.2" )
+#  set( PGSQL_INC /usr/pgsql-${PGSQL_VER}/include )
+#  set( PGSQL_LIB /usr/pgsql-${PGSQL_VER}/lib )
+#endif()
 #fps_add_external_component( 
 #  LABEL               pq
 #  SHARED
@@ -267,6 +266,9 @@ endif()
 #  PROVIDES            pq
 #)
 
+#-------------------------------------------------------------------------------------------------------------------
+# Add pthread (force shared linkage)
+#-------------------------------------------------------------------------------------------------------------------
 fps_add_external_component( 
   LABEL              pthread
   SHARED
@@ -275,9 +277,7 @@ fps_add_external_component(
 )
 
 #-------------------------------------------------------------------------------------------------------------------
-#
-# Find libcurl 
-#
+# Add curl 
 #-------------------------------------------------------------------------------------------------------------------
 #  fps_add_external_component( 
 #    LABEL               curl
@@ -292,6 +292,19 @@ fps_add_external_component(
 #  )
 
 #-------------------------------------------------------------------------------------------------------------------
+# Add python libs
+#-------------------------------------------------------------------------------------------------------------------
+fps_add_external_component(
+    LABEL               "python"
+    DESCRIPTION         "Python core libraries"
+    VERSION             2.7
+    SYSTEM_INCLUDE_DIRS /usr/include/python2.7
+    REQUIRES            python2.7
+    PROVIDES            python2.7
+)
+
+
+#-------------------------------------------------------------------------------------------------------------------
 #
 # Now include the requirement definitions for components that live in the externals directory.
 #
@@ -303,7 +316,7 @@ endforeach()
 
 
 #-------------------------------------------------------------------------------------------------------------------
-# Add boost components
+# Add default boost libs 
 #-------------------------------------------------------------------------------------------------------------------
 fps_add_external_component( 
     LABEL                "boost"
@@ -313,6 +326,9 @@ fps_add_external_component(
     PROVIDES             "boost_system boost_program_options boost_filesystem boost_regex boost_thread boost_date_time boost_serialization"
 )
 
+#-------------------------------------------------------------------------------------------------------------------
+# Add boost-python 
+#-------------------------------------------------------------------------------------------------------------------
 fps_add_external_component( 
     LABEL                "boost-python"
     DESCRIPTION          "Boost C++ / Python Interop Library"
@@ -322,16 +338,16 @@ fps_add_external_component(
 )
 
 #-------------------------------------------------------------------------------------------------------------------
-# Finally, make sure we know where to find the boost unit test framework. 
+# Add boost-unit-test-framework 
 #-------------------------------------------------------------------------------------------------------------------
-if( "${FPS_BOOST_LINKAGE}" STREQUAL "SHARED" ) 
+if( BUILD_SHARED_LIBS )
   set( boost_testing_flags -DBOOST_TEST_DYN_LINK )
 else()
   set( boost_testing_flags )
 endif()
 
 fps_add_external_component( 
-  LABEL                 boost_testing
+  LABEL                 boost_test
   DESCRIPTION           "Boost Unit Test Framework"
   SYSTEM_INCLUDE_DIRS   ${FPS_BOOST_INCLUDE_DIRS}
   LIBRARY_DIRS          ${FPS_BOOST_LIBRARY_DIRS}
@@ -340,7 +356,6 @@ fps_add_external_component(
   ${FPS_BOOST_LINKAGE}
 )
   
-
 
 
 

@@ -302,7 +302,7 @@ if [[ -z ${FPS_TOOLCHAIN_DIR} ]] ; then
   exit 1
 fi
 
-if [[ ! -z ${ARG_VERBOSE} ]] ; then 
+#if [[ ! -z ${ARG_VERBOSE} ]] ; then 
   echo ""
   echo "[ ${SCRIPT_NAME} - v${FPSMAKE_VERSION} ]"
   echo "|"
@@ -316,10 +316,8 @@ if [[ ! -z ${ARG_VERBOSE} ]] ; then
   echo "|--[ FPS_OS_VENDOR       ] :: ${FPS_OS_VENDOR}"
   echo "|--[ FPS_OS_VERSION      ] :: ${FPS_OS_VERSION}"
   echo "|--[ FPS_TOOLCHAIN_DIR   ] :: ${FPS_TOOLCHAIN_DIR}"
-  echo "|--[ FPS_COMPILER_DIR    ] :: ${FPS_COMPILER_DIR}"
-  echo "|--[ FPS_COMPILER_VENDOR ] :: ${FPS_COMPILER_VENDOR}"
-  echo "|--[ FPS_COMPILER_VERSION] :: ${FPS_COMPILER_VERSION}"
-  echo "|--[ FPS_COMPILER_BINARY ] :: ${FPS_COMPILER_BINARY}"
+  # echo "|--[ FPS_COMPILER_DIR    ] :: ${FPS_COMPILER_DIR}"
+  echo "|--[ FPS_COMPILER        ] :: ${FPS_CXX_COMPILER} (${FPS_COMPILER_VENDOR} v${FPS_CXX_COMPILER_VERSION})"
   echo "|--[ FPS_BUILD_PLAN_DIR  ] :: ${FPS_BUILD_PLAN_DIR}"
   echo "|--[ FPS_BUILD_INFO_FILE ] :: ${FPS_BUILD_INFO_FILE}"
   echo "|--[ FPS_BUILD_BIN_DIR   ] :: ${FPS_BUILD_BIN_DIR}"
@@ -334,7 +332,7 @@ if [[ ! -z ${ARG_VERBOSE} ]] ; then
   fi
 
   echo "|"
-fi
+#fi
 
 FPSMAKE_ENV_VARS=\
 "FPS_ROOT_DIR \

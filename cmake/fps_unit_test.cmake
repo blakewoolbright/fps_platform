@@ -160,7 +160,7 @@ function( fps_add_unit_test )
   #
   # Extract associated include dirs from requirements list and add them.
   #
-  list( APPEND test__requirements boost_testing )
+  list( APPEND test__requirements boost_test )
   if( test__requirements ) 
     list( REMOVE_DUPLICATES test__requirements )
     fps_get_required_include_dirs( required_include_dirs ${test__requirements} )
