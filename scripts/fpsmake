@@ -302,38 +302,6 @@ if [[ -z ${FPS_TOOLCHAIN_DIR} ]] ; then
   exit 1
 fi
 
-#if [[ ! -z ${ARG_VERBOSE} ]] ; then 
-  echo ""
-  echo "[ ${SCRIPT_NAME} - v${FPSMAKE_VERSION} ]"
-  echo "|"
-  echo "|--[ FPS_BUILD_PLAN      ] :: ${FPS_BUILD_PLAN}"
-  echo "|--[ FPS_ROOT_DIR        ] :: ${FPS_ROOT_DIR}"
-  echo "|--[ FPS_BUILD_DIR       ] :: ${FPS_BUILD_DIR}"
-  echo "|--[ FPS_EXTERNAL_DIR    ] :: ${FPS_EXTERNAL_DIR}"
-  echo "|--[ FPS_BIN_DIR         ] :: ${FPS_BIN_DIR}"
-  echo "|--[ FPS_LIB_DIR         ] :: ${FPS_LIB_DIR}"
-  echo "|--[ FPS_CPP_DIR         ] :: ${FPS_CPP_DIR}"
-  echo "|--[ FPS_OS_VENDOR       ] :: ${FPS_OS_VENDOR}"
-  echo "|--[ FPS_OS_VERSION      ] :: ${FPS_OS_VERSION}"
-  echo "|--[ FPS_TOOLCHAIN_DIR   ] :: ${FPS_TOOLCHAIN_DIR}"
-  # echo "|--[ FPS_COMPILER_DIR    ] :: ${FPS_COMPILER_DIR}"
-  echo "|--[ FPS_COMPILER        ] :: ${FPS_CXX_COMPILER} (${FPS_COMPILER_VENDOR} v${FPS_CXX_COMPILER_VERSION})"
-  echo "|--[ FPS_BUILD_PLAN_DIR  ] :: ${FPS_BUILD_PLAN_DIR}"
-  echo "|--[ FPS_BUILD_INFO_FILE ] :: ${FPS_BUILD_INFO_FILE}"
-  echo "|--[ FPS_BUILD_BIN_DIR   ] :: ${FPS_BUILD_BIN_DIR}"
-  echo "|--[ FPS_BUILD_LIB_DIR   ] :: ${FPS_BUILD_LIB_DIR}"
-  echo "|"
-  echo "|--[ Optimization ] :: ${FPS_BUILD_TYPE}"
-  echo "|--[ Linkage      ] :: ${FPS_LINK_TYPE}"
-  echo "|--[ Jobs         ] :: ${ARG_JOBS}"
-  
-  if [[ ! -z ${ARG_PROFILE} ]] ; then echo "|--[ Profiling    ] :: Enabled" 
-  else                                echo "|--[ Profiling    ] :: Disabled" 
-  fi
-
-  echo "|"
-#fi
-
 FPSMAKE_ENV_VARS=\
 "FPS_ROOT_DIR \
  FPS_BUILD_DIR \
@@ -383,6 +351,38 @@ if [[ ! -z ${ARG_ENV} ]] ; then
   done
   exit 0
 fi
+
+if [[ ! -z ${ARG_VERBOSE} ]] ; then 
+  echo ""
+  echo "[ ${SCRIPT_NAME} - v${FPSMAKE_VERSION} ]"
+  echo "|"
+  echo "|--[ FPS_BUILD_PLAN      ] :: ${FPS_BUILD_PLAN}"
+  echo "|--[ FPS_ROOT_DIR        ] :: ${FPS_ROOT_DIR}"
+  echo "|--[ FPS_BUILD_DIR       ] :: ${FPS_BUILD_DIR}"
+  echo "|--[ FPS_EXTERNAL_DIR    ] :: ${FPS_EXTERNAL_DIR}"
+  echo "|--[ FPS_BIN_DIR         ] :: ${FPS_BIN_DIR}"
+  echo "|--[ FPS_LIB_DIR         ] :: ${FPS_LIB_DIR}"
+  echo "|--[ FPS_CPP_DIR         ] :: ${FPS_CPP_DIR}"
+  echo "|--[ FPS_OS_VENDOR       ] :: ${FPS_OS_VENDOR}"
+  echo "|--[ FPS_OS_VERSION      ] :: ${FPS_OS_VERSION}"
+  echo "|--[ FPS_TOOLCHAIN_DIR   ] :: ${FPS_TOOLCHAIN_DIR}"
+  # echo "|--[ FPS_COMPILER_DIR    ] :: ${FPS_COMPILER_DIR}"
+  echo "|--[ FPS_COMPILER        ] :: ${FPS_CXX_COMPILER} (${FPS_COMPILER_VENDOR} v${FPS_CXX_COMPILER_VERSION})"
+  echo "|--[ FPS_BUILD_PLAN_DIR  ] :: ${FPS_BUILD_PLAN_DIR}"
+  echo "|--[ FPS_BUILD_INFO_FILE ] :: ${FPS_BUILD_INFO_FILE}"
+  echo "|--[ FPS_BUILD_BIN_DIR   ] :: ${FPS_BUILD_BIN_DIR}"
+  echo "|--[ FPS_BUILD_LIB_DIR   ] :: ${FPS_BUILD_LIB_DIR}"
+  echo "|"
+  echo "|--[ Optimization ] :: ${FPS_BUILD_TYPE}"
+  echo "|--[ Linkage      ] :: ${FPS_LINK_TYPE}"
+  echo "|--[ Jobs         ] :: ${ARG_JOBS}"
+  
+  if [[ ! -z ${ARG_PROFILE} ]] ; then echo "|--[ Profiling    ] :: Enabled" 
+  else                                echo "|--[ Profiling    ] :: Disabled" 
+  fi
+  echo "|"
+fi
+
 
 #
 # For 'really-clean' builds, remove the existing plan directory and it's subdirectories
