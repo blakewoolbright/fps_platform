@@ -10,11 +10,11 @@
 #   DEPENDS        : optional : List of build targets on which this application depends.  
 #   COMPILER_FLAGS : optional : List of compiler flags to include when compiling this application.
 #   LINKER_FLAGS   : optional : List of linker flags to include when linking this application.
-#   PROPERTIES     : optional : List of property tags to associate with this library.  
 #   INCLUDES       : optional : List of additional include directories that should be supplied when compiling this library.
 #   FILES          : required : List of c++ source files that comprise this application.  
 #
 # ATTRIBUTES 
+#   UNIT_TEST      : optional : Make this application a unit test.
 #   PROFILE        : optional : Create instrumented binaries for profile guided optimization.
 #   OPTIONAL       : optional : Only build this program if it is explicitly part of the current custom plan.
 #
@@ -34,8 +34,8 @@ function( fps_add_application )
   set( NIL )
   fps_parse_argument_list( 
     ARG
-    "NAME;REQUIRES;DEPENDS;COMPILER_FLAGS;LINKER_FLAGS;PROPERTIES;INCLUDES;FILES"
-    "OPTIONAL;PROFILE" 
+    "NAME;REQUIRES;DEPENDS;COMPILER_FLAGS;LINKER_FLAGS;INCLUDES;FILES"
+    "OPTIONAL;PROFILE;UNIT_TEST" 
     ${ARGN}
   )
 
@@ -92,6 +92,10 @@ function( fps_add_application )
   #
   # Make sure people don't confuse the REQUIRES tag with the DEPENDS tag.
   #
+  if( ARG_UNIT_TEST ) 
+    list( APPEND app__requirements boost_test ) 
+  endif()
+
   if( app__requirements ) 
     list( REMOVE_DUPLICATES app__requirements )
   endif()
@@ -261,6 +265,19 @@ function( fps_add_application )
     endif()
 
     #
+    # Register with CTest
+    #
+    if( ARG_UNIT_TEST ) 
+      set( test__results_dir   ${FPS_ROOT_DIR}/test_results ) 
+      set( test__results_file "${test__results_dir}/${test__name}.${FPS_BUILD_TYPE}.xml" ) 
+
+      add_test( 
+        ${test__name} 
+        ${FPS_SCRIPTS_DIR}/run_unit_test.sh --binary ${EXECUTABLE_OUTPUT_PATH}/${test__name}
+      ) 
+    endif() 
+
+    #
     # Log application configuration in verbose mode
     #  
     if( FPS_VERBOSE )
@@ -270,6 +287,12 @@ function( fps_add_application )
            "[ fps_add_application ]"
            "  Name            : ${variant__name}"
       )
+      if( ARG_UNIT_TEST ) 
+        list( APPEND log_msg "  Type            : Unit Test" ) 
+      else()
+        list( APPEND log_msg "  Type            : Application" ) 
+      endif()
+
       join( "${variant__dependencies}"  ${ml_delim} msg_txt )
       list( APPEND log_msg "  Dependencies    : ${msg_txt}" )
 
