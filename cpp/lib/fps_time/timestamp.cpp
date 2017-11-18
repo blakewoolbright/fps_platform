@@ -9,7 +9,7 @@ namespace time {
     : value_( 0 ) 
   { 
     uint64_t epoch_secs = ::mktime( const_cast<struct tm*>( &(src.as_tm_struct()) ) ) ;
-    value_ = value_ + (epoch_secs * time::Nanos_Per_Second) ;
+    value_ = (epoch_secs * time::Nanos_Per_Second) + src.nanosecond() ;
   }
 
   //----------------------------------------------------------------------------------------
