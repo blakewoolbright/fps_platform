@@ -17,8 +17,7 @@ namespace ipc {
     //--------------------------------------------------------------------------
     inline
     SpinLock_Atomic() 
-      // : lock_( atomic_flag_init ) 
-      : lock_( 0 )
+      : lock_( ATOMIC_FLAG_INIT )
     {
       // lock_ = ATOMIC_FLAG_INIT ;
     }
