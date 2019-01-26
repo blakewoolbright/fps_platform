@@ -38,9 +38,12 @@ namespace container {
     if( r_size_ ) 
       std::memcpy( data_, r_ptr_, r_size_ ) ;
 
-    r_ptr_  = data_ ;
-    w_size_ = capacity_ - r_size_ ;
-    delete [] old_data ;
+    capacity_ = new_capacity ;
+    r_ptr_    = data_ ;
+    w_size_   = capacity_ - r_size_ ;
+  
+    if( old_data )
+      delete [] old_data ;
   }
 
   //--------------------------------------------------------------------------------------
