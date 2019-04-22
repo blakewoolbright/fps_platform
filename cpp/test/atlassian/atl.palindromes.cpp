@@ -2,21 +2,53 @@
 #include <cstdlib>
 #include <iostream>
 
+void show_array( const int32_t * ar, int32_t sz ) 
+{
+  if( sz == 0 ) 
+  { std::cout << " Empty" << std::endl ;
+    return ;
+  }
+
+  for( int32_t idx = 0 ; idx < sz ; ++idx ) 
+  {
+    const int32_t * row = &(ar[ idx * sz ]) ;
+    std::cout << "  " << row[ 0 ] ;
+    for( int32_t jdx = 1 ; jdx < sz ; ++jdx ) 
+    {
+      std::cout << ", " << row[ jdx ] ;
+    }
+    std::cout << std::endl ;
+  }
+  std::cout << std::endl ;
+}
+
 
 // Returns total number of palindrome substring of 
 // length greater then equal to 2 
 int count_palidromic_substrings(const char * str, int n) 
 { 
+  std::cout << "[ Input : '" << str << "' ]" << std::endl ;
+
   // creat empty 2-D matrix that counts all palindrome 
   // substring. dp[i][j] stores counts of palindromic 
   // substrings in st[i..j] 
-  int dp[n][n]; 
+  int32_t dp[n][n]; 
   std::memset(dp, 0, sizeof(dp)); 
 
   // P[i][j] = true if substring str[i..j] is palindrome, 
   // else false 
   bool P[n][n]; 
   std::memset(P, false , sizeof(P)); 
+
+  for (int i=0; i<n; i++) 
+  {
+    for( int j=0 ; j<n ; ++j )
+      dp[ i ][ j ] = i+j ;
+  }
+
+  std::cout << "-------------------------------------" << std::endl ;
+  std::cout << "  [ Init ]" << std::endl ;
+  show_array( reinterpret_cast<int32_t *>(dp), n ) ;
 
   // palindrome of single lenght 
   for (int i= 0; i< n; i++) 
@@ -31,6 +63,9 @@ int count_palidromic_substrings(const char * str, int n)
         dp[i][i+1] = 1 ; 
     } 
   } 
+  std::cout << "-------------------------------------" << std::endl ;
+  std::cout << "  [ Post 2 ]" << std::endl ;
+  show_array( reinterpret_cast<int32_t *>(&dp), n ) ;
 
   // Palindromes of length more than 2. This loop is similar 
   // to Matrix Chain Multiplication. We start with a gap of 
@@ -57,6 +92,9 @@ int count_palidromic_substrings(const char * str, int n)
         else
             dp[i][j] = dp[i][j-1] + dp[i+1][j] - dp[i+1][j-1]; 
     } 
+    std::cout << "-------------------------------------" << std::endl ;
+    std::cout << "  [ Post " << gap + 1 << " ]" << std::endl ;
+    show_array( reinterpret_cast<int32_t *>(&dp), n ) ;
   } 
 
   // return total palindromic substrings 
