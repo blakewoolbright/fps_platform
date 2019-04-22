@@ -78,13 +78,6 @@ OPTIONS
         -l, --linkage  [ shared | static ]
             Specify an alternate library linkage format.  By default, static linkage is assumed.
 
-        --ninja
-            Use ninja instead of make.  If the previous run of ${SCRIPT_NAME} didn't
-            include this option then you must provide the --regenerate option
-            and remove all old copies of CMakeCache.txt.  This can be done
-            easily using 'find . -name CMakeCache.txt | xargs rm'.  These are
-            also necessary when switching back from ninja to make.
-
         -c, --clean
             Remove previously build targets and build intermediates.
 
@@ -145,7 +138,6 @@ ARG_ENV=
 ARG_ENV_DIRS=
 ARG_BAMBOO=
 ARG_RUN_TESTS=
-ARG_NINJA=
 ARG_EDIT_PLAN=
 ARG_VERSION=
 ARG_INSTALL=
@@ -574,8 +566,8 @@ if [[ ! -z ${ARG_CLEAN} ]] ; then
   
   # Clean build info file
   if [[ -f ${FPS_BUILD_INFO_FILE} ]] ; then 
-    [[ ${ARG_VERBOSE} -gt 0 ]] && echo "[ ${SCRIPT_NAME} ] :: Removing build info file" 
-    rm -f /home/bwoolbright/dev/fps_platform/build/master.debug.shared/fps_build_info.o 1>&2 
+    [[ ${ARG_VERBOSE} -gt 0 ]] && echo "[ ${SCRIPT_NAME} ] :: Removing build info file '${FPS_BUILD_INFO_FILE}'" 
+    rm -f ${FPS_BUILD_INFO_FILE}
   fi
     
   ( ${MAKE_CMD} )

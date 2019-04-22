@@ -193,14 +193,11 @@ for component_dir in `echo "${COMPONENTS_LIST}"` ; do
   fi
 
   if [[ -z ${COMPONENT_PATH} ]] ; then 
-    echo "" 2>&1
-    echo "[ ${SCRIPT_NAME} ] :: ERROR :: 'COMPONENT_PATH' missing from '${COMPONENTS_ROOT}/${component_dir}/${COMPONENT_CFG}'" 2>&1
-    echo "" 2>&1
-    exit 1
+    echo "[ ${SCRIPT_NAME} ] :: WARN  :: 'COMPONENT_PATH' missing from '${COMPONENTS_ROOT}/${component_dir}/${COMPONENT_CFG}'"
   fi
 
   if [[ -z ${COMPONENT_DESCRIPTION} ]] ; then 
-    COMPONENT_DESCRIPTION="${COMPONENT_NAME} version: ${COMPONENT_PATH}"
+    COMPONENT_DESCRIPTION="${COMPONENT_NAME} v${COMPONENT_VERSION}"
   fi 
 
   echo ""
@@ -208,7 +205,9 @@ for component_dir in `echo "${COMPONENTS_LIST}"` ; do
   echo "|--[ Component Config ] => [ ${COMPONENTS_ROOT}/${component_dir}/${COMPONENT_CFG} ]"
   echo "|--[ Label            ] => [ ${COMPONENT_LABEL} ]"
   echo "|--[ Description      ] => [ ${COMPONENT_DESCRIPTION} ]"
-  echo "|--[ Path             ] => [ ${COMPONENT_PATH} ]"
+  if [[ ! -z ${COMPONENT_PATH} ]] ; then 
+    echo "|--[ Path             ] => [ ${COMPONENT_PATH} ]"
+  fi
 
   #
   # Import locations of component header files and build cmake style list for build module.
@@ -280,7 +279,7 @@ for component_dir in `echo "${COMPONENTS_LIST}"` ; do
   #
   # Copy compiled library binaries to common linkage directory and build list of library filenames
   #
-  [[ -z ${COMPONENT_LIBRARY_DIRS} && -d ${COMPONENT_PATH}/lib ]] && export COMPONENT_LIBRARY_DIRS="${COMPONENT_PATH}/lib"
+  [[ ! -z ${COMPONENT_PATH} && -z ${COMPONENT_LIBRARY_DIRS} && -d ${COMPONENT_PATH}/lib ]] && export COMPONENT_LIBRARY_DIRS="${COMPONENT_PATH}/lib"
   if [[ ! -z ${COMPONENT_LIBRARY_DIRS} ]] ; then 
     for lib_dir in `echo ${COMPONENT_LIBRARY_DIRS}` ; do 
       if [[ ! -d ${lib_dir} ]] ; then continue ; fi 
