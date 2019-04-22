@@ -182,9 +182,14 @@ if( IS_DIRECTORY /usr/lib/x86_64-linux-gnu )
   list( APPEND FPS_LIB_RUNTIME_PATHS    /usr/lib/x86_64-linux-gnu )
 endif()
 
+if( IS_DIRECTORY /usr/include ) 
+  # list( APPEND FPS_SYSTEM_INCLUDE_DIRS /usr/include )
+  list( APPEND FPS_COMMON_INCLUDE_DIRS /usr/include )
+endif()
+
 if( IS_DIRECTORY /usr/include/x86_64-linux-gnu )
   list( APPEND FPS_COMMON_INCLUDE_DIRS /usr/include/x86_64-linux-gnu )
-  list( APPEND FPS_SYSTEM_INCLUDE_DIRS /usr/include/x86_64-linux-gnu )
+  # list( APPEND FPS_SYSTEM_INCLUDE_DIRS /usr/include/x86_64-linux-gnu )
 endif()
 
 list( APPEND FPS_LIB_SEARCH_PATHS ${FPS_LIB_RUNTIME_PATHS} )
