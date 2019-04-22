@@ -13,7 +13,8 @@ fps_add_application(
 )
 
 add_subdirectory( fps_net ) 
-add_subdirectory( cubist.fib ) 
+# add_subdirectory( cubist.fib ) 
+add_subdirectory( atlassian )
 
 if( False ) 
     fps_add_application( 
