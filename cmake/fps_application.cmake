@@ -268,13 +268,13 @@ function( fps_add_application )
     # Register with CTest
     #
     if( ARG_UNIT_TEST ) 
+      set( test__name ${ARG_NAME} )
       set( test__results_dir   ${FPS_ROOT_DIR}/test_results ) 
       set( test__results_file "${test__results_dir}/${test__name}.${FPS_BUILD_TYPE}.xml" ) 
 
-      add_test( 
-        ${test__name} 
-        ${FPS_SCRIPTS_DIR}/run_unit_test.sh --binary ${EXECUTABLE_OUTPUT_PATH}/${test__name}
-      ) 
+      # ${FPS_SCRIPTS_DIR}/run_unit_test.sh --binary ${EXECUTABLE_OUTPUT_PATH}/${test__name}
+      add_test( NAME ${test__name} COMMAND ${FPS_SCRIPTS_DIR}/run_unit_test.sh --binary ${FPS_BIN_DIR}/${test__name} )
+
     endif() 
 
     #
